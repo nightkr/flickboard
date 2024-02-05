@@ -1,6 +1,7 @@
 package se.nullable.flickboard
 
 import android.inputmethodservice.InputMethodService
+import android.os.Build
 import android.view.View
 import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
@@ -32,10 +33,14 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
-        currentInputConnection.requestCursorUpdates(
-            InputConnection.CURSOR_UPDATE_MONITOR,
-            InputConnection.CURSOR_UPDATE_FILTER_EDITOR_BOUNDS
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            currentInputConnection.requestCursorUpdates(
+                InputConnection.CURSOR_UPDATE_MONITOR,
+                InputConnection.CURSOR_UPDATE_FILTER_EDITOR_BOUNDS
+            )
+        } else {
+            currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_MONITOR)
+        }
     }
 
     override fun onCreateInputView(): View {
