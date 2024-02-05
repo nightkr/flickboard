@@ -89,7 +89,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         val newPos = currentPos + findBoundary(
                                             action.boundary,
                                             action.direction
-                                        )
+                                        ) * when (action.direction) {
+                                            SearchDirection.Backwards -> -1
+                                            SearchDirection.Forwards -> 1
+                                        }
                                         currentInputConnection.setSelection(newPos, newPos)
                                     }
 
