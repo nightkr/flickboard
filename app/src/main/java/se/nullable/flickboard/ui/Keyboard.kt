@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layout
+import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 
 @Composable
@@ -23,12 +24,17 @@ fun Keyboard(
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
 ) {
+    var shiftState: ShiftState by remember { mutableStateOf(ShiftState.Normal) }
     val shiftLayer = layout.shiftLayer.mergeFallback(layout.numericLayer)
     val mainLayer = layout.mainLayer.mergeFallback(layout.numericLayer).mergeShift(shiftLayer)
-    var layer = layout.numericLayer ?: mainLayer
+    val activeLayer = when {
+        shiftState.isShifted -> shiftLayer
+        else -> mainLayer
+    }
+    var layer = layout.numericLayer ?: activeLayer
     layout.controlLayer?.let { layer = layer.chain(it.mergeShift(it.autoShift())) }
     if (layout.numericLayer != null) {
-        layer = layer.chain(mainLayer.mergeFallback(layout.numericLayer))
+        layer = layer.chain(activeLayer.mergeFallback(layout.numericLayer))
     }
     val columns = layer.keyRows.maxOf { row -> row.sumOf { it.colspan } }
     BoxWithConstraints(modifier) {
@@ -39,7 +45,13 @@ fun Keyboard(
                     row.forEach { key ->
                         Key(
                             key,
-                            onAction = onAction,
+                            onAction = { action ->
+                                shiftState = when (action) {
+                                    is Action.Shift -> action.state
+                                    else -> shiftState.next()
+                                }
+                                onAction(action)
+                            },
                             modifier = Modifier.width(columnWidth * key.colspan),
                             enterKeyLabel = enterKeyLabel
                         )

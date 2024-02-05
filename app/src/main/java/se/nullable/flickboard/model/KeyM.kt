@@ -83,6 +83,17 @@ sealed class Action {
     }
 
     data class Jump(val amount: Int, override val label: String) : Action()
+
+    data class Shift(val state: ShiftState): Action() {
+        override val label: String = "SHIFT"
+
+        override fun shift(): Action {
+            return when(state) {
+                ShiftState.Shift -> copy(state = ShiftState.CapsLock)
+                else -> return this
+            }
+        }
+    }
 }
 
 enum class Direction {

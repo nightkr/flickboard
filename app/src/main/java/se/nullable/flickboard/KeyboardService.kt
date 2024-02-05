@@ -110,6 +110,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             currentPos + action.amount
                                         )
                                     }
+
+                                    is Action.Shift -> {
+                                        // handled internally in Keyboard
+                                    }
                                 }
                             },
                             enterKeyLabel = currentInputEditorInfo.actionLabel?.toString()
