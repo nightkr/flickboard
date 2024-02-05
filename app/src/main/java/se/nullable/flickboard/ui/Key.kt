@@ -89,8 +89,12 @@ private suspend fun AwaitPointerEventScope.awaitGesture(): Gesture? {
     val positions = mutableListOf<Offset>()
     var mostExtremePosFromDown = Offset(0F, 0F)
     while (true) {
-        val event = awaitPointerEvent()
-        for (change in event.changes) {
+        val event =
+            withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { awaitPointerEvent() }
+        if (event == null && !isDragging) {
+            return Gesture(Direction.CENTER, forceFallback = true, shift = false)
+        }
+        for (change in event?.changes ?: emptyList()) {
             if (change.isConsumed) {
                 return null
             }
