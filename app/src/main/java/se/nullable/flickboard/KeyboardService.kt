@@ -62,11 +62,17 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         currentInputConnection.commitText(action.character, 1)
 
                                     is Action.Delete -> {
-                                        val length = findBoundary(action.boundary, action.direction)
-                                        currentInputConnection.deleteSurroundingText(
-                                            if (action.direction == SearchDirection.Backwards) length else 0,
-                                            if (action.direction == SearchDirection.Forwards) length else 0,
-                                        )
+                                        if (cursor?.selectionStart != cursor?.selectionEnd) {
+                                            // if selection is non-empty, delete it regardless of the mode requested by the user
+                                            currentInputConnection.commitText("", 0)
+                                        } else {
+                                            val length =
+                                                findBoundary(action.boundary, action.direction)
+                                            currentInputConnection.deleteSurroundingText(
+                                                if (action.direction == SearchDirection.Backwards) length else 0,
+                                                if (action.direction == SearchDirection.Forwards) length else 0,
+                                            )
+                                        }
                                     }
 
                                     is Action.Enter -> {
