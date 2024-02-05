@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,17 +18,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.PointerInputChange
-import androidx.compose.ui.input.pointer.changedToUp
+import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Direction
+import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
+import kotlin.math.absoluteValue
 import kotlin.math.atan2
 import kotlin.math.roundToInt
 
@@ -41,34 +42,18 @@ fun Key(key: KeyM, onAction: (Action) -> Unit, modifier: Modifier = Modifier) {
             .border(0.dp, Color.Black)
             .pointerInput(key) {
                 awaitEachGesture {
-                    val down = awaitFirstDown()
-                    down.consume()
-                    val up = awaitUp()
-                    if (up != null) {
-                        up.consume()
-                        val diff = up.position - down.position
-                        val direction = if (diff.getDistance() < viewConfiguration.touchSlop) {
-                            Direction.CENTER
-                        } else {
-                            val angle = atan2(diff.y, diff.x)
-                            val slice = (angle * 4 / Math.PI)
-                                .roundToInt()
-                                .mod(8)
-                            when (slice) {
-                                0 -> Direction.RIGHT
-                                1 -> Direction.BOTTOM_RIGHT
-                                2 -> Direction.BOTTOM
-                                3 -> Direction.BOTTOM_LEFT
-                                4 -> Direction.LEFT
-                                5 -> Direction.TOP_LEFT
-                                6 -> Direction.TOP
-                                7 -> Direction.TOP_RIGHT
-                                else -> null
-                            }
+                    awaitGesture()?.let { gesture ->
+//                        println(gesture)
+                        var appliedKey: KeyM? = key
+                        if (gesture.forceFallback) {
+                            appliedKey = appliedKey?.fallback
                         }
-                        key.actions[direction]?.let(onAction)
-                    } else {
-                        println("cancelled")
+                        if (gesture.shift) {
+                            appliedKey = appliedKey?.shift
+                        }
+                        appliedKey?.actions
+                            ?.get(gesture.direction)
+                            ?.let(onAction)
                     }
                 }
             }
@@ -97,39 +82,106 @@ fun Key(key: KeyM, onAction: (Action) -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-private suspend fun AwaitPointerEventScope.awaitUp(pass: PointerEventPass = PointerEventPass.Main): PointerInputChange? {
+private suspend fun AwaitPointerEventScope.awaitGesture(): Gesture? {
+    val down = awaitFirstDown()
+    down.consume()
+    var isDragging = false
+    val positions = mutableListOf<Offset>()
+    var mostExtremePosFromDown = Offset(0F, 0F)
     while (true) {
-        val event = awaitPointerEvent(pass)
-        val change = event.changes.findLast { it.changedToUp() }
-        if (change != null) {
-            return change
+        val event = awaitPointerEvent()
+        for (change in event.changes) {
+            if (change.isConsumed) {
+                return null
+            }
+            positions.add(change.position)
+            val posFromDown = change.position - down.position
+            if (!isDragging) {
+                if (posFromDown.getDistance() > viewConfiguration.touchSlop) {
+                    isDragging = true
+                }
+            }
+            if (isDragging) {
+                change.consume()
+            }
+            if (posFromDown.getDistanceSquared() > mostExtremePosFromDown.getDistanceSquared()) {
+                mostExtremePosFromDown = posFromDown
+            }
+            if (change.changedToUpIgnoreConsumed()) {
+                change.position - down.position
+                var isRound = false
+                val direction = if (!isDragging) {
+                    Direction.CENTER
+                } else if (shapeLooksRound(positions)) {
+                    isRound = true
+                    Direction.CENTER
+                } else {
+                    val angle = atan2(mostExtremePosFromDown.y, mostExtremePosFromDown.x)
+                    val slice = (angle * 4 / Math.PI)
+                        .roundToInt()
+                        .mod(8)
+                    when (slice) {
+                        0 -> Direction.RIGHT
+                        1 -> Direction.BOTTOM_RIGHT
+                        2 -> Direction.BOTTOM
+                        3 -> Direction.BOTTOM_LEFT
+                        4 -> Direction.LEFT
+                        5 -> Direction.TOP_LEFT
+                        6 -> Direction.TOP
+                        7 -> Direction.TOP_RIGHT
+                        else -> return null
+                    }
+                }
+                change.consume()
+                return Gesture(
+                    direction = direction,
+                    forceFallback = false,
+                    // shift if swipe is more than halfway to returned from the starting position (U shape)
+                    shift = // posFromDown.getDistance() / mostExtremePosFromDown.getDistance() < 0.5 ||
+                    isRound || (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremePosFromDown.getDistanceSquared() / 4,
+                )
+            }
         }
     }
 }
+
+private fun shapeLooksRound(points: List<Offset>): Boolean {
+    val midPoint = Offset(
+        x = points.averageOf { it.x },
+        y = points.averageOf { it.y },
+    )
+    val radiuses = points.map { (it - midPoint).getDistanceSquared() }
+    val averageRadius = radiuses.averageOf { it }
+    val jaggedness = radiuses.averageOf { (it - averageRadius).absoluteValue } / averageRadius
+    return jaggedness < 0.5
+}
+
+private inline fun <T> List<T>.averageOf(f: (T) -> Float): Float =
+    (sumOf { f(it).toDouble() } / size).toFloat()
 
 @Composable
 @Preview
 fun KeyPreview() {
     var lastAction by remember { mutableStateOf<Action?>(null) }
     Column {
-        Row {
-            Text(text = "Tapped: $lastAction")
+        Text(text = "Tapped: $lastAction")
+        Row(Modifier.width(100.dp)) {
+            Key(
+                KeyM(
+                    actions = mapOf(
+                        Direction.TOP_LEFT to Action.Text(character = "A"),
+                        Direction.TOP to Action.Text(character = "B"),
+                        Direction.TOP_RIGHT to Action.Text(character = "C"),
+                        Direction.LEFT to Action.Text(character = "D"),
+                        Direction.CENTER to Action.Text(character = "E"),
+                        Direction.RIGHT to Action.Text(character = "F"),
+                        Direction.BOTTOM_LEFT to Action.Text(character = "G"),
+                        Direction.BOTTOM to Action.Text(character = "H"),
+                        Direction.BOTTOM_RIGHT to Action.Text(character = "I"),
+                    )
+                ),
+                onAction = { lastAction = it }
+            )
         }
-        Key(
-            KeyM(
-                actions = mapOf(
-                    Direction.TOP_LEFT to Action.Text(character = "A"),
-                    Direction.TOP to Action.Text(character = "B"),
-                    Direction.TOP_RIGHT to Action.Text(character = "C"),
-                    Direction.LEFT to Action.Text(character = "D"),
-                    Direction.CENTER to Action.Text(character = "E"),
-                    Direction.RIGHT to Action.Text(character = "F"),
-                    Direction.BOTTOM_LEFT to Action.Text(character = "G"),
-                    Direction.BOTTOM to Action.Text(character = "H"),
-                    Direction.BOTTOM_RIGHT to Action.Text(character = "I"),
-                )
-            ),
-            onAction = { lastAction = it }
-        )
     }
 }

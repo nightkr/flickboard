@@ -18,10 +18,12 @@ import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 
 @Composable
 fun Keyboard(layout: Layout, onAction: (Action) -> Unit, modifier: Modifier = Modifier) {
-    var layer = layout.numericLayer ?: layout.mainLayer
+    val shiftLayer = layout.shiftLayer.mergeFallback(layout.numericLayer)
+    val mainLayer = layout.mainLayer.mergeFallback(layout.numericLayer).mergeShift(shiftLayer)
+    var layer = layout.numericLayer ?: mainLayer
     layout.controlLayer?.let { layer = layer.chain(it) }
     if (layout.numericLayer != null) {
-        layer = layer.chain(layout.mainLayer.mergeFallback(layout.numericLayer))
+        layer = layer.chain(mainLayer.mergeFallback(layout.numericLayer))
     }
     val columns = layer.keyRows.maxOf { row -> row.sumOf { it.colspan } }
     BoxWithConstraints(modifier) {
