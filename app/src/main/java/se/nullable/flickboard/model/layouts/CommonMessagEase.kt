@@ -11,13 +11,14 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
+import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.ui.Keyboard
 
 val SPACE = KeyM(
     actions = mapOf(
         Direction.CENTER to Action.Text(" "),
-        Direction.LEFT to Action.Jump(amount = -1, "<-"),
-        Direction.RIGHT to Action.Jump(amount = 1, "->"),
+        Direction.LEFT to Action.Jump(direction = SearchDirection.Backwards, label = "<-"),
+        Direction.RIGHT to Action.Jump(direction = SearchDirection.Forwards, label = "->"),
     ),
     colspan = 3
 )
@@ -43,7 +44,7 @@ val COMMON_MESSAGEASE_LAYER =
                 KeyM(
                     actions = mapOf(
                         Direction.CENTER to Action.Delete(),
-                        Direction.RIGHT to Action.Delete(direction = Action.Delete.Direction.Forwards)
+                        Direction.RIGHT to Action.Delete(direction = SearchDirection.Forwards)
                     )
                 )
             ),

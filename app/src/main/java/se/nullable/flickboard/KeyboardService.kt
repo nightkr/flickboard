@@ -7,6 +7,7 @@ import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -17,6 +18,8 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.model.SearchDirection
+import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import se.nullable.flickboard.ui.Keyboard
 import se.nullable.flickboard.ui.theme.FlickBoardTheme
@@ -59,32 +62,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         currentInputConnection.commitText(action.character, 1)
 
                                     is Action.Delete -> {
-                                        val length = when (action.amount) {
-                                            Action.Delete.Amount.Letter -> 1
-                                            Action.Delete.Amount.Word -> {
-                                                val searchBufferSize = 1000
-                                                val searchBuffer = when (action.direction) {
-                                                    Action.Delete.Direction.Backwards -> currentInputConnection.getTextBeforeCursor(
-                                                        searchBufferSize,
-                                                        0
-                                                    )?.reversed()
-
-                                                    Action.Delete.Direction.Forwards -> currentInputConnection.getTextAfterCursor(
-                                                        searchBufferSize,
-                                                        0
-                                                    )
-                                                } ?: ""
-                                                val initialSpaces =
-                                                    searchBuffer.takeWhile { it == ' ' }.length
-                                                val wordBoundaryIndex =
-                                                    searchBuffer.indexOf(' ', initialSpaces)
-                                                        .takeUnless { it == -1 }
-                                                wordBoundaryIndex ?: searchBuffer.length
-                                            }
-                                        }
+                                        val length = findBoundary(action.boundary, action.direction)
                                         currentInputConnection.deleteSurroundingText(
-                                            if (action.direction == Action.Delete.Direction.Backwards) length else 0,
-                                            if (action.direction == Action.Delete.Direction.Forwards) length else 0,
+                                            if (action.direction == SearchDirection.Backwards) length else 0,
+                                            if (action.direction == SearchDirection.Forwards) length else 0,
                                         )
                                     }
 
@@ -100,25 +81,33 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                     is Action.Jump -> {
                                         val currentPos = cursor?.let {
-                                            if (action.amount >= 0) {
-                                                it.selectionStart
-                                            } else {
-                                                it.selectionEnd
+                                            when (action.direction) {
+                                                SearchDirection.Backwards -> it.selectionStart
+                                                SearchDirection.Forwards -> it.selectionEnd
                                             }
                                         } ?: 0
-                                        currentInputConnection.setSelection(
-                                            currentPos + action.amount,
-                                            currentPos + action.amount
+                                        val newPos = currentPos + findBoundary(
+                                            action.boundary,
+                                            action.direction
                                         )
+                                        currentInputConnection.setSelection(newPos, newPos)
                                     }
 
                                     is Action.Shift -> {
                                         // handled internally in Keyboard
                                     }
 
-                                    Action.Copy -> currentInputConnection.performContextMenuAction(android.R.id.copy)
-                                    Action.Cut -> currentInputConnection.performContextMenuAction(android.R.id.cut)
-                                    Action.Paste -> currentInputConnection.performContextMenuAction(android.R.id.paste)
+                                    Action.Copy -> currentInputConnection.performContextMenuAction(
+                                        android.R.id.copy
+                                    )
+
+                                    Action.Cut -> currentInputConnection.performContextMenuAction(
+                                        android.R.id.cut
+                                    )
+
+                                    Action.Paste -> currentInputConnection.performContextMenuAction(
+                                        android.R.id.paste
+                                    )
                                 }
                             },
                             enterKeyLabel = currentInputEditorInfo.actionLabel?.toString()
@@ -126,6 +115,30 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                     }
                 }
             }
+        }
+    }
+
+    private fun findBoundary(boundary: TextBoundary, direction: SearchDirection) = when (boundary) {
+        TextBoundary.Letter -> 1
+        TextBoundary.Word -> {
+            val searchBufferSize = 1000
+            val searchBuffer = when (direction) {
+                SearchDirection.Backwards -> currentInputConnection.getTextBeforeCursor(
+                    searchBufferSize,
+                    0
+                )?.reversed()
+
+                SearchDirection.Forwards -> currentInputConnection.getTextAfterCursor(
+                    searchBufferSize,
+                    0
+                )
+            } ?: ""
+            val initialSpaces =
+                searchBuffer.takeWhile { it == ' ' }.length
+            val wordBoundaryIndex =
+                searchBuffer.indexOf(' ', initialSpaces)
+                    .takeUnless { it == -1 }
+            wordBoundaryIndex ?: searchBuffer.length
         }
     }
 

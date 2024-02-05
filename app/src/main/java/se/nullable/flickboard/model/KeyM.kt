@@ -60,35 +60,31 @@ sealed class Action {
     }
 
     data class Delete(
-        val direction: Direction = Direction.Backwards,
-        val amount: Amount = Amount.Letter,
+        val direction: SearchDirection = SearchDirection.Backwards,
+        val boundary: TextBoundary = TextBoundary.Letter,
     ) : Action() {
         override val label: String = "BKSPC"
 
-        enum class Amount {
-            Letter,
-            Word,
-        }
-
-        enum class Direction {
-            Backwards,
-            Forwards,
-        }
-
-        override fun shift(): Action = copy(amount = Amount.Word)
+        override fun shift(): Action = copy(boundary = TextBoundary.Word)
     }
 
     data object Enter : Action() {
         override val label: String = "ENTER"
     }
 
-    data class Jump(val amount: Int, override val label: String) : Action()
+    data class Jump(
+        val direction: SearchDirection,
+        val boundary: TextBoundary = TextBoundary.Letter,
+        override val label: String
+    ) : Action() {
+        override fun shift(): Action = copy(boundary = TextBoundary.Word)
+    }
 
-    data class Shift(val state: ShiftState): Action() {
+    data class Shift(val state: ShiftState) : Action() {
         override val label: String = "SHIFT"
 
         override fun shift(): Action {
-            return when(state) {
+            return when (state) {
                 ShiftState.Shift -> copy(state = ShiftState.CapsLock)
                 else -> return this
             }
@@ -98,12 +94,24 @@ sealed class Action {
     data object Cut : Action() {
         override val label: String = "CUT"
     }
+
     data object Copy : Action() {
         override val label: String = "COPY"
     }
+
     data object Paste : Action() {
         override val label: String = "PASTE"
     }
+}
+
+enum class TextBoundary {
+    Letter,
+    Word,
+}
+
+enum class SearchDirection {
+    Backwards,
+    Forwards,
 }
 
 enum class Direction {
