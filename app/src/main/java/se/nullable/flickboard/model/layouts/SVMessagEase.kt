@@ -82,7 +82,7 @@ val SV_MESSAGEASE_MAIN_LAYER = Layer(
                 )
             ),
         ),
-        listOf(SPACE, SPACE, SPACE)
+        listOf(SPACE)
     )
 )
 
@@ -95,5 +95,11 @@ val SV_MESSAGEASE = Layout(
 @Composable
 @Preview
 fun SvKeyboardPreview() {
+    Keyboard(layout = Layout(SV_MESSAGEASE_MAIN_LAYER), onAction = {})
+}
+
+@Composable
+@Preview
+fun SvFullKeyboardPreview() {
     Keyboard(layout = SV_MESSAGEASE, onAction = {})
 }

@@ -1,7 +1,9 @@
 package se.nullable.flickboard.ui
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,13 +21,21 @@ fun Keyboard(layout: Layout, onAction: (Action) -> Unit, modifier: Modifier = Mo
     var layer = layout.numericLayer ?: layout.mainLayer
     layout.controlLayer?.let { layer = layer.chain(it) }
     if (layout.numericLayer != null) {
-        layer = layer.chain(layout.numericLayer.merge(layout.mainLayer))
+        layer = layer.chain(layout.mainLayer.mergeFallback(layout.numericLayer))
     }
-    Column(modifier) {
-        layer.keyRows.forEach { row ->
-            Row {
-                row.forEach { key ->
-                    Key(key, onAction = onAction)
+    val columns = layer.keyRows.maxOf { row -> row.sumOf { it.colspan } }
+    BoxWithConstraints(modifier) {
+        val columnWidth = this.maxWidth / columns
+        Column {
+            layer.keyRows.forEach { row ->
+                Row {
+                    row.forEach { key ->
+                        Key(
+                            key,
+                            onAction = onAction,
+                            modifier = Modifier.width(columnWidth * key.colspan)
+                        )
+                    }
                 }
             }
         }

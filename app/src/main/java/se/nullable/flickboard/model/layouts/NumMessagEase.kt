@@ -101,9 +101,8 @@ val MESSAGEASE_NUMERIC_LAYER = Layer(
             ),
         ),
         listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("0"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("0"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("0"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("0")), colspan = 2),
+            SPACE.copy(colspan = 1)
         )
     )
 )

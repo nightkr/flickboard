@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
@@ -36,8 +37,8 @@ fun Key(key: KeyM, onAction: (Action) -> Unit, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .background(Color.White)
-            .size(72.dp)
-            .border(1.dp, Color.Black)
+            .aspectRatio(key.colspan.toFloat())
+            .border(0.dp, Color.Black)
             .pointerInput(key) {
                 awaitEachGesture {
                     val down = awaitFirstDown()

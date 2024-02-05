@@ -14,7 +14,8 @@ val SPACE = KeyM(
         Direction.CENTER to Action.Text(" "),
         Direction.LEFT to Action.Jump(amount = -1, "<-"),
         Direction.RIGHT to Action.Jump(amount = 1, "->"),
-    )
+    ),
+    colspan = 3
 )
 
 val COMMON_MESSAGEASE_LAYER =

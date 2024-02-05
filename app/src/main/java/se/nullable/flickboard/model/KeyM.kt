@@ -7,10 +7,10 @@ data class Layout(
 )
 
 data class Layer(val keyRows: List<List<KeyM>>) {
-    fun merge(other: Layer): Layer =
-        copy(keyRows = keyRows.zip(other.keyRows) { thisRow, otherRow ->
-            thisRow.zip(otherRow) { thisKey, otherKey ->
-                thisKey + otherKey
+    fun mergeFallback(fallback: Layer): Layer =
+        copy(keyRows = keyRows.zip(fallback.keyRows) { thisRow, fallbackRow ->
+            thisRow.zip(fallbackRow) { thisKey, fallbackKey ->
+                thisKey.mergeFallback(fallbackKey)
             }
         })
 
@@ -20,8 +20,8 @@ data class Layer(val keyRows: List<List<KeyM>>) {
         })
 }
 
-data class KeyM(val actions: Map<Direction, Action>) {
-    operator fun plus(other: KeyM): KeyM = copy(actions = actions + other.actions)
+data class KeyM(val actions: Map<Direction, Action>, val colspan: Int = 1) {
+    fun mergeFallback(fallback: KeyM): KeyM = copy(actions = fallback.actions + actions)
 }
 
 sealed class Action {
