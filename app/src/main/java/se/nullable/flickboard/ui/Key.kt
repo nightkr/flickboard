@@ -20,9 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import se.nullable.flickboard.model.Action
@@ -35,6 +37,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun Key(key: KeyM, onAction: (Action) -> Unit, modifier: Modifier = Modifier) {
+    val haptic = LocalHapticFeedback.current
     Box(
         modifier = modifier
             .background(Color.White)
@@ -53,7 +56,9 @@ fun Key(key: KeyM, onAction: (Action) -> Unit, modifier: Modifier = Modifier) {
                         }
                         appliedKey?.actions
                             ?.get(gesture.direction)
-                            ?.let(onAction)
+                            ?.let {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onAction(it)}
                     }
                 }
             }
