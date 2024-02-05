@@ -59,8 +59,23 @@ sealed class Action {
         }
     }
 
-    data object Backspace : Action() {
+    data class Delete(
+        val direction: Direction = Direction.Backwards,
+        val amount: Amount = Amount.Letter,
+    ) : Action() {
         override val label: String = "BKSPC"
+
+        enum class Amount {
+            Letter,
+            Word,
+        }
+
+        enum class Direction {
+            Backwards,
+            Forwards,
+        }
+
+        override fun shift(): Action = copy(amount = Amount.Word)
     }
 
     data object Enter : Action() {

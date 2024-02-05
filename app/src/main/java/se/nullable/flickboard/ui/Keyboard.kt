@@ -26,7 +26,7 @@ fun Keyboard(
     val shiftLayer = layout.shiftLayer.mergeFallback(layout.numericLayer)
     val mainLayer = layout.mainLayer.mergeFallback(layout.numericLayer).mergeShift(shiftLayer)
     var layer = layout.numericLayer ?: mainLayer
-    layout.controlLayer?.let { layer = layer.chain(it) }
+    layout.controlLayer?.let { layer = layer.chain(it.mergeShift(it.autoShift())) }
     if (layout.numericLayer != null) {
         layer = layer.chain(mainLayer.mergeFallback(layout.numericLayer))
     }

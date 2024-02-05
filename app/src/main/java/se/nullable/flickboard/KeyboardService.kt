@@ -58,8 +58,34 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     is Action.Text ->
                                         currentInputConnection.commitText(action.character, 1)
 
-                                    is Action.Backspace ->
-                                        currentInputConnection.deleteSurroundingText(1, 0)
+                                    is Action.Delete -> {
+                                        val length = when (action.amount) {
+                                            Action.Delete.Amount.Letter -> 1
+                                            Action.Delete.Amount.Word -> {
+                                                val searchBufferSize = 1000
+                                                val searchBuffer = when (action.direction) {
+                                                    Action.Delete.Direction.Backwards -> currentInputConnection.getTextBeforeCursor(
+                                                        searchBufferSize,
+                                                        0
+                                                    )?.reversed()
+
+                                                    Action.Delete.Direction.Forwards -> currentInputConnection.getTextAfterCursor(
+                                                        searchBufferSize,
+                                                        0
+                                                    )
+                                                } ?: ""
+                                                val initialSpaces =
+                                                    searchBuffer.takeWhile { it == ' ' }.length
+                                                val wordBoundaryIndex = searchBuffer.indexOf(' ', initialSpaces)
+                                                    .takeUnless { it == -1 }
+                                                wordBoundaryIndex ?: searchBuffer.length
+                                            }
+                                        }
+                                        currentInputConnection.deleteSurroundingText(
+                                            if (action.direction == Action.Delete.Direction.Backwards) length else 0,
+                                            if (action.direction == Action.Delete.Direction.Forwards) length else 0,
+                                        )
+                                    }
 
                                     is Action.Enter -> {
                                         if (currentInputEditorInfo.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
