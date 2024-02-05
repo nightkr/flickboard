@@ -36,7 +36,12 @@ import kotlin.math.atan2
 import kotlin.math.roundToInt
 
 @Composable
-fun Key(key: KeyM, onAction: (Action) -> Unit, modifier: Modifier = Modifier) {
+fun Key(
+    key: KeyM,
+    onAction: (Action) -> Unit,
+    modifier: Modifier = Modifier,
+    enterKeyLabel: String? = null
+) {
     val haptic = LocalHapticFeedback.current
     Box(
         modifier = modifier
@@ -58,14 +63,15 @@ fun Key(key: KeyM, onAction: (Action) -> Unit, modifier: Modifier = Modifier) {
                             ?.get(gesture.direction)
                             ?.let {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onAction(it)}
+                                onAction(it)
+                            }
                     }
                 }
             }
     ) {
         key.actions.forEach { (direction, action) ->
             Text(
-                text = action.label,
+                text = enterKeyLabel.takeIf { action is Action.Enter } ?: action.label,
                 color = Color.Black,
                 modifier = Modifier
                     .padding(horizontal = 2.dp)

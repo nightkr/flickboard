@@ -47,40 +47,42 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
             view.setContent {
                 FlickBoardTheme {
                     Surface {
-                        Keyboard(layout = SV_MESSAGEASE, onAction = { action ->
-                            when (action) {
-                                is Action.Text ->
-                                    currentInputConnection.commitText(action.character, 1)
+                        Keyboard(
+                            layout = SV_MESSAGEASE, onAction = { action ->
+                                when (action) {
+                                    is Action.Text ->
+                                        currentInputConnection.commitText(action.character, 1)
 
-                                is Action.Backspace ->
-                                    currentInputConnection.deleteSurroundingText(1, 0)
+                                    is Action.Backspace ->
+                                        currentInputConnection.deleteSurroundingText(1, 0)
 
-                                is Action.Enter -> {
-                                    val actionId = currentInputEditorInfo.actionId
-                                    if (currentInputEditorInfo.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
-                                        currentInputConnection.commitText("\n", 1)
-                                    } else {
-                                        currentInputConnection.performEditorAction(
-                                            currentInputEditorInfo.actionId
+                                    is Action.Enter -> {
+                                        if (currentInputEditorInfo.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
+                                            currentInputConnection.commitText("\n", 1)
+                                        } else {
+                                            currentInputConnection.performEditorAction(
+                                                currentInputEditorInfo.actionId
+                                            )
+                                        }
+                                    }
+
+                                    is Action.Jump -> {
+                                        val currentPos = cursor?.let {
+                                            if (action.amount >= 0) {
+                                                it.selectionStart
+                                            } else {
+                                                it.selectionEnd
+                                            }
+                                        } ?: 0
+                                        currentInputConnection.setSelection(
+                                            currentPos + action.amount,
+                                            currentPos + action.amount
                                         )
                                     }
                                 }
-
-                                is Action.Jump -> {
-                                    val currentPos = cursor?.let {
-                                        if (action.amount >= 0) {
-                                            it.selectionStart
-                                        } else {
-                                            it.selectionEnd
-                                        }
-                                    } ?: 0
-                                    currentInputConnection.setSelection(
-                                        currentPos + action.amount,
-                                        currentPos + action.amount
-                                    )
-                                }
-                            }
-                        })
+                            },
+                            enterKeyLabel = currentInputEditorInfo.actionLabel?.toString()
+                        )
                     }
                 }
             }

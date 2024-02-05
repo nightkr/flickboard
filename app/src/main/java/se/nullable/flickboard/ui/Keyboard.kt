@@ -17,7 +17,12 @@ import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 
 @Composable
-fun Keyboard(layout: Layout, onAction: (Action) -> Unit, modifier: Modifier = Modifier) {
+fun Keyboard(
+    layout: Layout,
+    onAction: (Action) -> Unit,
+    modifier: Modifier = Modifier,
+    enterKeyLabel: String? = null,
+) {
     val shiftLayer = layout.shiftLayer.mergeFallback(layout.numericLayer)
     val mainLayer = layout.mainLayer.mergeFallback(layout.numericLayer).mergeShift(shiftLayer)
     var layer = layout.numericLayer ?: mainLayer
@@ -35,7 +40,8 @@ fun Keyboard(layout: Layout, onAction: (Action) -> Unit, modifier: Modifier = Mo
                         Key(
                             key,
                             onAction = onAction,
-                            modifier = Modifier.width(columnWidth * key.colspan)
+                            modifier = Modifier.width(columnWidth * key.colspan),
+                            enterKeyLabel = enterKeyLabel
                         )
                     }
                 }
