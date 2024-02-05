@@ -76,8 +76,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 } ?: ""
                                                 val initialSpaces =
                                                     searchBuffer.takeWhile { it == ' ' }.length
-                                                val wordBoundaryIndex = searchBuffer.indexOf(' ', initialSpaces)
-                                                    .takeUnless { it == -1 }
+                                                val wordBoundaryIndex =
+                                                    searchBuffer.indexOf(' ', initialSpaces)
+                                                        .takeUnless { it == -1 }
                                                 wordBoundaryIndex ?: searchBuffer.length
                                             }
                                         }
@@ -114,6 +115,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     is Action.Shift -> {
                                         // handled internally in Keyboard
                                     }
+
+                                    Action.Copy -> currentInputConnection.performContextMenuAction(android.R.id.copy)
+                                    Action.Cut -> currentInputConnection.performContextMenuAction(android.R.id.cut)
+                                    Action.Paste -> currentInputConnection.performContextMenuAction(android.R.id.paste)
                                 }
                             },
                             enterKeyLabel = currentInputEditorInfo.actionLabel?.toString()

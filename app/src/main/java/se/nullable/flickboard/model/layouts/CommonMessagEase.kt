@@ -28,7 +28,16 @@ val COMMON_MESSAGEASE_LAYER =
             // pointer
             listOf(KeyM(actions = mapOf())),
             // clipboard
-            listOf(KeyM(actions = mapOf())),
+            listOf(
+                KeyM(
+                    actions = mapOf(
+                        Direction.TOP_LEFT to Action.Cut,
+                        Direction.TOP to Action.Copy,
+                        Direction.TOP_RIGHT to Action.Cut,
+                        Direction.BOTTOM to Action.Paste,
+                    )
+                )
+            ),
             // backspace
             listOf(
                 KeyM(

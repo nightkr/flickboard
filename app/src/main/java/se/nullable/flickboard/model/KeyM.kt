@@ -94,6 +94,16 @@ sealed class Action {
             }
         }
     }
+
+    data object Cut : Action() {
+        override val label: String = "CUT"
+    }
+    data object Copy : Action() {
+        override val label: String = "COPY"
+    }
+    data object Paste : Action() {
+        override val label: String = "PASTE"
+    }
 }
 
 enum class Direction {
