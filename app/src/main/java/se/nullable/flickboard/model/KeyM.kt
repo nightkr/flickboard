@@ -39,6 +39,8 @@ data class Layer(val keyRows: List<List<KeyM>>) {
 
 data class KeyM(
     val actions: Map<Direction, Action>,
+    // Fast actions are performed immediately when detected, rather than when the finger is released.
+    val fastActions: Map<Direction, Action> = mapOf(),
     val colspan: Int = 1,
     val fallback: KeyM? = null,
     val shift: KeyM? = null

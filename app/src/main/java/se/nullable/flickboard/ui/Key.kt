@@ -27,6 +27,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,6 +54,10 @@ fun Key(
     val showLetters = settings.showLetters.state.value
     val showSymbols = settings.showSymbols.state.value
     val showNumbers = settings.showNumbers.state.value
+    val handleAction = { action: Action ->
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        onAction(action)
+    }
     Box(
         modifier = modifier
             .background(MaterialTheme.colorScheme.primaryContainer)
@@ -60,7 +65,10 @@ fun Key(
             .border(0.dp, MaterialTheme.colorScheme.surface)
             .pointerInput(key) {
                 awaitEachGesture {
-                    awaitGesture()?.let { gesture ->
+                    awaitGesture(
+                        fastActions = key.fastActions,
+                        onFastAction = handleAction
+                    )?.let { gesture ->
 //                        println(gesture)
                         var appliedKey: KeyM? = key
                         if (gesture.forceFallback) {
@@ -71,10 +79,7 @@ fun Key(
                         }
                         appliedKey?.actions
                             ?.get(gesture.direction)
-                            ?.let {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onAction(it)
-                            }
+                            ?.let(handleAction)
                     }
                 }
             }
@@ -129,12 +134,20 @@ fun Key(
     }
 }
 
-private suspend fun AwaitPointerEventScope.awaitGesture(): Gesture? {
+private suspend fun AwaitPointerEventScope.awaitGesture(
+    fastActions: Map<Direction, Action>,
+    onFastAction: (Action) -> Unit
+): Gesture? {
     val down = awaitFirstDown()
     down.consume()
     var isDragging = false
+    var fastActionPerformed = false
     val positions = mutableListOf<Offset>()
     var mostExtremePosFromDown = Offset(0F, 0F)
+    var fastActionTraveled = Offset(0F, 0F)
+    // touchSlop is calibrated to distinguish between a tap and a drag, but
+    // ends up still being too short to comfortably distinguish between individual "ticks"
+    val fastActionSlop = viewConfiguration.touchSlop * 2
     while (true) {
         val event =
             withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { awaitPointerEvent() }
@@ -152,13 +165,16 @@ private suspend fun AwaitPointerEventScope.awaitGesture(): Gesture? {
                     isDragging = true
                 }
             }
-            if (isDragging) {
-                change.consume()
-            }
             if (posFromDown.getDistanceSquared() > mostExtremePosFromDown.getDistanceSquared()) {
                 mostExtremePosFromDown = posFromDown
             }
             if (change.changedToUpIgnoreConsumed()) {
+                change.consume()
+                // If fast action was performed then the user is presumably already happy with the
+                // state when they release, so suppress the release action.
+                if (fastActionPerformed) {
+                    return null
+                }
                 change.position - down.position
                 var isRound = false
                 val direction = if (!isDragging) {
@@ -167,32 +183,48 @@ private suspend fun AwaitPointerEventScope.awaitGesture(): Gesture? {
                     isRound = true
                     Direction.CENTER
                 } else {
-                    val angle = atan2(mostExtremePosFromDown.y, mostExtremePosFromDown.x)
-                    val slice = (angle * 4 / Math.PI)
-                        .roundToInt()
-                        .mod(8)
-                    when (slice) {
-                        0 -> Direction.RIGHT
-                        1 -> Direction.BOTTOM_RIGHT
-                        2 -> Direction.BOTTOM
-                        3 -> Direction.BOTTOM_LEFT
-                        4 -> Direction.LEFT
-                        5 -> Direction.TOP_LEFT
-                        6 -> Direction.TOP
-                        7 -> Direction.TOP_RIGHT
-                        else -> return null
-                    }
+                    mostExtremePosFromDown.direction()
                 }
-                change.consume()
                 return Gesture(
                     direction = direction,
                     forceFallback = false,
-                    // shift if swipe is more than halfway to returned from the starting position (U shape)
-                    shift = // posFromDown.getDistance() / mostExtremePosFromDown.getDistance() < 0.5 ||
-                    isRound || (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremePosFromDown.getDistanceSquared() / 4,
+                    // shift if swipe is more than halfway to returned from the starting position (U shape),
+                    // or a circle
+                    shift = isRound ||
+                            (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremePosFromDown.getDistanceSquared() / 4,
                 )
+            } else {
+                val posChange = change.positionChange()
+                fastActionTraveled += posChange
+                val fastActionCount = fastActionTraveled.getDistance() / fastActionSlop
+                if (fastActionCount >= 1) {
+                    val direction = posChange.direction()
+                    fastActions[direction]?.let {
+                        fastActionPerformed = true
+                        fastActionTraveled = Offset(0F, 0F)
+                        onFastAction(it)
+                    }
+                }
             }
         }
+    }
+}
+
+private fun Offset.direction(): Direction {
+    val angle = atan2(y, x)
+    val slice = (angle * 4 / Math.PI)
+        .roundToInt()
+        .mod(8)
+    return when (slice) {
+        0 -> Direction.RIGHT
+        1 -> Direction.BOTTOM_RIGHT
+        2 -> Direction.BOTTOM
+        3 -> Direction.BOTTOM_LEFT
+        4 -> Direction.LEFT
+        5 -> Direction.TOP_LEFT
+        6 -> Direction.TOP
+        7 -> Direction.TOP_RIGHT
+        else -> throw RuntimeException("Offset has invalid direction slice=$slice (angle=$angle)")
     }
 }
 
