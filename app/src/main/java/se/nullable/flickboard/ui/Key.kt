@@ -54,6 +54,8 @@ fun Key(
     val showLetters = settings.showLetters.state.value
     val showSymbols = settings.showSymbols.state.value
     val showNumbers = settings.showNumbers.state.value
+    val enableFastActions = settings.enableFastActions.state.value
+    val fastActions = key.fastActions.takeIf { enableFastActions } ?: mapOf()
     val handleAction = { action: Action ->
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         onAction(action)
@@ -66,7 +68,7 @@ fun Key(
             .pointerInput(key) {
                 awaitEachGesture {
                     awaitGesture(
-                        fastActions = key.fastActions,
+                        fastActions = fastActions,
                         onFastAction = handleAction
                     )?.let { gesture ->
 //                        println(gesture)
@@ -193,7 +195,7 @@ private suspend fun AwaitPointerEventScope.awaitGesture(
                     shift = isRound ||
                             (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremePosFromDown.getDistanceSquared() / 4,
                 )
-            } else {
+            } else if (fastActions.isNotEmpty()) {
                 val posChange = change.positionChange()
                 fastActionTraveled += posChange
                 val fastActionCount = fastActionTraveled.getDistance() / fastActionSlop

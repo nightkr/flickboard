@@ -78,7 +78,14 @@ class AppSettings(sharedPreferences: SharedPreferences) {
         prefs = sharedPreferences
     )
 
-    val all = listOf(showLetters, showSymbols, showNumbers)
+    val enableFastActions = BooleanSetting(
+        key = "enableFastActions",
+        label = "Enable fast actions",
+        defaultValue = true,
+        prefs = sharedPreferences
+    )
+
+    val all = listOf(showLetters, showSymbols, showNumbers, enableFastActions)
 
     companion object {
         val current: AppSettings
