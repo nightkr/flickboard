@@ -21,7 +21,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.TextBoundary
-import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
+import se.nullable.flickboard.ui.AppSettings
 import se.nullable.flickboard.ui.Keyboard
 import se.nullable.flickboard.ui.theme.FlickBoardTheme
 
@@ -57,7 +57,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                 FlickBoardTheme {
                     Surface {
                         Keyboard(
-                            layout = SV_MESSAGEASE, onAction = { action ->
+                            layout = AppSettings.current.layout, onAction = { action ->
                                 when (action) {
                                     is Action.Text ->
                                         currentInputConnection.commitText(action.character, 1)

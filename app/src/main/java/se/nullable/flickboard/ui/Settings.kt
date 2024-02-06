@@ -23,6 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import se.nullable.flickboard.model.Layout
+import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
+import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 
 @Composable
 fun Settings(modifier: Modifier = Modifier) {
@@ -85,7 +88,22 @@ class AppSettings(sharedPreferences: SharedPreferences) {
         prefs = sharedPreferences
     )
 
-    val all = listOf(showLetters, showSymbols, showNumbers, enableFastActions)
+    val germanLayout = BooleanSetting(
+        key = "germanLayout",
+        label = "German layout",
+        defaultValue = false,
+        prefs = sharedPreferences
+    )
+
+    val all = listOf(showLetters, showSymbols, showNumbers, enableFastActions, germanLayout)
+
+    val layout: Layout
+        @Composable
+        get() = if (germanLayout.state.value) {
+            DE_MESSAGEASE
+        } else {
+            SV_MESSAGEASE
+        }
 
     companion object {
         val current: AppSettings

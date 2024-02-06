@@ -18,7 +18,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ShiftState
-import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import se.nullable.flickboard.ui.theme.FlickBoardTheme
 
 @Composable
@@ -28,11 +27,13 @@ fun Keyboard(
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
 ) {
-    var shiftState: ShiftState by remember { mutableStateOf(ShiftState.Normal) }
-    val shiftLayer = remember { layout.shiftLayer.mergeFallback(layout.numericLayer) }
+    var shiftState: ShiftState by remember(layout) { mutableStateOf(ShiftState.Normal) }
+    val shiftLayer = remember(layout) { layout.shiftLayer.mergeFallback(layout.numericLayer) }
     val mainLayer =
-        remember { layout.mainLayer.mergeFallback(layout.numericLayer).mergeShift(shiftLayer) }
-    val layer by remember {
+        remember(layout) {
+            layout.mainLayer.mergeFallback(layout.numericLayer).mergeShift(shiftLayer)
+        }
+    val layer by remember(layout) {
         derivedStateOf {
             val activeLayer = when {
                 shiftState.isShifted -> shiftLayer
@@ -83,7 +84,7 @@ fun KeyboardPreview() {
                 Row {
                     Text(text = "Tapped: $lastAction")
                 }
-                Keyboard(layout = SV_MESSAGEASE, onAction = { lastAction = it })
+                Keyboard(layout = AppSettings.current.layout, onAction = { lastAction = it })
             }
         }
     }
