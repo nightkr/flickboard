@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -54,9 +55,9 @@ fun Key(
     val showNumbers = settings.showNumbers.state.value
     Box(
         modifier = modifier
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .aspectRatio(key.colspan.toFloat())
-            .border(0.dp, Color.Black)
+            .border(0.dp, MaterialTheme.colorScheme.surface)
             .pointerInput(key) {
                 awaitEachGesture {
                     awaitGesture()?.let { gesture ->
@@ -107,7 +108,7 @@ fun Key(
                         text = actionVisual.label,
                         color = when (action.actionClass) {
                             ActionClass.Symbol -> Color.Gray
-                            else -> Color.Black
+                            else -> MaterialTheme.colorScheme.primary
                         },
                         modifier = keyModifier.padding(horizontal = 2.dp)
                     )
@@ -115,10 +116,10 @@ fun Key(
                     is ActionVisual.Icon -> Icon(
                         painter = painterResource(id = actionVisual.resource),
                         contentDescription = null,
-                        tint = Color.Black,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = keyModifier
                             .size(24.dp)
-                            .padding(all = 2.dp)
+                            .padding(all = 4.dp)
                     )
 
                     ActionVisual.None -> {}

@@ -1,9 +1,11 @@
 package se.nullable.flickboard.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -17,6 +19,7 @@ import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
+import se.nullable.flickboard.ui.theme.FlickBoardTheme
 
 @Composable
 fun Keyboard(
@@ -71,12 +74,17 @@ fun Keyboard(
 
 @Composable
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun KeyboardPreview() {
     var lastAction by remember { mutableStateOf<Action?>(null) }
-    Column {
-        Row {
-            Text(text = "Tapped: $lastAction")
+    FlickBoardTheme {
+        Surface {
+            Column {
+                Row {
+                    Text(text = "Tapped: $lastAction")
+                }
+                Keyboard(layout = SV_MESSAGEASE, onAction = { lastAction = it })
+            }
         }
-        Keyboard(layout = SV_MESSAGEASE, onAction = { lastAction = it })
     }
 }
