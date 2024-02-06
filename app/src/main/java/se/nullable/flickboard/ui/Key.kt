@@ -40,7 +40,9 @@ import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
 import kotlin.math.absoluteValue
 import kotlin.math.atan2
+import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 @Composable
 fun Key(
@@ -146,10 +148,14 @@ private suspend fun AwaitPointerEventScope.awaitGesture(
     var fastActionPerformed = false
     val positions = mutableListOf<Offset>()
     var mostExtremePosFromDown = Offset(0F, 0F)
+    var mostExtremeDistanceFromDownSquared = 0F
     var fastActionTraveled = Offset(0F, 0F)
     // touchSlop is calibrated to distinguish between a tap and a drag, but
     // ends up still being too short to comfortably distinguish between individual "ticks"
     val fastActionSlop = viewConfiguration.touchSlop * 2
+    // cache squared slops to avoid having to take square roots
+    val touchSlopSquared = viewConfiguration.touchSlop.pow(2)
+    val fastActionSlopSquared = fastActionSlop.pow(2)
     while (true) {
         val event =
             withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { awaitPointerEvent() }
@@ -162,13 +168,15 @@ private suspend fun AwaitPointerEventScope.awaitGesture(
             }
             positions.add(change.position)
             val posFromDown = change.position - down.position
+            val distanceFromDownSquared = posFromDown.getDistanceSquared()
             if (!isDragging) {
-                if (posFromDown.getDistance() > viewConfiguration.touchSlop) {
+                if (distanceFromDownSquared > touchSlopSquared) {
                     isDragging = true
                 }
             }
-            if (posFromDown.getDistanceSquared() > mostExtremePosFromDown.getDistanceSquared()) {
+            if (distanceFromDownSquared > mostExtremeDistanceFromDownSquared) {
                 mostExtremePosFromDown = posFromDown
+                mostExtremeDistanceFromDownSquared = distanceFromDownSquared
             }
             if (change.changedToUpIgnoreConsumed()) {
                 change.consume()
@@ -193,17 +201,19 @@ private suspend fun AwaitPointerEventScope.awaitGesture(
                     // shift if swipe is more than halfway to returned from the starting position (U shape),
                     // or a circle
                     shift = isRound ||
-                            (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremePosFromDown.getDistanceSquared() / 4,
+                            (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremeDistanceFromDownSquared / 4,
                 )
             } else if (fastActions.isNotEmpty()) {
                 val posChange = change.positionChange()
                 fastActionTraveled += posChange
-                val fastActionCount = fastActionTraveled.getDistance() / fastActionSlop
-                if (fastActionCount >= 1) {
+                val fastActionCountSquared =
+                    fastActionTraveled.getDistanceSquared() / fastActionSlopSquared
+                if (fastActionCountSquared >= 1) {
+                    val fastActionCount = sqrt(fastActionCountSquared)
                     val direction = posChange.direction()
                     fastActions[direction]?.let {
                         fastActionPerformed = true
-                        fastActionTraveled = Offset(0F, 0F)
+                        fastActionTraveled -= fastActionTraveled / fastActionCount
                         onFastAction(it)
                     }
                 }
