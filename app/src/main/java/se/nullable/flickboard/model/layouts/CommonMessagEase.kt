@@ -17,8 +17,8 @@ import se.nullable.flickboard.ui.Keyboard
 val SPACE = KeyM(
     actions = mapOf(
         Direction.CENTER to Action.Text(" "),
-        Direction.LEFT to Action.Jump(direction = SearchDirection.Backwards, label = "<-"),
-        Direction.RIGHT to Action.Jump(direction = SearchDirection.Forwards, label = "->"),
+        Direction.LEFT to Action.Jump(direction = SearchDirection.Backwards),
+        Direction.RIGHT to Action.Jump(direction = SearchDirection.Forwards),
     ),
     colspan = 3
 )
@@ -44,7 +44,10 @@ val COMMON_MESSAGEASE_LAYER =
                 KeyM(
                     actions = mapOf(
                         Direction.CENTER to Action.Delete(),
-                        Direction.RIGHT to Action.Delete(direction = SearchDirection.Forwards)
+                        Direction.RIGHT to Action.Delete(
+                            direction = SearchDirection.Forwards,
+                            hidden = true
+                        )
                     )
                 )
             ),

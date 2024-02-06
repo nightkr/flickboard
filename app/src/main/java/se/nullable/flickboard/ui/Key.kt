@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,9 +27,11 @@ import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.model.ActionVisual
 import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
@@ -70,25 +74,38 @@ fun Key(
             }
     ) {
         key.actions.forEach { (direction, action) ->
-            Text(
-                text = enterKeyLabel.takeIf { action is Action.Enter } ?: action.label,
-                color = Color.Black,
-                modifier = Modifier
-                    .padding(horizontal = 2.dp)
-                    .align(
-                        when (direction) {
-                            Direction.TOP_LEFT -> Alignment.TopStart
-                            Direction.TOP -> Alignment.TopCenter
-                            Direction.TOP_RIGHT -> Alignment.TopEnd
-                            Direction.LEFT -> Alignment.CenterStart
-                            Direction.CENTER -> Alignment.Center
-                            Direction.RIGHT -> Alignment.CenterEnd
-                            Direction.BOTTOM_LEFT -> Alignment.BottomStart
-                            Direction.BOTTOM -> Alignment.BottomCenter
-                            Direction.BOTTOM_RIGHT -> Alignment.BottomEnd
-                        }
-                    )
-            )
+            val keyModifier = Modifier
+                .align(
+                    when (direction) {
+                        Direction.TOP_LEFT -> Alignment.TopStart
+                        Direction.TOP -> Alignment.TopCenter
+                        Direction.TOP_RIGHT -> Alignment.TopEnd
+                        Direction.LEFT -> Alignment.CenterStart
+                        Direction.CENTER -> Alignment.Center
+                        Direction.RIGHT -> Alignment.CenterEnd
+                        Direction.BOTTOM_LEFT -> Alignment.BottomStart
+                        Direction.BOTTOM -> Alignment.BottomCenter
+                        Direction.BOTTOM_RIGHT -> Alignment.BottomEnd
+                    }
+                )
+            when (val actionVisual = action.visual) {
+                is ActionVisual.Label -> Text(
+                    text = enterKeyLabel.takeIf { action is Action.Enter } ?: actionVisual.label,
+                    color = Color.Black,
+                    modifier = keyModifier.padding(horizontal = 2.dp)
+                )
+
+                is ActionVisual.Icon -> Icon(
+                    painter = painterResource(id = actionVisual.resource),
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = keyModifier
+                        .size(24.dp)
+                        .padding(all = 2.dp)
+                )
+
+                ActionVisual.None -> {}
+            }
         }
     }
 }

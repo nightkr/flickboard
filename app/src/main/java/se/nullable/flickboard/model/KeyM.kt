@@ -1,5 +1,7 @@
 package se.nullable.flickboard.model
 
+import se.nullable.flickboard.R
+
 data class Layout(
     val mainLayer: Layer,
     val shiftLayer: Layer = mainLayer.autoShift(),
@@ -50,10 +52,11 @@ data class KeyM(
 }
 
 sealed class Action {
-    abstract val label: String
+    abstract val visual: ActionVisual
     open fun shift(): Action = this
 
-    data class Text(val character: String, override val label: String = character) : Action() {
+    data class Text(val character: String, val label: String = character) : Action() {
+        override val visual: ActionVisual = ActionVisual.Label(label)
         override fun shift(): Action {
             return copy(character = character.uppercase(), label = label.uppercase())
         }
@@ -62,26 +65,39 @@ sealed class Action {
     data class Delete(
         val direction: SearchDirection = SearchDirection.Backwards,
         val boundary: TextBoundary = TextBoundary.Letter,
+        val hidden: Boolean = false,
     ) : Action() {
-        override val label: String = "BKSPC"
+        override val visual: ActionVisual = when {
+            hidden -> ActionVisual.None
+            else -> ActionVisual.Icon(R.drawable.baseline_backspace_24)
+        }
 
         override fun shift(): Action = copy(boundary = TextBoundary.Word)
     }
 
     data object Enter : Action() {
-        override val label: String = "ENTER"
+        override val visual: ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_keyboard_return_24)
     }
 
     data class Jump(
         val direction: SearchDirection,
         val boundary: TextBoundary = TextBoundary.Letter,
-        override val label: String
     ) : Action() {
+        override val visual: ActionVisual = when (direction) {
+            SearchDirection.Backwards -> ActionVisual.Icon(R.drawable.baseline_keyboard_arrow_left_24)
+            SearchDirection.Forwards -> ActionVisual.Icon(R.drawable.baseline_keyboard_arrow_right_24)
+        }
+
         override fun shift(): Action = copy(boundary = TextBoundary.Word)
     }
 
     data class Shift(val state: ShiftState) : Action() {
-        override val label: String = "SHIFT"
+        override val visual: ActionVisual = when (state) {
+            ShiftState.Normal -> ActionVisual.Icon(R.drawable.baseline_arrow_drop_down_24)
+            ShiftState.Shift -> ActionVisual.Icon(R.drawable.baseline_arrow_drop_up_24)
+            ShiftState.CapsLock -> ActionVisual.Icon(R.drawable.baseline_keyboard_capslock_24)
+        }
 
         override fun shift(): Action {
             return when (state) {
@@ -92,16 +108,22 @@ sealed class Action {
     }
 
     data object Cut : Action() {
-        override val label: String = "CUT"
+        override val visual: ActionVisual = ActionVisual.Icon(R.drawable.baseline_content_cut_24)
     }
 
     data object Copy : Action() {
-        override val label: String = "COPY"
+        override val visual: ActionVisual = ActionVisual.Icon(R.drawable.baseline_content_copy_24)
     }
 
     data object Paste : Action() {
-        override val label: String = "PASTE"
+        override val visual: ActionVisual = ActionVisual.Icon(R.drawable.baseline_content_paste_24)
     }
+}
+
+sealed class ActionVisual {
+    data class Icon(val resource: Int) : ActionVisual()
+    data class Label(val label: String) : ActionVisual()
+    data object None : ActionVisual()
 }
 
 enum class TextBoundary {
