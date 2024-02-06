@@ -88,9 +88,11 @@ fun Key(
                         Direction.BOTTOM_RIGHT -> Alignment.BottomEnd
                     }
                 )
-            when (val actionVisual = action.visual) {
+            val overrideActionVisual =
+                enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
+            when (val actionVisual = overrideActionVisual ?: action.visual) {
                 is ActionVisual.Label -> Text(
-                    text = enterKeyLabel.takeIf { action is Action.Enter } ?: actionVisual.label,
+                    text = actionVisual.label,
                     color = Color.Black,
                     modifier = keyModifier.padding(horizontal = 2.dp)
                 )
