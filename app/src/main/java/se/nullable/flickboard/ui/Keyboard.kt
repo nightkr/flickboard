@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,16 +26,22 @@ fun Keyboard(
     enterKeyLabel: String? = null,
 ) {
     var shiftState: ShiftState by remember { mutableStateOf(ShiftState.Normal) }
-    val shiftLayer = layout.shiftLayer.mergeFallback(layout.numericLayer)
-    val mainLayer = layout.mainLayer.mergeFallback(layout.numericLayer).mergeShift(shiftLayer)
-    val activeLayer = when {
-        shiftState.isShifted -> shiftLayer
-        else -> mainLayer
-    }
-    var layer = layout.numericLayer ?: activeLayer
-    layout.controlLayer?.let { layer = layer.chain(it.mergeShift(it.autoShift())) }
-    if (layout.numericLayer != null) {
-        layer = layer.chain(activeLayer.mergeFallback(layout.numericLayer))
+    val shiftLayer = remember { layout.shiftLayer.mergeFallback(layout.numericLayer) }
+    val mainLayer =
+        remember { layout.mainLayer.mergeFallback(layout.numericLayer).mergeShift(shiftLayer) }
+    val layer by remember {
+        derivedStateOf {
+            val activeLayer = when {
+                shiftState.isShifted -> shiftLayer
+                else -> mainLayer
+            }
+            var layer = layout.numericLayer ?: activeLayer
+            layout.controlLayer?.let { layer = layer.chain(it.mergeShift(it.autoShift())) }
+            if (layout.numericLayer != null) {
+                layer = layer.chain(activeLayer)
+            }
+            layer
+        }
     }
     val columns = layer.keyRows.maxOf { row -> row.sumOf { it.colspan } }
     BoxWithConstraints(modifier) {
