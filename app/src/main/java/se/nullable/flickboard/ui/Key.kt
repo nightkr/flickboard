@@ -31,6 +31,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.model.ActionClass
 import se.nullable.flickboard.model.ActionVisual
 import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.Gesture
@@ -47,6 +48,10 @@ fun Key(
     enterKeyLabel: String? = null
 ) {
     val haptic = LocalHapticFeedback.current
+    val settings = AppSettings.current
+    val showLetters = settings.showLetters.state.value
+    val showSymbols = settings.showSymbols.state.value
+    val showNumbers = settings.showNumbers.state.value
     Box(
         modifier = modifier
             .background(Color.White)
@@ -90,23 +95,34 @@ fun Key(
                 )
             val overrideActionVisual =
                 enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
-            when (val actionVisual = overrideActionVisual ?: action.visual) {
-                is ActionVisual.Label -> Text(
-                    text = actionVisual.label,
-                    color = Color.Black,
-                    modifier = keyModifier.padding(horizontal = 2.dp)
-                )
+            val showAction = when (action.actionClass) {
+                ActionClass.Letter -> showLetters
+                ActionClass.Symbol -> showSymbols
+                ActionClass.Number -> showNumbers
+                else -> true
+            }
+            if (showAction) {
+                when (val actionVisual = overrideActionVisual ?: action.visual) {
+                    is ActionVisual.Label -> Text(
+                        text = actionVisual.label,
+                        color = when (action.actionClass) {
+                            ActionClass.Symbol -> Color.Gray
+                            else -> Color.Black
+                        },
+                        modifier = keyModifier.padding(horizontal = 2.dp)
+                    )
 
-                is ActionVisual.Icon -> Icon(
-                    painter = painterResource(id = actionVisual.resource),
-                    contentDescription = null,
-                    tint = Color.Black,
-                    modifier = keyModifier
-                        .size(24.dp)
-                        .padding(all = 2.dp)
-                )
+                    is ActionVisual.Icon -> Icon(
+                        painter = painterResource(id = actionVisual.resource),
+                        contentDescription = null,
+                        tint = Color.Black,
+                        modifier = keyModifier
+                            .size(24.dp)
+                            .padding(all = 2.dp)
+                    )
 
-                ActionVisual.None -> {}
+                    ActionVisual.None -> {}
+                }
             }
         }
     }

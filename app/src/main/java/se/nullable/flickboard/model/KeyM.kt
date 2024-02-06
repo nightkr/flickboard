@@ -53,10 +53,18 @@ data class KeyM(
 
 sealed class Action {
     abstract val visual: ActionVisual
+    open val actionClass = ActionClass.Other
     open fun shift(): Action = this
 
     data class Text(val character: String, val label: String = character) : Action() {
         override val visual: ActionVisual = ActionVisual.Label(label)
+        override val actionClass: ActionClass = when {
+            character.isEmpty() -> ActionClass.Other
+            character.all { it.isDigit() } -> ActionClass.Number
+            character.all { it.isLetter() } -> ActionClass.Letter
+            else -> ActionClass.Symbol
+        }
+
         override fun shift(): Action {
             return copy(character = character.uppercase(), label = label.uppercase())
         }
@@ -118,6 +126,14 @@ sealed class Action {
     data object Paste : Action() {
         override val visual: ActionVisual = ActionVisual.Icon(R.drawable.baseline_content_paste_24)
     }
+
+    data object Settings : Action() {
+        override val visual: ActionVisual = ActionVisual.Icon(R.drawable.baseline_settings_24)
+    }
+}
+
+enum class ActionClass {
+    Letter, Number, Symbol, Other,
 }
 
 sealed class ActionVisual {

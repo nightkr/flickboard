@@ -1,5 +1,7 @@
 package se.nullable.flickboard
 
+import android.content.ComponentName
+import android.content.Intent
 import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.view.View
@@ -115,6 +117,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                     Action.Paste -> currentInputConnection.performContextMenuAction(
                                         android.R.id.paste
+                                    )
+
+                                    Action.Settings -> startActivity(
+                                        Intent.makeMainActivity(
+                                            ComponentName(this, MainActivity::class.java)
+                                        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                     )
                                 }
                             },

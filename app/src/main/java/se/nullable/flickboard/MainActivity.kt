@@ -11,8 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import se.nullable.flickboard.ui.KeyPreview
 import se.nullable.flickboard.ui.KeyboardPreview
+import se.nullable.flickboard.ui.Settings
 import se.nullable.flickboard.ui.theme.FlickBoardTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,9 +26,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Column {
-                        Greeting("Android")
-//                        KeyPreview()
                         KeyboardPreview()
+                        Settings()
                     }
                 }
             }
