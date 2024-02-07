@@ -37,13 +37,19 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            currentInputConnection.requestCursorUpdates(
-                InputConnection.CURSOR_UPDATE_MONITOR,
-                InputConnection.CURSOR_UPDATE_FILTER_EDITOR_BOUNDS
-            )
-        } else {
-            currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_MONITOR)
+        var cursorUpdatesRequested = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                currentInputConnection.requestCursorUpdates(
+                    InputConnection.CURSOR_UPDATE_MONITOR,
+                    InputConnection.CURSOR_UPDATE_FILTER_EDITOR_BOUNDS,
+                )
+        // Even on modern android, some apps only support unfiltered requestCursorUpdates,
+        // so fall back to trying that.
+        cursorUpdatesRequested = cursorUpdatesRequested ||
+                currentInputConnection.requestCursorUpdates(
+                    InputConnection.CURSOR_UPDATE_MONITOR,
+                )
+        if (!cursorUpdatesRequested) {
+            println("no cursor data :(")
         }
     }
 
