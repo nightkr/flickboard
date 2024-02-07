@@ -133,8 +133,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     )
 
                                     Action.ToggleLayerOrder -> {
-                                        val layerOrder = appSettings.layerOrder
-                                        layerOrder.currentValue = !layerOrder.currentValue
+                                        val handedness = appSettings.handedness
+                                        handedness.currentValue = !handedness.currentValue
                                     }
                                 }
                             },

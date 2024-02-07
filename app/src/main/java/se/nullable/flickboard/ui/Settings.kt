@@ -219,12 +219,21 @@ fun AppSettingsProvider(content: @Composable () -> Unit) {
 }
 
 class AppSettings(ctx: SettingsContext) {
-    val layerOrder = Setting.Enum(
-        key = "layerOrder",
-        label = "Layer order",
-        defaultValue = LayerOrder.NumbersLetters,
-        options = LayerOrder.entries,
-        fromString = LayerOrder::valueOf,
+    val enabledLayers = Setting.Enum(
+        key = "enabledLayers",
+        label = "Enabled layers",
+        defaultValue = EnabledLayers.All,
+        options = EnabledLayers.entries,
+        fromString = EnabledLayers::valueOf,
+        ctx = ctx
+    )
+
+    val handedness = Setting.Enum(
+        key = "handedness",
+        label = "Handedness",
+        defaultValue = Handedness.RightHanded,
+        options = Handedness.entries,
+        fromString = Handedness::valueOf,
         ctx = ctx
     )
 
@@ -302,7 +311,8 @@ class AppSettings(ctx: SettingsContext) {
     val all =
         listOf<Setting<*>>(
             Setting.Section("Layout", ctx),
-            layerOrder,
+            enabledLayers,
+            handedness,
             germanLayout,
             Setting.Section("Aesthetics", ctx),
             showLetters,
@@ -329,17 +339,19 @@ interface Labeled {
     val label: String
 }
 
-enum class LayerOrder(override val label: String) : Labeled {
-    Numbers("Numbers"),
-    Letters("Letters"),
-    NumbersLetters("Numbers, then letters"),
-    LettersNumbers("Letters, then numbers");
+enum class EnabledLayers(override val label: String) : Labeled {
+    All("All"),
+    Numbers("Numbers only"),
+    Letters("Letters only"),
+}
 
-    operator fun not(): LayerOrder = when (this) {
-        Numbers -> Letters
-        Letters -> Numbers
-        NumbersLetters -> LettersNumbers
-        LettersNumbers -> NumbersLetters
+enum class Handedness(override val label: String) : Labeled {
+    LeftHanded("Left-handed"),
+    RightHanded("Right-handed");
+
+    operator fun not(): Handedness = when (this) {
+        LeftHanded -> RightHanded
+        RightHanded -> LeftHanded
     }
 }
 

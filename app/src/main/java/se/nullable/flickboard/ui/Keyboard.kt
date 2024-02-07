@@ -27,7 +27,8 @@ fun Keyboard(
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
 ) {
-    val layerOrder = LocalAppSettings.current.layerOrder.state
+    val enabledLayers = LocalAppSettings.current.enabledLayers.state
+    val handedness = LocalAppSettings.current.handedness.state
     var shiftState: ShiftState by remember(layout) { mutableStateOf(ShiftState.Normal) }
     val shiftLayer = remember(layout) { layout.shiftLayer.mergeFallback(layout.numericLayer) }
     val mainLayer =
@@ -41,17 +42,23 @@ fun Keyboard(
                 else -> mainLayer
             }
             listOfNotNull(
-                when (layerOrder.value) {
-                    LayerOrder.LettersNumbers -> activeLayer
-                    LayerOrder.NumbersLetters -> layout.numericLayer
-                    LayerOrder.Letters, LayerOrder.Numbers -> null
+                when (enabledLayers.value) {
+                    EnabledLayers.All -> layout.numericLayer
+                    else -> null
                 },
                 layout.controlLayer?.let { it.mergeShift(it.autoShift()) },
-                when (layerOrder.value) {
-                    LayerOrder.Letters, LayerOrder.LettersNumbers -> layout.numericLayer
-                    LayerOrder.Numbers, LayerOrder.NumbersLetters -> activeLayer
+                when (enabledLayers.value) {
+                    EnabledLayers.Numbers -> layout.numericLayer
+                    EnabledLayers.Letters, EnabledLayers.All -> activeLayer
                 },
-            ).fold(Layer.empty, Layer::chain)
+            )
+                .let {
+                    when (handedness.value) {
+                        Handedness.RightHanded -> it
+                        Handedness.LeftHanded -> it.asReversed()
+                    }
+                }
+                .fold(Layer.empty, Layer::chain)
         }
     }
     val columns = layer.keyRows.maxOf { row -> row.sumOf { it.colspan } }
