@@ -247,6 +247,9 @@ private fun shapeLooksRound(points: List<Offset>): Boolean {
     )
     val radiuses = points.map { (it - midPoint).getDistanceSquared() }
     val averageRadius = radiuses.averageOf { it }
+    if (averageRadius < 10) {
+        return false
+    }
     val jaggedness = radiuses.averageOf { (it - averageRadius).absoluteValue } / averageRadius
     return jaggedness < 0.5
 }
