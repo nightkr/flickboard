@@ -139,6 +139,11 @@ sealed class Action {
     data object Settings : Action() {
         override val visual: ActionVisual = ActionVisual.Icon(R.drawable.baseline_settings_24)
     }
+
+    data object ToggleLayerOrder : Action() {
+        override val visual: ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_flip_camera_android_24)
+    }
 }
 
 enum class ActionClass {

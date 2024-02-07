@@ -61,6 +61,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         return ComposeView(this).also { view ->
             view.setContent {
                 FlickBoardParent {
+                    val appSettings = LocalAppSettings.current
                     Surface {
                         Keyboard(
                             layout = LocalAppSettings.current.layout, onAction = { action ->
@@ -130,6 +131,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             ComponentName(this, MainActivity::class.java)
                                         ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                     )
+
+                                    Action.ToggleLayerOrder -> {
+                                        val layerOrder = appSettings.layerOrder
+                                        layerOrder.currentValue = !layerOrder.currentValue
+                                    }
                                 }
                             },
                             enterKeyLabel = currentInputEditorInfo.actionLabel?.toString()

@@ -32,7 +32,14 @@ val COMMON_MESSAGEASE_LAYER =
     Layer(
         keyRows = listOf(
             // pointer
-            listOf(KeyM(actions = mapOf(Direction.TOP to Action.Settings))),
+            listOf(
+                KeyM(
+                    actions = mapOf(
+                        Direction.CENTER to Action.ToggleLayerOrder,
+                        Direction.TOP to Action.Settings
+                    )
+                )
+            ),
             // clipboard
             listOf(
                 KeyM(
