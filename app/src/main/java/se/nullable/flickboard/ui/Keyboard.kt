@@ -18,7 +18,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ShiftState
-import se.nullable.flickboard.ui.theme.FlickBoardTheme
 
 @Composable
 fun Keyboard(
@@ -78,13 +77,13 @@ fun Keyboard(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun KeyboardPreview() {
     var lastAction by remember { mutableStateOf<Action?>(null) }
-    FlickBoardTheme {
+    FlickBoardParent {
         Surface {
             Column {
                 Row {
                     Text(text = "Tapped: $lastAction")
                 }
-                Keyboard(layout = AppSettings.current.layout, onAction = { lastAction = it })
+                Keyboard(layout = LocalAppSettings.current.layout, onAction = { lastAction = it })
             }
         }
     }

@@ -52,7 +52,7 @@ fun Key(
     enterKeyLabel: String? = null
 ) {
     val haptic = LocalHapticFeedback.current
-    val settings = AppSettings.current
+    val settings = LocalAppSettings.current
     val showLetters = settings.showLetters.state.value
     val showSymbols = settings.showSymbols.state.value
     val showNumbers = settings.showNumbers.state.value
@@ -261,25 +261,27 @@ private inline fun <T> List<T>.averageOf(f: (T) -> Float): Float =
 @Preview
 fun KeyPreview() {
     var lastAction by remember { mutableStateOf<Action?>(null) }
-    Column {
-        Text(text = "Tapped: $lastAction")
-        Row(Modifier.width(100.dp)) {
-            Key(
-                KeyM(
-                    actions = mapOf(
-                        Direction.TOP_LEFT to Action.Text(character = "A"),
-                        Direction.TOP to Action.Text(character = "B"),
-                        Direction.TOP_RIGHT to Action.Text(character = "C"),
-                        Direction.LEFT to Action.Text(character = "D"),
-                        Direction.CENTER to Action.Text(character = "E"),
-                        Direction.RIGHT to Action.Text(character = "F"),
-                        Direction.BOTTOM_LEFT to Action.Text(character = "G"),
-                        Direction.BOTTOM to Action.Text(character = "H"),
-                        Direction.BOTTOM_RIGHT to Action.Text(character = "I"),
-                    )
-                ),
-                onAction = { lastAction = it }
-            )
+    FlickBoardParent {
+        Column {
+            Text(text = "Tapped: $lastAction")
+            Row(Modifier.width(100.dp)) {
+                Key(
+                    KeyM(
+                        actions = mapOf(
+                            Direction.TOP_LEFT to Action.Text(character = "A"),
+                            Direction.TOP to Action.Text(character = "B"),
+                            Direction.TOP_RIGHT to Action.Text(character = "C"),
+                            Direction.LEFT to Action.Text(character = "D"),
+                            Direction.CENTER to Action.Text(character = "E"),
+                            Direction.RIGHT to Action.Text(character = "F"),
+                            Direction.BOTTOM_LEFT to Action.Text(character = "G"),
+                            Direction.BOTTOM to Action.Text(character = "H"),
+                            Direction.BOTTOM_RIGHT to Action.Text(character = "I"),
+                        )
+                    ),
+                    onAction = { lastAction = it }
+                )
+            }
         }
     }
 }

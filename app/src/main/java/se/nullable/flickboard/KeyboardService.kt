@@ -21,9 +21,9 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.TextBoundary
-import se.nullable.flickboard.ui.AppSettings
+import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.Keyboard
-import se.nullable.flickboard.ui.theme.FlickBoardTheme
+import se.nullable.flickboard.ui.LocalAppSettings
 
 class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistryOwner {
     private val lifecycleRegistry = LifecycleRegistry(this)
@@ -60,10 +60,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         }
         return ComposeView(this).also { view ->
             view.setContent {
-                FlickBoardTheme {
+                FlickBoardParent {
                     Surface {
                         Keyboard(
-                            layout = AppSettings.current.layout, onAction = { action ->
+                            layout = LocalAppSettings.current.layout, onAction = { action ->
                                 when (action) {
                                     is Action.Text ->
                                         currentInputConnection.commitText(action.character, 1)

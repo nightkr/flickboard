@@ -7,6 +7,7 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
+import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.Keyboard
 
 val MESSAGEASE_NUMERIC_LAYER = Layer(
@@ -110,5 +111,7 @@ val MESSAGEASE_NUMERIC_LAYER = Layer(
 @Composable
 @Preview
 fun NumericKeyboardPreview() {
-    Keyboard(layout = Layout(MESSAGEASE_NUMERIC_LAYER), onAction = {})
+    FlickBoardParent {
+        Keyboard(layout = Layout(MESSAGEASE_NUMERIC_LAYER), onAction = {})
+    }
 }

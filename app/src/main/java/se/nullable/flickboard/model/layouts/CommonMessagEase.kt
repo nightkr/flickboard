@@ -12,6 +12,7 @@ import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.SearchDirection
+import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.Keyboard
 
 val SPACE = KeyM(
@@ -63,7 +64,9 @@ val COMMON_MESSAGEASE_LAYER =
 @Composable
 @Preview
 fun CommonKeyboardPreview() {
-    Box(Modifier.width(100.dp)) {
-        Keyboard(layout = Layout(COMMON_MESSAGEASE_LAYER), onAction = {})
+    FlickBoardParent {
+        Box(Modifier.width(100.dp)) {
+            Keyboard(layout = Layout(COMMON_MESSAGEASE_LAYER), onAction = {})
+        }
     }
 }

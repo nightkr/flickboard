@@ -8,6 +8,7 @@ import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ShiftState
+import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.Keyboard
 
 val SV_MESSAGEASE_MAIN_LAYER = Layer(
@@ -98,11 +99,15 @@ val SV_MESSAGEASE = Layout(
 @Composable
 @Preview
 fun SvKeyboardPreview() {
-    Keyboard(layout = Layout(SV_MESSAGEASE_MAIN_LAYER), onAction = {})
+    FlickBoardParent {
+        Keyboard(layout = Layout(SV_MESSAGEASE_MAIN_LAYER), onAction = {})
+    }
 }
 
 @Composable
 @Preview
 fun SvFullKeyboardPreview() {
-    Keyboard(layout = SV_MESSAGEASE, onAction = {})
+    FlickBoardParent {
+        Keyboard(layout = SV_MESSAGEASE, onAction = {})
+    }
 }

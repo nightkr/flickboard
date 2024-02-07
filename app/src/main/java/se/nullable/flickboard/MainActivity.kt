@@ -12,16 +12,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.KeyboardPreview
 import se.nullable.flickboard.ui.Settings
-import se.nullable.flickboard.ui.theme.FlickBoardTheme
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            FlickBoardTheme {
+            FlickBoardParent {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
