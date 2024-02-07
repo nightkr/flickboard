@@ -214,6 +214,33 @@ class AppSettings(ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val swipeThreshold = Setting.FloatSlider(
+        key = "swipeThreshold",
+        label = "Swipe threshold",
+        description = "How far you need to drag before a tap becomes a swipe",
+        defaultValue = 8F,
+        range = 8F..24F,
+        ctx = ctx
+    )
+
+    val fastSwipeThreshold = Setting.FloatSlider(
+        key = "fastSwipeTreshold",
+        label = "Fast swipe threshold",
+        description = "How far you need to drag between each fast action tick",
+        defaultValue = 16F,
+        range = 8F..24F,
+        ctx = ctx,
+    )
+
+    val circleThreshold = Setting.FloatSlider(
+        key = "circleThreshold",
+        label = "Circle threshold",
+        description = "How round a shape must be to be recognized as a circle",
+        defaultValue = 50F,
+        range = 1F..100F,
+        ctx = ctx,
+    )
+
     val all =
         listOf<Setting<*>>(
             germanLayout,
@@ -223,7 +250,10 @@ class AppSettings(ctx: SettingsContext) {
             showNumbers,
             Setting.Section("Behaviour", ctx),
             enableFastActions,
-            cellHeight
+            cellHeight,
+            swipeThreshold,
+            fastSwipeThreshold,
+            circleThreshold,
         )
 
     val layout: Layout

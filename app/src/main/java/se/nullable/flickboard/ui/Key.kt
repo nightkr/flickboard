@@ -32,6 +32,7 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.ActionClass
@@ -56,6 +57,9 @@ fun Key(
     val settings = LocalAppSettings.current
     val cellHeight = settings.cellHeight.state.value
     val enableFastActions = settings.enableFastActions.state
+    val swipeThreshold = settings.swipeThreshold.state
+    val fastSwipeThreshold = settings.fastSwipeThreshold.state
+    val circleThreshold = settings.circleThreshold.state
     val handleAction = { action: Action ->
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         onAction(action)
@@ -68,6 +72,9 @@ fun Key(
             .pointerInput(key) {
                 awaitEachGesture {
                     awaitGesture(
+                        swipeThreshold = swipeThreshold.value.dp,
+                        fastSwipeThreshold = fastSwipeThreshold.value.dp,
+                        circleThreshold = circleThreshold.value,
                         fastActions = key.fastActions.takeIf { enableFastActions.value }
                             ?: emptyMap(),
                         onFastAction = handleAction
@@ -144,6 +151,9 @@ fun BoxScope.KeyActionIndicator(direction: Direction, action: Action, enterKeyLa
 }
 
 private suspend fun AwaitPointerEventScope.awaitGesture(
+    swipeThreshold: Dp,
+    fastSwipeThreshold: Dp,
+    circleThreshold: Float,
     fastActions: Map<Direction, Action>,
     onFastAction: (Action) -> Unit
 ): Gesture? {
@@ -155,12 +165,9 @@ private suspend fun AwaitPointerEventScope.awaitGesture(
     var mostExtremePosFromDown = Offset(0F, 0F)
     var mostExtremeDistanceFromDownSquared = 0F
     var fastActionTraveled = Offset(0F, 0F)
-    // touchSlop is calibrated to distinguish between a tap and a drag, but
-    // ends up still being too short to comfortably distinguish between individual "ticks"
-    val fastActionSlop = viewConfiguration.touchSlop * 2
     // cache squared slops to avoid having to take square roots
-    val touchSlopSquared = viewConfiguration.touchSlop.pow(2)
-    val fastActionSlopSquared = fastActionSlop.pow(2)
+    val swipeSlopSquared = swipeThreshold.toPx().pow(2)
+    val fastSwipeSlopSquared = fastSwipeThreshold.toPx().pow(2)
     while (true) {
         val event =
             withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { awaitPointerEvent() }
@@ -175,7 +182,7 @@ private suspend fun AwaitPointerEventScope.awaitGesture(
             val posFromDown = change.position - down.position
             val distanceFromDownSquared = posFromDown.getDistanceSquared()
             if (!isDragging) {
-                if (distanceFromDownSquared > touchSlopSquared) {
+                if (distanceFromDownSquared > swipeSlopSquared) {
                     isDragging = true
                 }
             }
@@ -194,7 +201,7 @@ private suspend fun AwaitPointerEventScope.awaitGesture(
                 var isRound = false
                 val direction = if (!isDragging) {
                     Direction.CENTER
-                } else if (shapeLooksRound(positions)) {
+                } else if (shapeLooksRound(positions, circleThreshold = circleThreshold)) {
                     isRound = true
                     Direction.CENTER
                 } else {
@@ -212,7 +219,7 @@ private suspend fun AwaitPointerEventScope.awaitGesture(
                 val posChange = change.positionChange()
                 fastActionTraveled += posChange
                 val fastActionCountSquared =
-                    fastActionTraveled.getDistanceSquared() / fastActionSlopSquared
+                    fastActionTraveled.getDistanceSquared() / fastSwipeSlopSquared
                 if (fastActionCountSquared >= 1) {
                     val fastActionCount = sqrt(fastActionCountSquared)
                     val direction = posChange.direction()
@@ -245,7 +252,7 @@ private fun Offset.direction(): Direction {
     }
 }
 
-private fun shapeLooksRound(points: List<Offset>): Boolean {
+private fun shapeLooksRound(points: List<Offset>, circleThreshold: Float): Boolean {
     val midPoint = Offset(
         x = points.averageOf { it.x },
         y = points.averageOf { it.y },
@@ -256,7 +263,7 @@ private fun shapeLooksRound(points: List<Offset>): Boolean {
         return false
     }
     val jaggedness = radiuses.averageOf { (it - averageRadius).absoluteValue } / averageRadius
-    return jaggedness < 0.5
+    return jaggedness < circleThreshold / 100
 }
 
 private inline fun <T> List<T>.averageOf(f: (T) -> Float): Float =
