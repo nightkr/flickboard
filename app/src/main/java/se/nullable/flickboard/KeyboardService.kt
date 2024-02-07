@@ -64,7 +64,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                     val appSettings = LocalAppSettings.current
                     Surface {
                         Keyboard(
-                            layout = LocalAppSettings.current.layout, onAction = { action ->
+                            layout = LocalAppSettings.current.layout.state.value.layout,
+                            onAction = { action ->
                                 when (action) {
                                     is Action.Text ->
                                         currentInputConnection.commitText(action.character, 1)

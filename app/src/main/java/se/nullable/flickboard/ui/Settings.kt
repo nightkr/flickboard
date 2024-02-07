@@ -219,6 +219,15 @@ fun AppSettingsProvider(content: @Composable () -> Unit) {
 }
 
 class AppSettings(ctx: SettingsContext) {
+    val layout = Setting.Enum(
+        key = "layout",
+        label = "Layout",
+        defaultValue = LayoutOption.Swedish,
+        options = LayoutOption.entries,
+        fromString = LayoutOption::valueOf,
+        ctx = ctx
+    )
+
     val enabledLayers = Setting.Enum(
         key = "enabledLayers",
         label = "Enabled layers",
@@ -266,13 +275,6 @@ class AppSettings(ctx: SettingsContext) {
         ctx = ctx
     )
 
-    val germanLayout = Setting.Bool(
-        key = "germanLayout",
-        label = "German layout",
-        defaultValue = false,
-        ctx = ctx
-    )
-
     val cellHeight = Setting.FloatSlider(
         key = "cellHeight",
         label = "Cell height",
@@ -311,9 +313,9 @@ class AppSettings(ctx: SettingsContext) {
     val all =
         listOf<Setting<*>>(
             Setting.Section("Layout", ctx),
+            layout,
             enabledLayers,
             handedness,
-            germanLayout,
             Setting.Section("Aesthetics", ctx),
             showLetters,
             showSymbols,
@@ -325,14 +327,6 @@ class AppSettings(ctx: SettingsContext) {
             fastSwipeThreshold,
             circleThreshold,
         )
-
-    val layout: Layout
-        @Composable
-        get() = if (germanLayout.state.value) {
-            DE_MESSAGEASE
-        } else {
-            SV_MESSAGEASE
-        }
 }
 
 interface Labeled {
@@ -353,6 +347,11 @@ enum class Handedness(override val label: String) : Labeled {
         LeftHanded -> RightHanded
         RightHanded -> LeftHanded
     }
+}
+
+enum class LayoutOption(override val label: String, val layout: Layout) : Labeled {
+    Swedish("Swedish (MessagEase)", SV_MESSAGEASE),
+    German("German (MessagEase)", DE_MESSAGEASE);
 }
 
 class SettingsContext(val prefs: SharedPreferences, val coroutineScope: CoroutineScope)

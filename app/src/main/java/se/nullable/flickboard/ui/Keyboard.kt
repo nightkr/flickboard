@@ -98,7 +98,9 @@ fun KeyboardPreview() {
                 Row {
                     Text(text = "Tapped: $lastAction")
                 }
-                Keyboard(layout = LocalAppSettings.current.layout, onAction = { lastAction = it })
+                Keyboard(
+                    layout = LocalAppSettings.current.layout.state.value.layout,
+                    onAction = { lastAction = it })
             }
         }
     }
