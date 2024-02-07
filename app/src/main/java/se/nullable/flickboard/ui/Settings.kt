@@ -6,9 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -43,28 +45,59 @@ fun Settings(modifier: Modifier = Modifier) {
     Column(modifier) {
         appSettings.all.forEach { setting ->
             when (setting) {
-                is Setting.Bool -> {
-                    val state = setting.state
-                    Box(modifier = Modifier.clickable {
-                        setting.currentValue = !state.value
-                    }
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(8.dp)
-                        ) {
-                            Text(text = setting.label)
-                            Spacer(Modifier.weight(1f))
-                            Switch(
-                                checked = state.value,
-                                onCheckedChange = { setting.currentValue = it },
-                            )
-                        }
-                    }
-                }
+                is Setting.Bool -> BoolSetting(setting)
+                is Setting.FloatSlider -> FloatSliderSetting(setting)
             }
         }
     }
+}
+
+@Composable
+fun BoolSetting(setting: Setting.Bool) {
+    val state = setting.state
+    Box(modifier = Modifier.clickable {
+        setting.currentValue = !state.value
+    }
+    ) {
+        SettingRow {
+            SettingLabel(setting)
+            Spacer(Modifier.weight(1f))
+            Switch(
+                checked = state.value,
+                onCheckedChange = { setting.currentValue = it },
+            )
+        }
+    }
+}
+
+@Composable
+fun FloatSliderSetting(setting: Setting.FloatSlider) {
+    val state = setting.state
+    SettingRow {
+        Column {
+            SettingLabel(setting)
+            Slider(
+                value = state.value,
+                onValueChange = { setting.currentValue = it },
+                valueRange = setting.range
+            )
+        }
+    }
+}
+
+@Composable
+fun SettingRow(content: @Composable RowScope.() -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(8.dp)
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun SettingLabel(setting: Setting<*>) {
+    Text(text = setting.label)
 }
 
 @Composable
@@ -134,8 +167,23 @@ class AppSettings(ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val cellHeight = Setting.FloatSlider(
+        key = "cellHeight",
+        label = "Cell height",
+        defaultValue = 72F,
+        range = 48F..96F,
+        ctx = ctx
+    )
+
     val all =
-        listOf<Setting<*>>(showLetters, showSymbols, showNumbers, enableFastActions, germanLayout)
+        listOf<Setting<*>>(
+            showLetters,
+            showSymbols,
+            showNumbers,
+            enableFastActions,
+            germanLayout,
+            cellHeight
+        )
 
     val layout: Layout
         @Composable
@@ -194,5 +242,18 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
         override var currentValue: Boolean
             get() = ctx.prefs.getBoolean(key, defaultValue)
             set(value) = ctx.prefs.edit { putBoolean(key, value) }
+    }
+
+    class FloatSlider(
+        override val key: String,
+        override val label: String,
+        val defaultValue: Float,
+        val range: ClosedFloatingPointRange<Float>,
+        private val ctx: SettingsContext
+    ) : Setting<Float>(ctx) {
+        override var currentValue: Float
+            get() = ctx.prefs.getFloat(key, defaultValue)
+            set(value) = ctx.prefs.edit { putFloat(key, value) }
+
     }
 }

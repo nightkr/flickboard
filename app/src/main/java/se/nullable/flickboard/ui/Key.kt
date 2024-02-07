@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -53,6 +54,7 @@ fun Key(
 ) {
     val haptic = LocalHapticFeedback.current
     val settings = LocalAppSettings.current
+    val cellHeight = settings.cellHeight.state.value
     val showLetters = settings.showLetters.state.value
     val showSymbols = settings.showSymbols.state.value
     val showNumbers = settings.showNumbers.state.value
@@ -65,7 +67,8 @@ fun Key(
     Box(
         modifier = modifier
             .background(MaterialTheme.colorScheme.primaryContainer)
-            .aspectRatio(key.colspan.toFloat())
+//            .aspectRatio(key.colspan.toFloat())
+            .height(cellHeight.dp)
             .border(0.dp, MaterialTheme.colorScheme.surface)
             .pointerInput(key) {
                 awaitEachGesture {
@@ -279,7 +282,8 @@ fun KeyPreview() {
                             Direction.BOTTOM_RIGHT to Action.Text(character = "I"),
                         )
                     ),
-                    onAction = { lastAction = it }
+                    onAction = { lastAction = it },
+                    modifier = Modifier.aspectRatio(1F),
                 )
             }
         }
