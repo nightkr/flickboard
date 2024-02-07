@@ -24,7 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
@@ -124,7 +123,7 @@ fun BoxScope.KeyActionIndicator(direction: Direction, action: Action, enterKeyLa
             is ActionVisual.Label -> Text(
                 text = actionVisual.label,
                 color = when (action.actionClass) {
-                    ActionClass.Symbol -> Color.Gray
+                    ActionClass.Symbol -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4F)
                     else -> MaterialTheme.colorScheme.primary
                 },
                 modifier = keyModifier.padding(horizontal = 2.dp)
