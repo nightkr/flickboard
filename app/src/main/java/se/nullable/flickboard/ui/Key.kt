@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -55,11 +56,7 @@ fun Key(
     val haptic = LocalHapticFeedback.current
     val settings = LocalAppSettings.current
     val cellHeight = settings.cellHeight.state.value
-    val showLetters = settings.showLetters.state.value
-    val showSymbols = settings.showSymbols.state.value
-    val showNumbers = settings.showNumbers.state.value
-    val enableFastActions = settings.enableFastActions.state.value
-    val fastActions = key.fastActions.takeIf { enableFastActions } ?: mapOf()
+    val enableFastActions = settings.enableFastActions.state
     val handleAction = { action: Action ->
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         onAction(action)
@@ -67,13 +64,13 @@ fun Key(
     Box(
         modifier = modifier
             .background(MaterialTheme.colorScheme.primaryContainer)
-//            .aspectRatio(key.colspan.toFloat())
             .height(cellHeight.dp)
             .border(0.dp, MaterialTheme.colorScheme.surface)
             .pointerInput(key) {
                 awaitEachGesture {
                     awaitGesture(
-                        fastActions = fastActions,
+                        fastActions = key.fastActions.takeIf { enableFastActions.value }
+                            ?: emptyMap(),
                         onFastAction = handleAction
                     )?.let { gesture ->
 //                        println(gesture)
@@ -92,51 +89,57 @@ fun Key(
             }
     ) {
         key.actions.forEach { (direction, action) ->
-            val keyModifier = Modifier
-                .align(
-                    when (direction) {
-                        Direction.TOP_LEFT -> Alignment.TopStart
-                        Direction.TOP -> Alignment.TopCenter
-                        Direction.TOP_RIGHT -> Alignment.TopEnd
-                        Direction.LEFT -> Alignment.CenterStart
-                        Direction.CENTER -> Alignment.Center
-                        Direction.RIGHT -> Alignment.CenterEnd
-                        Direction.BOTTOM_LEFT -> Alignment.BottomStart
-                        Direction.BOTTOM -> Alignment.BottomCenter
-                        Direction.BOTTOM_RIGHT -> Alignment.BottomEnd
-                    }
-                )
-            val overrideActionVisual =
-                enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
-            val showAction = when (action.actionClass) {
-                ActionClass.Letter -> showLetters
-                ActionClass.Symbol -> showSymbols
-                ActionClass.Number -> showNumbers
-                else -> true
-            }
-            if (showAction) {
-                when (val actionVisual = overrideActionVisual ?: action.visual) {
-                    is ActionVisual.Label -> Text(
-                        text = actionVisual.label,
-                        color = when (action.actionClass) {
-                            ActionClass.Symbol -> Color.Gray
-                            else -> MaterialTheme.colorScheme.primary
-                        },
-                        modifier = keyModifier.padding(horizontal = 2.dp)
-                    )
+            KeyActionIndicator(direction, action, enterKeyLabel = enterKeyLabel)
+        }
+    }
+}
 
-                    is ActionVisual.Icon -> Icon(
-                        painter = painterResource(id = actionVisual.resource),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = keyModifier
-                            .size(24.dp)
-                            .padding(all = 4.dp)
-                    )
-
-                    ActionVisual.None -> {}
-                }
+@Composable
+fun BoxScope.KeyActionIndicator(direction: Direction, action: Action, enterKeyLabel: String?) {
+    val keyModifier = Modifier
+        .align(
+            when (direction) {
+                Direction.TOP_LEFT -> Alignment.TopStart
+                Direction.TOP -> Alignment.TopCenter
+                Direction.TOP_RIGHT -> Alignment.TopEnd
+                Direction.LEFT -> Alignment.CenterStart
+                Direction.CENTER -> Alignment.Center
+                Direction.RIGHT -> Alignment.CenterEnd
+                Direction.BOTTOM_LEFT -> Alignment.BottomStart
+                Direction.BOTTOM -> Alignment.BottomCenter
+                Direction.BOTTOM_RIGHT -> Alignment.BottomEnd
             }
+        )
+    val overrideActionVisual =
+        enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
+    val settings = LocalAppSettings.current
+    val showAction = when (action.actionClass) {
+        ActionClass.Letter -> settings.showLetters.state.value
+        ActionClass.Symbol -> settings.showSymbols.state.value
+        ActionClass.Number -> settings.showNumbers.state.value
+        else -> true
+    }
+    if (showAction) {
+        when (val actionVisual = overrideActionVisual ?: action.visual) {
+            is ActionVisual.Label -> Text(
+                text = actionVisual.label,
+                color = when (action.actionClass) {
+                    ActionClass.Symbol -> Color.Gray
+                    else -> MaterialTheme.colorScheme.primary
+                },
+                modifier = keyModifier.padding(horizontal = 2.dp)
+            )
+
+            is ActionVisual.Icon -> Icon(
+                painter = painterResource(id = actionVisual.resource),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = keyModifier
+                    .size(24.dp)
+                    .padding(all = 4.dp)
+            )
+
+            ActionVisual.None -> {}
         }
     }
 }

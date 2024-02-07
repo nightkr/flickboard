@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.shareIn
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
+import kotlin.math.roundToInt
 
 @Composable
 fun Settings(modifier: Modifier = Modifier) {
@@ -75,7 +76,11 @@ fun FloatSliderSetting(setting: Setting.FloatSlider) {
     val state = setting.state
     SettingRow {
         Column {
-            SettingLabel(setting)
+            Row {
+                SettingLabel(setting)
+                Spacer(Modifier.weight(1f))
+                Text(text = state.value.roundToInt().toString())
+            }
             Slider(
                 value = state.value,
                 onValueChange = { setting.currentValue = it },
