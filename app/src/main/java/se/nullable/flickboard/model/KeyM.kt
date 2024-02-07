@@ -35,6 +35,13 @@ data class Layer(val keyRows: List<List<KeyM>>) {
 
     fun autoShift(): Layer =
         copy(keyRows = keyRows.map { row -> row.map { key -> key.autoShift() } })
+
+    companion object {
+        val empty = Layer(
+            // The number of rows must match any other layers being merged with
+            keyRows = listOf(listOf(), listOf(), listOf(), listOf()),
+        )
+    }
 }
 
 data class KeyM(

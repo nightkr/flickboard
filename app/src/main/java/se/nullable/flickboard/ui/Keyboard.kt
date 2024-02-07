@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ShiftState
 
@@ -26,6 +27,7 @@ fun Keyboard(
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
 ) {
+    val layerOrder = LocalAppSettings.current.layerOrder.state
     var shiftState: ShiftState by remember(layout) { mutableStateOf(ShiftState.Normal) }
     val shiftLayer = remember(layout) { layout.shiftLayer.mergeFallback(layout.numericLayer) }
     val mainLayer =
@@ -38,12 +40,18 @@ fun Keyboard(
                 shiftState.isShifted -> shiftLayer
                 else -> mainLayer
             }
-            var layer = layout.numericLayer ?: activeLayer
-            layout.controlLayer?.let { layer = layer.chain(it.mergeShift(it.autoShift())) }
-            if (layout.numericLayer != null) {
-                layer = layer.chain(activeLayer)
-            }
-            layer
+            listOfNotNull(
+                when (layerOrder.value) {
+                    LayerOrder.LettersNumbers -> activeLayer
+                    LayerOrder.NumbersLetters -> layout.numericLayer
+                    LayerOrder.Letters, LayerOrder.Numbers -> null
+                },
+                layout.controlLayer?.let { it.mergeShift(it.autoShift()) },
+                when (layerOrder.value) {
+                    LayerOrder.Letters, LayerOrder.LettersNumbers -> layout.numericLayer
+                    LayerOrder.Numbers, LayerOrder.NumbersLetters -> activeLayer
+                },
+            ).fold(Layer.empty, Layer::chain)
         }
     }
     val columns = layer.keyRows.maxOf { row -> row.sumOf { it.colspan } }

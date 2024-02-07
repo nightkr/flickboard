@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -22,6 +26,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +62,7 @@ fun Settings(modifier: Modifier = Modifier) {
                 is Setting.Section -> SettingsSection(setting)
                 is Setting.Bool -> BoolSetting(setting)
                 is Setting.FloatSlider -> FloatSliderSetting(setting)
+                is Setting.Enum -> EnumSetting(setting)
             }
         }
     }
@@ -102,6 +111,46 @@ fun FloatSliderSetting(setting: Setting.FloatSlider) {
                 valueRange = setting.range
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
+    val state = setting.state
+    var expanded by remember { mutableStateOf(false) }
+    SettingRow {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+            ) {
+                SettingLabel(setting)
+                Row {
+                    Text(state.value.label)
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                }
+            }
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }) {
+                setting.options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(text = option.label) },
+                        onClick = {
+                            setting.currentValue = option
+                            expanded = false
+                        })
+                }
+            }
+        }
+
     }
 }
 
@@ -170,6 +219,15 @@ fun AppSettingsProvider(content: @Composable () -> Unit) {
 }
 
 class AppSettings(ctx: SettingsContext) {
+    val layerOrder = Setting.Enum(
+        key = "layerOrder",
+        label = "Layer order",
+        defaultValue = LayerOrder.NumbersLetters,
+        options = LayerOrder.entries,
+        fromString = LayerOrder::valueOf,
+        ctx = ctx
+    )
+
     val showLetters = Setting.Bool(
         key = "showLetters",
         label = "Show letters",
@@ -243,6 +301,8 @@ class AppSettings(ctx: SettingsContext) {
 
     val all =
         listOf<Setting<*>>(
+            Setting.Section("Layout", ctx),
+            layerOrder,
             germanLayout,
             Setting.Section("Aesthetics", ctx),
             showLetters,
@@ -263,6 +323,24 @@ class AppSettings(ctx: SettingsContext) {
         } else {
             SV_MESSAGEASE
         }
+}
+
+interface Labeled {
+    val label: String
+}
+
+enum class LayerOrder(override val label: String) : Labeled {
+    Numbers("Numbers"),
+    Letters("Letters"),
+    NumbersLetters("Numbers, then letters"),
+    LettersNumbers("Letters, then numbers");
+
+    operator fun not(): LayerOrder = when (this) {
+        Numbers -> Letters
+        Letters -> Numbers
+        NumbersLetters -> LettersNumbers
+        LettersNumbers -> NumbersLetters
+    }
 }
 
 class SettingsContext(val prefs: SharedPreferences, val coroutineScope: CoroutineScope)
@@ -338,5 +416,19 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
             get() = ctx.prefs.getFloat(key, defaultValue)
             set(value) = ctx.prefs.edit { putFloat(key, value) }
 
+    }
+
+    class Enum<T : Labeled>(
+        override val key: String,
+        override val label: String,
+        val defaultValue: T,
+        val options: List<T>,
+        val fromString: (String) -> T?,
+        private val ctx: SettingsContext,
+        override val description: String? = null,
+    ) : Setting<T>(ctx) {
+        override var currentValue: T
+            get() = ctx.prefs.getString(key, null)?.let(fromString) ?: defaultValue
+            set(value) = ctx.prefs.edit { putString(key, value.toString()) }
     }
 }
