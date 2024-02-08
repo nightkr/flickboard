@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.shareIn
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
+import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import kotlin.math.roundToInt
 
@@ -222,7 +223,7 @@ class AppSettings(ctx: SettingsContext) {
     val layout = Setting.Enum(
         key = "layout",
         label = "Layout",
-        defaultValue = LayoutOption.Swedish,
+        defaultValue = LayoutOption.English,
         options = LayoutOption.entries,
         fromString = LayoutOption::valueOf,
         ctx = ctx
@@ -350,6 +351,7 @@ enum class Handedness(override val label: String) : Labeled {
 }
 
 enum class LayoutOption(override val label: String, val layout: Layout) : Labeled {
+    English("English (MessagEase)", EN_MESSAGEASE),
     Swedish("Swedish (MessagEase)", SV_MESSAGEASE),
     German("German (MessagEase)", DE_MESSAGEASE);
 }
