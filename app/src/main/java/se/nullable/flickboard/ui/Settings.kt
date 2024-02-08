@@ -318,6 +318,14 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val keyRoundness = Setting.FloatSlider(
+        key = "keyRoundness",
+        label = "Key roundness",
+        defaultValue = 0F,
+        range = 0f..50f,
+        ctx = ctx
+    )
+
     val enableFastActions = Setting.Bool(
         key = "enableFastActions",
         label = "Enable fast actions",
@@ -371,6 +379,7 @@ class AppSettings(val ctx: SettingsContext) {
             showLetters,
             showSymbols,
             showNumbers,
+            keyRoundness,
             Setting.Section("Behaviour", ctx),
             enableFastActions,
             cellHeight,

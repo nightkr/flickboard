@@ -1,10 +1,13 @@
 package se.nullable.flickboard.ui
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
@@ -62,12 +66,12 @@ fun Keyboard(
         }
     }
     val columns = layer.keyRows.maxOf { row -> row.sumOf { it.colspan } }
-    BoxWithConstraints(modifier) {
+    BoxWithConstraints(modifier.background(MaterialTheme.colorScheme.surface)) {
         val columnWidth = this.maxWidth / columns
         Column {
-            layer.keyRows.forEach { row ->
-                Row {
-                    row.forEach { key ->
+            layer.keyRows.forEachIndexed { rowI, row ->
+                Row(Modifier.padding(top = rowI.coerceAtMost(1).dp)) {
+                    row.forEachIndexed { keyI, key ->
                         Key(
                             key,
                             onAction = onAction?.let { onAction ->
@@ -79,7 +83,9 @@ fun Keyboard(
                                     onAction(action)
                                 }
                             },
-                            modifier = Modifier.width(columnWidth * key.colspan),
+                            modifier = Modifier
+                                .width(columnWidth * key.colspan)
+                                .padding(start = keyI.coerceAtMost(1).dp),
                             enterKeyLabel = enterKeyLabel
                         )
                     }

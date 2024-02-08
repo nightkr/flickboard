@@ -1,7 +1,6 @@
 package se.nullable.flickboard.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,6 +56,7 @@ fun Key(
     val haptic = LocalHapticFeedback.current
     val settings = LocalAppSettings.current
     val cellHeight = settings.cellHeight.state.value
+    val keyRoundness = settings.keyRoundness.state.value
     val enableFastActions = settings.enableFastActions.state
     val swipeThreshold = settings.swipeThreshold.state
     val fastSwipeThreshold = settings.fastSwipeThreshold.state
@@ -95,9 +96,11 @@ fun Key(
     }
     Box(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .background(
+                MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(keyRoundness.roundToInt())
+            )
             .height(cellHeight.dp)
-            .border(0.dp, MaterialTheme.colorScheme.surface)
             .then(onActionModifier)
     ) {
         key.actions.forEach { (direction, action) ->
