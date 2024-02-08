@@ -139,14 +139,8 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
             }
         }
     }
-    SettingRow {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = true }
-        ) {
+    Box(Modifier.clickable { expanded = true }) {
+        SettingRow {
             SettingLabel(setting)
             Row {
                 Text(state.value.label)
