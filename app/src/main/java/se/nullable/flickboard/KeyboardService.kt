@@ -22,6 +22,7 @@ import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.ui.ConfiguredKeyboard
+import se.nullable.flickboard.ui.EnabledLayers
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
 
@@ -133,8 +134,20 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     )
 
                                     Action.ToggleLayerOrder -> {
-                                        val handedness = appSettings.handedness
-                                        handedness.currentValue = !handedness.currentValue
+                                        when (appSettings.enabledLayers.currentValue) {
+                                            EnabledLayers.Letters ->
+                                                appSettings.enabledLayers.currentValue =
+                                                    EnabledLayers.Numbers
+
+                                            EnabledLayers.Numbers ->
+                                                appSettings.enabledLayers.currentValue =
+                                                    EnabledLayers.Letters
+
+                                            // Both layers are enabled, so switch their sides by toggling handedness
+                                            EnabledLayers.All ->
+                                                appSettings.handedness.currentValue =
+                                                    !appSettings.handedness.currentValue
+                                        }
                                     }
 
                                     is Action.AdjustCellHeight -> appSettings.cellHeight.currentValue += action.amount
