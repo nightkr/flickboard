@@ -13,15 +13,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -48,6 +49,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
@@ -119,39 +121,53 @@ fun FloatSliderSetting(setting: Setting.FloatSlider) {
 @Composable
 fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
     val state = setting.state
+    val sheetState = rememberModalBottomSheetState()
     var expanded by remember { mutableStateOf(false) }
-    SettingRow {
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = it },
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth()
-            ) {
-                SettingLabel(setting)
-                Row {
-                    Text(state.value.label)
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                }
+    val scope = rememberCoroutineScope()
+    fun collapse() {
+        scope.launch { sheetState.hide() }.invokeOnCompletion {
+            if (!sheetState.isVisible) {
+                expanded = false
             }
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }) {
+        }
+    }
+    SettingRow {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = true }
+        ) {
+            SettingLabel(setting)
+            Row {
+                Text(state.value.label)
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = sheetState.isVisible)
+            }
+        }
+        if (expanded) {
+            ModalBottomSheet(
+                sheetState = sheetState,
+                onDismissRequest = { expanded = false },
+            ) {
                 setting.options.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(text = option.label) },
-                        onClick = {
-                            setting.currentValue = option
-                            expanded = false
-                        })
+                    Box(Modifier.clickable {
+                        setting.currentValue = option
+                        collapse()
+                    }) {
+                        Column(modifier = Modifier.padding(8.dp)) {
+                            Text(text = option.label)
+                            val prefs = remember(setting, option) {
+                                MockedSharedPreferences().also { setting.writeTo(it, option) }
+                            }
+                            AppSettingsProvider(prefs) {
+                                ConfiguredKeyboard(onAction = null)
+                            }
+                        }
+                    }
                 }
             }
         }
-
     }
 }
 
@@ -203,11 +219,11 @@ val LocalAppSettings = staticCompositionLocalOf<AppSettings> {
 }
 
 @Composable
-fun AppSettingsProvider(content: @Composable () -> Unit) {
+fun AppSettingsProvider(prefs: SharedPreferences? = null, content: @Composable () -> Unit) {
     CompositionLocalProvider(
         LocalAppSettings provides AppSettings(
             SettingsContext(
-                prefs = LocalContext.current.getSharedPreferences(
+                prefs = prefs ?: LocalContext.current.getSharedPreferences(
                     "flickboard",
                     Context.MODE_PRIVATE
                 ),
@@ -363,7 +379,12 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
     abstract val label: String
     abstract val description: String?
 
-    abstract var currentValue: T
+    var currentValue: T
+        get() = readFrom(ctx.prefs)
+        set(value) = writeTo(ctx.prefs, value)
+
+    abstract fun readFrom(prefs: SharedPreferences): T
+    abstract fun writeTo(prefs: SharedPreferences, value: T)
 
     private var lastCachedValue: T? = null
     private val cachedValue: T
@@ -399,22 +420,23 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
     class Section(override val label: String, ctx: SettingsContext) : Setting<Unit>(ctx) {
         override val key: String = "section-dummy-key"
         override val description: String? = null
-        override var currentValue: Unit
-            get() {}
-            set(_) {}
 
+        override fun readFrom(prefs: SharedPreferences) {}
+        override fun writeTo(prefs: SharedPreferences, value: Unit) {}
     }
 
     class Bool(
         override val key: String,
         override val label: String,
         val defaultValue: Boolean,
-        private val ctx: SettingsContext,
+        ctx: SettingsContext,
         override val description: String? = null,
     ) : Setting<Boolean>(ctx) {
-        override var currentValue: Boolean
-            get() = ctx.prefs.getBoolean(key, defaultValue)
-            set(value) = ctx.prefs.edit { putBoolean(key, value) }
+        override fun readFrom(prefs: SharedPreferences): Boolean =
+            prefs.getBoolean(key, defaultValue)
+
+        override fun writeTo(prefs: SharedPreferences, value: Boolean) =
+            prefs.edit { putBoolean(key, value) }
     }
 
     class FloatSlider(
@@ -422,13 +444,14 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
         override val label: String,
         val defaultValue: Float,
         val range: ClosedFloatingPointRange<Float>,
-        private val ctx: SettingsContext,
+        ctx: SettingsContext,
         override val description: String? = null,
     ) : Setting<Float>(ctx) {
-        override var currentValue: Float
-            get() = ctx.prefs.getFloat(key, defaultValue)
-            set(value) = ctx.prefs.edit { putFloat(key, value.coerceIn(range)) }
+        override fun readFrom(prefs: SharedPreferences): Float =
+            prefs.getFloat(key, defaultValue)
 
+        override fun writeTo(prefs: SharedPreferences, value: Float) =
+            prefs.edit { putFloat(key, value.coerceIn(range)) }
     }
 
     class Enum<T : Labeled>(
@@ -437,11 +460,107 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
         val defaultValue: T,
         val options: List<T>,
         val fromString: (String) -> T?,
-        private val ctx: SettingsContext,
+        ctx: SettingsContext,
         override val description: String? = null,
     ) : Setting<T>(ctx) {
-        override var currentValue: T
-            get() = ctx.prefs.getString(key, null)?.let(fromString) ?: defaultValue
-            set(value) = ctx.prefs.edit { putString(key, value.toString()) }
+        override fun readFrom(prefs: SharedPreferences): T =
+            prefs.getString(key, null)?.let(fromString) ?: defaultValue
+
+        override fun writeTo(prefs: SharedPreferences, value: T) =
+            prefs.edit { putString(key, value.toString()) }
+    }
+}
+
+/**
+ * Limited in-memory variant of SharedPreferences, used to generated previews.
+ *
+ * Does not support watchers, and changes are not transactional.
+ */
+class MockedSharedPreferences() : SharedPreferences {
+    private val strings = mutableMapOf<String, String>()
+
+    override fun getAll(): MutableMap<String, *> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getString(key: String?, defValue: String?): String? =
+        strings.getOrDefault(key, defValue)
+
+    override fun getStringSet(key: String?, defValues: MutableSet<String>?): MutableSet<String>? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getInt(key: String?, defValue: Int): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun getLong(key: String?, defValue: Long): Long {
+        TODO("Not yet implemented")
+    }
+
+    override fun getFloat(key: String?, defValue: Float): Float = defValue
+
+    override fun getBoolean(key: String?, defValue: Boolean): Boolean = defValue
+
+    override fun contains(key: String?): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun edit(): SharedPreferences.Editor {
+        return object : SharedPreferences.Editor {
+            override fun putString(key: String, value: String?): SharedPreferences.Editor {
+                if (value != null) {
+                    strings[key] = value
+                } else {
+                    strings.remove(key)
+                }
+                return this
+            }
+
+            override fun putStringSet(
+                key: String?,
+                values: MutableSet<String>?
+            ): SharedPreferences.Editor {
+                TODO("Not yet implemented")
+            }
+
+            override fun putInt(key: String?, value: Int): SharedPreferences.Editor {
+                TODO("Not yet implemented")
+            }
+
+            override fun putLong(key: String?, value: Long): SharedPreferences.Editor {
+                TODO("Not yet implemented")
+            }
+
+            override fun putFloat(key: String?, value: Float): SharedPreferences.Editor {
+                TODO("Not yet implemented")
+            }
+
+            override fun putBoolean(key: String?, value: Boolean): SharedPreferences.Editor {
+                TODO("Not yet implemented")
+            }
+
+            override fun remove(key: String): SharedPreferences.Editor {
+                strings.remove(key)
+                return this
+            }
+
+            override fun clear(): SharedPreferences.Editor {
+                TODO("Not yet implemented")
+            }
+
+            override fun commit(): Boolean {
+                return true
+            }
+
+            override fun apply() {
+            }
+        }
+    }
+
+    override fun registerOnSharedPreferenceChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener?) {
+    }
+
+    override fun unregisterOnSharedPreferenceChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener?) {
     }
 }

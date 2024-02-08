@@ -21,8 +21,8 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.TextBoundary
+import se.nullable.flickboard.ui.ConfiguredKeyboard
 import se.nullable.flickboard.ui.FlickBoardParent
-import se.nullable.flickboard.ui.Keyboard
 import se.nullable.flickboard.ui.LocalAppSettings
 
 class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistryOwner {
@@ -63,8 +63,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                 FlickBoardParent {
                     val appSettings = LocalAppSettings.current
                     Surface {
-                        Keyboard(
-                            layout = LocalAppSettings.current.layout.state.value.layout,
+                        ConfiguredKeyboard(
                             onAction = { action ->
                                 when (action) {
                                     is Action.Text ->

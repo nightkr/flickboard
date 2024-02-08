@@ -23,7 +23,7 @@ import se.nullable.flickboard.model.ShiftState
 @Composable
 fun Keyboard(
     layout: Layout,
-    onAction: (Action) -> Unit,
+    onAction: ((Action) -> Unit)?,
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
 ) {
@@ -70,12 +70,14 @@ fun Keyboard(
                     row.forEach { key ->
                         Key(
                             key,
-                            onAction = { action ->
-                                shiftState = when (action) {
-                                    is Action.Shift -> action.state
-                                    else -> shiftState.next()
+                            onAction = onAction?.let { onAction ->
+                                { action ->
+                                    shiftState = when (action) {
+                                        is Action.Shift -> action.state
+                                        else -> shiftState.next()
+                                    }
+                                    onAction(action)
                                 }
-                                onAction(action)
                             },
                             modifier = Modifier.width(columnWidth * key.colspan),
                             enterKeyLabel = enterKeyLabel
@@ -85,6 +87,20 @@ fun Keyboard(
             }
         }
     }
+}
+
+@Composable
+fun ConfiguredKeyboard(
+    onAction: ((Action) -> Unit)?,
+    modifier: Modifier = Modifier,
+    enterKeyLabel: String? = null,
+) {
+    Keyboard(
+        layout = LocalAppSettings.current.layout.state.value.layout,
+        onAction = onAction,
+        modifier = modifier,
+        enterKeyLabel = enterKeyLabel,
+    )
 }
 
 @Composable
@@ -98,9 +114,7 @@ fun KeyboardPreview() {
                 Row {
                     Text(text = "Tapped: $lastAction")
                 }
-                Keyboard(
-                    layout = LocalAppSettings.current.layout.state.value.layout,
-                    onAction = { lastAction = it })
+                ConfiguredKeyboard(onAction = { lastAction = it })
             }
         }
     }

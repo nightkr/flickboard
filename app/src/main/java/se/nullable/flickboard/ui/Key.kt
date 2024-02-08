@@ -49,7 +49,7 @@ import kotlin.math.sqrt
 @Composable
 fun Key(
     key: KeyM,
-    onAction: (Action) -> Unit,
+    onAction: ((Action) -> Unit)?,
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null
 ) {
@@ -60,39 +60,45 @@ fun Key(
     val swipeThreshold = settings.swipeThreshold.state
     val fastSwipeThreshold = settings.fastSwipeThreshold.state
     val circleThreshold = settings.circleThreshold.state
-    val handleAction = { action: Action ->
-        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-        onAction(action)
+    val onActionModifier = if (onAction != null) {
+        val handleAction = { action: Action ->
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            onAction(action)
+        }
+        Modifier.pointerInput(key) {
+            awaitEachGesture {
+                awaitGesture(
+                    swipeThreshold = swipeThreshold.value.dp,
+                    fastSwipeThreshold = fastSwipeThreshold.value.dp,
+                    circleThreshold = circleThreshold.value,
+                    fastActions = key.fastActions.takeIf { enableFastActions.value }
+                        ?: emptyMap(),
+                    onFastAction = handleAction
+                )?.let { gesture ->
+//                    println(gesture)
+                    var appliedKey: KeyM? = key
+                    if (gesture.forceFallback) {
+                        appliedKey = appliedKey?.fallback
+                    }
+                    if (gesture.shift) {
+                        appliedKey = appliedKey?.shift
+                    }
+                    appliedKey?.actions
+                        ?.get(gesture.direction)
+                        ?.let(handleAction)
+                }
+            }
+        }
+    } else {
+        // No action handler defined => disable input
+        Modifier
     }
     Box(
         modifier = modifier
             .background(MaterialTheme.colorScheme.primaryContainer)
             .height(cellHeight.dp)
             .border(0.dp, MaterialTheme.colorScheme.surface)
-            .pointerInput(key) {
-                awaitEachGesture {
-                    awaitGesture(
-                        swipeThreshold = swipeThreshold.value.dp,
-                        fastSwipeThreshold = fastSwipeThreshold.value.dp,
-                        circleThreshold = circleThreshold.value,
-                        fastActions = key.fastActions.takeIf { enableFastActions.value }
-                            ?: emptyMap(),
-                        onFastAction = handleAction
-                    )?.let { gesture ->
-//                        println(gesture)
-                        var appliedKey: KeyM? = key
-                        if (gesture.forceFallback) {
-                            appliedKey = appliedKey?.fallback
-                        }
-                        if (gesture.shift) {
-                            appliedKey = appliedKey?.shift
-                        }
-                        appliedKey?.actions
-                            ?.get(gesture.direction)
-                            ?.let(handleAction)
-                    }
-                }
-            }
+            .then(onActionModifier)
     ) {
         key.actions.forEach { (direction, action) ->
             KeyActionIndicator(direction, action, enterKeyLabel = enterKeyLabel)
