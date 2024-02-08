@@ -427,8 +427,11 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
         }
 
     val watch: Flow<T> = callbackFlow {
-        println("starting flow: $key")
-        val listener = { _: SharedPreferences, key: String? ->
+//        println("starting flow: $key")
+        // Type MUST Be initialized by name to ensure that the same object is passed to
+        // register and unregister. Otherwise no strong reference is held to the listener,
+        // meaning that the registration can be "lost" on any garbage collection.
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == this@Setting.key) {
                 val v = currentValue
                 lastCachedValue = v
