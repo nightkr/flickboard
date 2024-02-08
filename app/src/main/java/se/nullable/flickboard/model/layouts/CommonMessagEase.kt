@@ -36,7 +36,9 @@ val COMMON_MESSAGEASE_LAYER =
                 KeyM(
                     actions = mapOf(
                         Direction.CENTER to Action.ToggleLayerOrder,
-                        Direction.TOP to Action.Settings
+                        Direction.TOP to Action.AdjustCellHeight(amount = 1F),
+                        Direction.RIGHT to Action.Settings,
+                        Direction.BOTTOM to Action.AdjustCellHeight(amount = -1F),
                     )
                 )
             ),

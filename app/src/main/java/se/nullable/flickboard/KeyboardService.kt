@@ -137,6 +137,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         val handedness = appSettings.handedness
                                         handedness.currentValue = !handedness.currentValue
                                     }
+
+                                    is Action.AdjustCellHeight -> appSettings.cellHeight.currentValue += action.amount
                                 }
                             },
                             enterKeyLabel = currentInputEditorInfo.actionLabel?.toString()

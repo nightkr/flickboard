@@ -144,6 +144,13 @@ sealed class Action {
         override val visual: ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_flip_camera_android_24)
     }
+
+    data class AdjustCellHeight(val amount: Float) : Action() {
+        override val visual: ActionVisual = when {
+            amount >= 0 -> ActionVisual.Icon(R.drawable.baseline_zoom_in_24)
+            else -> ActionVisual.Icon(R.drawable.baseline_zoom_out_24)
+        }
+    }
 }
 
 enum class ActionClass {

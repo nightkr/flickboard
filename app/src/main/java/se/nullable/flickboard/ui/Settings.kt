@@ -427,7 +427,7 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
     ) : Setting<Float>(ctx) {
         override var currentValue: Float
             get() = ctx.prefs.getFloat(key, defaultValue)
-            set(value) = ctx.prefs.edit { putFloat(key, value) }
+            set(value) = ctx.prefs.edit { putFloat(key, value.coerceIn(range)) }
 
     }
 
