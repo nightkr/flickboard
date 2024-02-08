@@ -3,8 +3,8 @@ package se.nullable.flickboard.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -34,6 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.ActionClass
 import se.nullable.flickboard.model.ActionVisual
@@ -94,7 +95,7 @@ fun Key(
         // No action handler defined => disable input
         Modifier
     }
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .background(
                 MaterialTheme.colorScheme.primaryContainer,
@@ -104,14 +105,24 @@ fun Key(
             .then(onActionModifier)
     ) {
         key.actions.forEach { (direction, action) ->
-            KeyActionIndicator(direction, action, enterKeyLabel = enterKeyLabel)
+            KeyActionIndicator(
+                direction,
+                action,
+                enterKeyLabel = enterKeyLabel,
+                cornerRadius = sqrt(max(maxWidth, maxHeight) * keyRoundness * 0.01F),
+            )
         }
     }
 }
 
 @Composable
-fun BoxScope.KeyActionIndicator(direction: Direction, action: Action, enterKeyLabel: String?) {
-    val keyModifier = Modifier
+fun BoxScope.KeyActionIndicator(
+    direction: Direction,
+    action: Action,
+    enterKeyLabel: String?,
+    cornerRadius: Dp
+) {
+    var keyModifier = Modifier
         .align(
             when (direction) {
                 Direction.TOP_LEFT -> Alignment.TopStart
@@ -125,6 +136,9 @@ fun BoxScope.KeyActionIndicator(direction: Direction, action: Action, enterKeyLa
                 Direction.BOTTOM_RIGHT -> Alignment.BottomEnd
             }
         )
+    if (direction.isCorner()) {
+        keyModifier = keyModifier.padding(all = cornerRadius)
+    }
     val overrideActionVisual =
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
     val settings = LocalAppSettings.current
@@ -277,6 +291,8 @@ private fun shapeLooksRound(points: List<Offset>, circleThreshold: Float): Boole
 
 private inline fun <T> List<T>.averageOf(f: (T) -> Float): Float =
     (sumOf { f(it).toDouble() } / size).toFloat()
+
+private fun sqrt(x: Dp): Dp = Dp(sqrt(x.value))
 
 @Composable
 @Preview

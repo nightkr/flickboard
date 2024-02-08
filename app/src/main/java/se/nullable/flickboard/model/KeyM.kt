@@ -186,6 +186,11 @@ enum class Direction {
     TOP_LEFT, TOP, TOP_RIGHT,
     LEFT, CENTER, RIGHT,
     BOTTOM_LEFT, BOTTOM, BOTTOM_RIGHT;
+
+    fun isCorner(): Boolean = when (this) {
+        TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT -> true
+        else -> false
+    }
 }
 
 data class Gesture(val direction: Direction, val forceFallback: Boolean, val shift: Boolean)
