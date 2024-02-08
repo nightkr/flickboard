@@ -26,7 +26,11 @@ data class Layer(val keyRows: List<List<KeyM>>) {
         }
 
     fun mergeShift(shift: Layer): Layer =
-        zipKeys(shift) { thisKey, shiftKey -> thisKey.copy(shift = shiftKey) }
+        zipKeys(shift) { thisKey, shiftKey ->
+            thisKey.copy(
+                shift = thisKey.shift?.mergeFallback(shiftKey) ?: shiftKey
+            )
+        }
 
     fun chain(other: Layer): Layer =
         copy(keyRows = keyRows.zip(other.keyRows) { thisRow, otherRow ->
@@ -150,6 +154,11 @@ sealed class Action {
             amount >= 0 -> ActionVisual.Icon(R.drawable.baseline_zoom_in_24)
             else -> ActionVisual.Icon(R.drawable.baseline_zoom_out_24)
         }
+    }
+
+    data object SelectAll : Action() {
+        override val visual: ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_select_all_24)
     }
 }
 

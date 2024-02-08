@@ -115,17 +115,17 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         // handled internally in Keyboard
                                     }
 
-                                    Action.Copy -> currentInputConnection.performContextMenuAction(
-                                        android.R.id.copy
-                                    )
+                                    Action.Copy ->
+                                        currentInputConnection.performContextMenuAction(android.R.id.copy)
 
-                                    Action.Cut -> currentInputConnection.performContextMenuAction(
-                                        android.R.id.cut
-                                    )
+                                    Action.Cut ->
+                                        currentInputConnection.performContextMenuAction(android.R.id.cut)
 
-                                    Action.Paste -> currentInputConnection.performContextMenuAction(
-                                        android.R.id.paste
-                                    )
+                                    Action.Paste ->
+                                        currentInputConnection.performContextMenuAction(android.R.id.paste)
+
+                                    Action.SelectAll ->
+                                        currentInputConnection.performContextMenuAction(android.R.id.selectAll)
 
                                     Action.Settings -> startActivity(
                                         Intent.makeMainActivity(
@@ -150,7 +150,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         }
                                     }
 
-                                    is Action.AdjustCellHeight -> appSettings.cellHeight.currentValue += action.amount
+                                    is Action.AdjustCellHeight ->
+                                        appSettings.cellHeight.currentValue += action.amount
                                 }
                             },
                             enterKeyLabel = currentInputEditorInfo.actionLabel?.toString()

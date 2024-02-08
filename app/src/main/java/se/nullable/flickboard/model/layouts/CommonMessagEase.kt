@@ -39,7 +39,7 @@ val COMMON_MESSAGEASE_LAYER =
                         Direction.TOP to Action.AdjustCellHeight(amount = 1F),
                         Direction.RIGHT to Action.Settings,
                         Direction.BOTTOM to Action.AdjustCellHeight(amount = -1F),
-                    )
+                    ),
                 )
             ),
             // clipboard
@@ -50,7 +50,8 @@ val COMMON_MESSAGEASE_LAYER =
                         Direction.TOP to Action.Copy,
                         Direction.TOP_RIGHT to Action.Cut,
                         Direction.BOTTOM to Action.Paste,
-                    )
+                    ),
+                    shift = KeyM(actions = mapOf(Direction.CENTER to Action.SelectAll)),
                 )
             ),
             // backspace
