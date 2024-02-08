@@ -2,6 +2,7 @@ package se.nullable.flickboard.ui
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,10 +16,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
@@ -38,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
@@ -146,7 +150,14 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
             SettingLabel(setting)
             Row {
                 Text(state.value.label)
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = sheetState.isVisible)
+                val angle: Float by animateFloatAsState(
+                    when {
+                        expanded -> 180F
+                        else -> 0F
+                    },
+                    label = "angle"
+                )
+                Icon(Icons.Filled.ArrowDropDown, null, modifier = Modifier.rotate(angle))
             }
         }
         if (expanded) {
