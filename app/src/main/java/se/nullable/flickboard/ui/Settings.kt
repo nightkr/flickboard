@@ -11,8 +11,12 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
@@ -150,18 +154,37 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
                 sheetState = sheetState,
                 onDismissRequest = { expanded = false },
             ) {
-                setting.options.forEach { option ->
-                    Box(Modifier.clickable {
-                        setting.currentValue = option
-                        collapse()
-                    }) {
-                        Column(modifier = Modifier.padding(8.dp)) {
-                            Text(text = option.label)
-                            val prefs = remember(setting, option) {
-                                MockedSharedPreferences().also { setting.writeTo(it, option) }
-                            }
-                            AppSettingsProvider(prefs) {
-                                ConfiguredKeyboard(onAction = null)
+                LazyColumn {
+                    items(setting.options, key = { it.toString() }) { option ->
+                        val isSelected = setting.state.value == option
+                        val select = {
+                            setting.currentValue = option
+                            collapse()
+                        }
+                        Card(
+                            onClick = select,
+                            colors = when {
+                                isSelected -> CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                )
+
+                                else -> CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                )
+                            },
+                            modifier = Modifier.padding(8.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = option.label,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                val prefs = remember(setting, option) {
+                                    MockedSharedPreferences().also { setting.writeTo(it, option) }
+                                }
+                                AppSettingsProvider(prefs) {
+                                    ConfiguredKeyboard(onAction = null)
+                                }
                             }
                         }
                     }
@@ -352,8 +375,8 @@ interface Labeled {
 
 enum class EnabledLayers(override val label: String) : Labeled {
     All("All"),
-    Numbers("Numbers only"),
     Letters("Letters only"),
+    Numbers("Numbers only"),
 }
 
 enum class Handedness(override val label: String) : Labeled {
