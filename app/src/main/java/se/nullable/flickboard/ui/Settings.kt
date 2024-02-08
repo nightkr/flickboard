@@ -156,6 +156,7 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
             ) {
                 LazyColumn {
                     items(setting.options, key = { it.toString() }) { option ->
+                        val appSettings = LocalAppSettings.current
                         val isSelected = setting.state.value == option
                         val select = {
                             setting.currentValue = option
@@ -179,8 +180,13 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
                                     text = option.label,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
-                                val prefs = remember(setting, option) {
-                                    MockedSharedPreferences().also { setting.writeTo(it, option) }
+                                val prefs = remember(appSettings, setting, option) {
+                                    MockedSharedPreferences(appSettings.ctx.prefs).also {
+                                        setting.writeTo(
+                                            it,
+                                            option
+                                        )
+                                    }
                                 }
                                 AppSettingsProvider(prefs) {
                                     ConfiguredKeyboard(onAction = null)
@@ -258,7 +264,7 @@ fun AppSettingsProvider(prefs: SharedPreferences? = null, content: @Composable (
     }
 }
 
-class AppSettings(ctx: SettingsContext) {
+class AppSettings(val ctx: SettingsContext) {
     val layout = Setting.Enum(
         key = "layout",
         label = "Layout",
@@ -499,35 +505,11 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
  *
  * Does not support watchers, and changes are not transactional.
  */
-class MockedSharedPreferences() : SharedPreferences {
+class MockedSharedPreferences(val inner: SharedPreferences) : SharedPreferences by inner {
     private val strings = mutableMapOf<String, String>()
 
-    override fun getAll(): MutableMap<String, *> {
-        TODO("Not yet implemented")
-    }
-
-    override fun getString(key: String?, defValue: String?): String? =
-        strings.getOrDefault(key, defValue)
-
-    override fun getStringSet(key: String?, defValues: MutableSet<String>?): MutableSet<String>? {
-        TODO("Not yet implemented")
-    }
-
-    override fun getInt(key: String?, defValue: Int): Int {
-        TODO("Not yet implemented")
-    }
-
-    override fun getLong(key: String?, defValue: Long): Long {
-        TODO("Not yet implemented")
-    }
-
-    override fun getFloat(key: String?, defValue: Float): Float = defValue
-
-    override fun getBoolean(key: String?, defValue: Boolean): Boolean = defValue
-
-    override fun contains(key: String?): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun getString(key: String, defValue: String?): String? =
+        strings.getOrElse(key) { inner.getString(key, defValue) }
 
     override fun edit(): SharedPreferences.Editor {
         return object : SharedPreferences.Editor {
