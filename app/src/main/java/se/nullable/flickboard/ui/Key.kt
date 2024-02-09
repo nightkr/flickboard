@@ -37,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
+import androidx.compose.ui.unit.sp
 import se.nullable.flickboard.averageOf
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.ActionClass
@@ -62,7 +63,12 @@ fun Key(
 ) {
     val haptic = LocalHapticFeedback.current
     val settings = LocalAppSettings.current
-    val cellHeight = settings.cellHeight.state.value
+    val isLandscape = LocalDisplayLimits.current?.isLandscape ?: false
+    val scale = when {
+        isLandscape -> settings.landscapeScale.state.value / 100
+        else -> 1F
+    }
+    val cellHeight = settings.cellHeight.state.value * scale
     val keyRoundness = settings.keyRoundness.state.value
     val enableFastActions = settings.enableFastActions.state
     val swipeThreshold = settings.swipeThreshold.state
@@ -117,6 +123,7 @@ fun Key(
                 action,
                 enterKeyLabel = enterKeyLabel,
                 cornerRadius = sqrt(max(maxWidth, maxHeight) * keyRoundness * 0.01F),
+                scale = scale,
                 modifiers = modifierState,
             )
         }
@@ -129,6 +136,7 @@ fun BoxScope.KeyActionIndicator(
     action: Action,
     enterKeyLabel: String?,
     cornerRadius: Dp,
+    scale: Float,
     modifiers: ModifierState,
 ) {
     var keyModifier = Modifier
@@ -165,6 +173,7 @@ fun BoxScope.KeyActionIndicator(
                     ActionClass.Symbol -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4F)
                     else -> MaterialTheme.colorScheme.primary
                 },
+                fontSize = 14.sp * scale,
                 modifier = keyModifier.padding(horizontal = 2.dp)
             )
 
@@ -173,7 +182,7 @@ fun BoxScope.KeyActionIndicator(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = keyModifier
-                    .size(24.dp)
+                    .size(24.dp * scale)
                     .padding(all = 4.dp)
             )
 

@@ -18,7 +18,8 @@ fun ProvideDisplayLimits(limits: DisplayLimits? = null, content: @Composable () 
             portraitWidth = (min(
                 displayMetrics.widthPixels,
                 displayMetrics.heightPixels
-            ) / displayMetrics.density).dp
+            ) / displayMetrics.density).dp,
+            isLandscape = displayMetrics.widthPixels > displayMetrics.heightPixels
         )
     }
     CompositionLocalProvider(LocalDisplayLimits provides actualLimits) {
@@ -26,4 +27,4 @@ fun ProvideDisplayLimits(limits: DisplayLimits? = null, content: @Composable () 
     }
 }
 
-data class DisplayLimits(val portraitWidth: Dp)
+data class DisplayLimits(val portraitWidth: Dp, val isLandscape: Boolean)

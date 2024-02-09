@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +25,7 @@ import kotlinx.coroutines.launch
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.ui.ConfiguredKeyboard
 import se.nullable.flickboard.ui.FlickBoardParent
+import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.Settings
 
 class MainActivity : ComponentActivity() {
@@ -50,16 +52,18 @@ class MainActivity : ComponentActivity() {
                                         color = MaterialTheme.colorScheme.secondary,
                                         modifier = Modifier.padding(8.dp)
                                     )
-                                    ConfiguredKeyboard(onAction = { action ->
-                                        val message = when {
-                                            action is Action.Text -> action.character
-                                            else -> action.toString()
-                                        }
-                                        scope.launch {
-                                            snackbarHostState.currentSnackbarData?.dismiss()
-                                            snackbarHostState.showSnackbar(message)
-                                        }
-                                    })
+                                    ProvideDisplayLimits {
+                                        ConfiguredKeyboard(onAction = { action ->
+                                            val message = when {
+                                                action is Action.Text -> action.character
+                                                else -> action.toString()
+                                            }
+                                            scope.launch {
+                                                snackbarHostState.currentSnackbarData?.dismiss()
+                                                snackbarHostState.showSnackbar(message)
+                                            }
+                                        }, modifier = Modifier.fillMaxWidth())
+                                    }
                                 }
                             }
                         }

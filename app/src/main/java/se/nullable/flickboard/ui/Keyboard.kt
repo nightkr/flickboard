@@ -45,6 +45,7 @@ fun Keyboard(
     val enabledLayers = LocalAppSettings.current.enabledLayers.state
     val handedness = LocalAppSettings.current.handedness.state
     val landscapeLocation = LocalAppSettings.current.landscapeLocation.state
+    val landscapeScale = LocalAppSettings.current.landscapeScale.state
     val enablePointerTrail = LocalAppSettings.current.enablePointerTrail.state
     var modifierState: ModifierState by remember { mutableStateOf(ModifierState()) }
     LaunchedEffect(modifierState) {
@@ -122,6 +123,9 @@ fun Keyboard(
         var thisWidth = maxWidth
         LocalDisplayLimits.current?.let { limits ->
             thisWidth = min(thisWidth, limits.portraitWidth)
+            if (limits.isLandscape) {
+                thisWidth *= landscapeScale.value / 100
+            }
         }
         val columnWidth = thisWidth / columns
         Column(
