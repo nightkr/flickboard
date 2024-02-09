@@ -334,6 +334,13 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val enablePointerTrail = Setting.Bool(
+        key = "enablePointerTrail",
+        label = "Enable pointer trail",
+        defaultValue = false,
+        ctx = ctx
+    )
+
     val enableFastActions = Setting.Bool(
         key = "enableFastActions",
         label = "Enable fast actions",
@@ -389,6 +396,7 @@ class AppSettings(val ctx: SettingsContext) {
             showSymbols,
             showNumbers,
             keyRoundness,
+            enablePointerTrail,
             Setting.Section("Behaviour", ctx),
             enableFastActions,
             cellHeight,

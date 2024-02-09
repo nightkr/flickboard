@@ -11,16 +11,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.BiasAbsoluteAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import kotlinx.coroutines.delay
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
@@ -36,6 +44,7 @@ fun Keyboard(
     val enabledLayers = LocalAppSettings.current.enabledLayers.state
     val handedness = LocalAppSettings.current.handedness.state
     val landscapeLocation = LocalAppSettings.current.landscapeLocation.state
+    val enablePointerTrail = LocalAppSettings.current.enablePointerTrail.state
     var shiftState: ShiftState by remember(layout) { mutableStateOf(ShiftState.Normal) }
     val shiftLayer = remember(layout) { layout.shiftLayer.mergeFallback(layout.numericLayer) }
     val mainLayer =
@@ -69,7 +78,42 @@ fun Keyboard(
         }
     }
     val columns = layer.keyRows.maxOf { row -> row.sumOf { it.colspan } }
-    BoxWithConstraints(modifier.background(MaterialTheme.colorScheme.surface)) {
+    var globalPosition: Offset by remember { mutableStateOf(Offset.Zero) }
+    var activeKeyPosition: State<Offset> by remember { mutableStateOf(mutableStateOf(Offset.Zero)) }
+    var pointerTrailRelativeToActiveKey: List<Offset> by remember {
+        mutableStateOf(emptyList(), policy = neverEqualPolicy())
+    }
+    var pointerTrailActive by remember { mutableStateOf(false) }
+    LaunchedEffect(key1 = pointerTrailActive) {
+        if (!pointerTrailActive) {
+            delay(2000)
+            if (pointerTrailRelativeToActiveKey.isNotEmpty()) {
+                pointerTrailRelativeToActiveKey = emptyList()
+            }
+        }
+    }
+    val pointerTrailColor = MaterialTheme.colorScheme.onSurface
+    BoxWithConstraints(
+        modifier
+            .background(MaterialTheme.colorScheme.surface)
+            .onGloballyPositioned { globalPosition = it.positionInRoot() }
+            .drawWithCache {
+                onDrawWithContent {
+                    drawContent()
+                    if (enablePointerTrail.value) {
+                        val keyPosition = activeKeyPosition.value
+                        pointerTrailRelativeToActiveKey.forEach {
+                            this.drawCircle(
+                                pointerTrailColor,
+                                center = it + keyPosition,
+                                radius = 10.dp.toPx(),
+                                alpha = 0.4f
+                            )
+                        }
+                    }
+                }
+            }
+    ) {
         // Enforce portrait aspect ratio in landscape mode
         var thisWidth = maxWidth
         LocalDisplayLimits.current?.let { limits ->
@@ -89,6 +133,26 @@ fun Keyboard(
             layer.keyRows.forEachIndexed { rowI, row ->
                 Row(Modifier.padding(top = rowI.coerceAtMost(1).dp)) {
                     row.forEachIndexed { keyI, key ->
+                        val keyPosition = remember { mutableStateOf(Offset.Zero) }
+                        val keyPointerTrailListener = remember {
+                            derivedStateOf {
+                                when {
+                                    enablePointerTrail.value -> KeyPointerTrailListener(
+                                        onDown = {
+                                            activeKeyPosition = keyPosition
+                                            pointerTrailActive = true
+                                            pointerTrailRelativeToActiveKey = emptyList()
+                                        },
+                                        onUp = { pointerTrailActive = false },
+                                        onTrailUpdate = {
+                                            pointerTrailRelativeToActiveKey = it
+                                        },
+                                    )
+
+                                    else -> null
+                                }
+                            }
+                        }
                         Key(
                             key,
                             onAction = onAction?.let { onAction ->
@@ -102,8 +166,12 @@ fun Keyboard(
                             },
                             modifier = Modifier
                                 .width(columnWidth * key.colspan)
-                                .padding(start = keyI.coerceAtMost(1).dp),
-                            enterKeyLabel = enterKeyLabel
+                                .padding(start = keyI.coerceAtMost(1).dp)
+                                .onGloballyPositioned {
+                                    keyPosition.value = it.positionInRoot() - globalPosition
+                                },
+                            enterKeyLabel = enterKeyLabel,
+                            keyPointerTrailListener = keyPointerTrailListener
                         )
                     }
                 }

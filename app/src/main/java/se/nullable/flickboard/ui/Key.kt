@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -54,7 +56,8 @@ fun Key(
     key: KeyM,
     onAction: ((Action) -> Unit)?,
     modifier: Modifier = Modifier,
-    enterKeyLabel: String? = null
+    enterKeyLabel: String? = null,
+    keyPointerTrailListener: State<KeyPointerTrailListener?> = remember { mutableStateOf(null) },
 ) {
     val haptic = LocalHapticFeedback.current
     val settings = LocalAppSettings.current
@@ -77,7 +80,8 @@ fun Key(
                     circleThreshold = circleThreshold.value,
                     fastActions = key.fastActions.takeIf { enableFastActions.value }
                         ?: emptyMap(),
-                    onFastAction = handleAction
+                    onFastAction = handleAction,
+                    trailListenerState = keyPointerTrailListener,
                 )?.let { gesture ->
 //                    println(gesture)
                     var appliedKey: KeyM? = key
@@ -175,15 +179,28 @@ fun BoxScope.KeyActionIndicator(
     }
 }
 
+data class KeyPointerTrailListener(
+    val onDown: () -> Unit = {},
+    val onUp: () -> Unit = {},
+    // Called on every pointer event in a gesture
+    // The list will be MUTATED after this, and should not be considered stable
+    // For example, if storing it in a MutableState, make sure to use neverEqualPolicy()
+    val onTrailUpdate: (List<Offset>) -> Unit = {}
+)
+
 private suspend fun AwaitPointerEventScope.awaitGesture(
     swipeThreshold: Dp,
     fastSwipeThreshold: Dp,
     circleThreshold: Float,
     fastActions: Map<Direction, Action>,
-    onFastAction: (Action) -> Unit
+    onFastAction: (Action) -> Unit,
+    // Passed as state to ensure that it's only grabbed once we have a down event
+    trailListenerState: State<KeyPointerTrailListener?>,
 ): Gesture? {
     val down = awaitFirstDown()
     down.consume()
+    val trailListener = trailListenerState.value
+    trailListener?.onDown?.invoke()
     var isDragging = false
     var fastActionPerformed = false
     val positions = mutableListOf<Offset>()
@@ -197,13 +214,18 @@ private suspend fun AwaitPointerEventScope.awaitGesture(
         val event =
             withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { awaitPointerEvent() }
         if (event == null && !isDragging) {
+            trailListener?.onUp?.invoke()
             return Gesture(Direction.CENTER, forceFallback = true, shift = false)
         }
         for (change in event?.changes ?: emptyList()) {
+            if (change.isConsumed || change.changedToUp()) {
+                trailListener?.onUp?.invoke()
+            }
             if (change.isConsumed) {
                 return null
             }
             positions.add(change.position)
+            trailListener?.onTrailUpdate?.invoke(positions)
             val posFromDown = change.position - down.position
             val distanceFromDownSquared = posFromDown.getDistanceSquared()
             if (!isDragging) {
