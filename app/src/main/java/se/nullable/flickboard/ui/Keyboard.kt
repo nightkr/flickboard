@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.BiasAbsoluteAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,7 @@ fun Keyboard(
 ) {
     val enabledLayers = LocalAppSettings.current.enabledLayers.state
     val handedness = LocalAppSettings.current.handedness.state
+    val landscapeLocation = LocalAppSettings.current.landscapeLocation.state
     var shiftState: ShiftState by remember(layout) { mutableStateOf(ShiftState.Normal) }
     val shiftLayer = remember(layout) { layout.shiftLayer.mergeFallback(layout.numericLayer) }
     val mainLayer =
@@ -74,7 +76,16 @@ fun Keyboard(
             thisWidth = min(thisWidth, limits.portraitWidth)
         }
         val columnWidth = thisWidth / columns
-        Column(Modifier.width(thisWidth)) {
+        Column(
+            Modifier
+                .width(thisWidth)
+                .align(
+                    BiasAbsoluteAlignment(
+                        horizontalBias = landscapeLocation.value / 100,
+                        verticalBias = 0F
+                    )
+                )
+        ) {
             layer.keyRows.forEachIndexed { rowI, row ->
                 Row(Modifier.padding(top = rowI.coerceAtMost(1).dp)) {
                     row.forEachIndexed { keyI, key ->

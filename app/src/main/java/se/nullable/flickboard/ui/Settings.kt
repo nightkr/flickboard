@@ -297,6 +297,14 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val landscapeLocation = Setting.FloatSlider(
+        key = "landscapeLocation",
+        label = "Landscape location",
+        defaultValue = 0F,
+        range = -100F..100F,
+        ctx = ctx
+    )
+
     val showLetters = Setting.Bool(
         key = "showLetters",
         label = "Show letters",
@@ -375,6 +383,7 @@ class AppSettings(val ctx: SettingsContext) {
             layout,
             enabledLayers,
             handedness,
+            landscapeLocation,
             Setting.Section("Aesthetics", ctx),
             showLetters,
             showSymbols,
