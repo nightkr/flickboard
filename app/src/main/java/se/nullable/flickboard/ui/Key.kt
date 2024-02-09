@@ -46,7 +46,6 @@ import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.sqrt
-import kotlin.math.absoluteValue
 import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -304,6 +303,10 @@ private fun Offset.direction(): Direction {
 }
 
 private fun shapeLooksRound(points: List<Offset>, circleThreshold: Float): Boolean {
+    if (points.size < 5) {
+        // Not enough data for there to be any "jaggedness" to detect
+        return false
+    }
     val midPoint = Offset(
         x = points.averageOf { it.x },
         y = points.averageOf { it.y },
@@ -313,8 +316,8 @@ private fun shapeLooksRound(points: List<Offset>, circleThreshold: Float): Boole
     if (averageRadius < 10) {
         return false
     }
-    val jaggedness = radiuses.averageOf { (it - averageRadius).absoluteValue } / averageRadius
-    return jaggedness < circleThreshold / 100
+    val jaggedness = radiuses.averageOf { (it - averageRadius).pow(4) } / averageRadius.pow(4)
+    return jaggedness < (circleThreshold / 100).pow(2)
 }
 
 @Composable
