@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -187,14 +188,25 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
                                 )
                                 val prefs = remember(appSettings, setting, option) {
                                     MockedSharedPreferences(appSettings.ctx.prefs).also {
-                                        setting.writeTo(
-                                            it,
-                                            option
-                                        )
+                                        setting.writeTo(it, option)
+                                        appSettings.cellHeight.writeTo(it, 24F)
                                     }
                                 }
-                                AppSettingsProvider(prefs) {
-                                    ConfiguredKeyboard(onAction = null)
+                                BoxWithConstraints {
+                                    AppSettingsProvider(prefs) {
+                                        ProvideDisplayLimits(
+                                            when {
+                                                setting.landscapePreview ->
+                                                    DisplayLimits(portraitWidth = maxWidth * 0.8F)
+
+                                                else -> null
+                                            }
+                                        ) {
+                                            Keyboard(
+                                                onAction = null,
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -277,6 +289,16 @@ class AppSettings(val ctx: SettingsContext) {
         options = LayoutOption.entries,
         fromString = LayoutOption::valueOf,
         ctx = ctx
+    )
+
+    val landscapeLocation = Setting.Enum(
+        key = "landscapeLocation",
+        label = "Landscape location",
+        defaultValue = LandscapeLocation.Center,
+        options = LandscapeLocation.entries,
+        fromString = LandscapeLocation::valueOf,
+        ctx = ctx,
+        landscapePreview = true,
     )
 
     val enabledLayers = Setting.Enum(
@@ -373,6 +395,7 @@ class AppSettings(val ctx: SettingsContext) {
         listOf<Setting<*>>(
             Setting.Section("Layout", ctx),
             layout,
+            landscapeLocation,
             enabledLayers,
             handedness,
             Setting.Section("Aesthetics", ctx),
@@ -391,6 +414,12 @@ class AppSettings(val ctx: SettingsContext) {
 
 interface Labeled {
     val label: String
+}
+
+enum class LandscapeLocation : Labeled {
+    Left, Center, Right;
+
+    override val label: String = toString()
 }
 
 enum class EnabledLayers(override val label: String) : Labeled {
@@ -508,6 +537,7 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
         val fromString: (String) -> T?,
         ctx: SettingsContext,
         override val description: String? = null,
+        val landscapePreview: Boolean = false,
     ) : Setting<T>(ctx) {
         override fun readFrom(prefs: SharedPreferences): T =
             prefs.getString(key, null)?.let(fromString) ?: defaultValue
@@ -523,19 +553,27 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
  * Does not support watchers, and changes are not transactional.
  */
 class MockedSharedPreferences(val inner: SharedPreferences) : SharedPreferences by inner {
-    private val strings = mutableMapOf<String, String>()
+    private val values = mutableMapOf<String, Any>()
 
     override fun getString(key: String, defValue: String?): String? =
-        strings.getOrElse(key) { inner.getString(key, defValue) }
+        values.getOrElse(key) { inner.getString(key, defValue) } as String?
+
+    override fun getFloat(key: String, defValue: Float): Float =
+        values.getOrElse(key) { inner.getFloat(key, defValue) } as Float
 
     override fun edit(): SharedPreferences.Editor {
         return object : SharedPreferences.Editor {
             override fun putString(key: String, value: String?): SharedPreferences.Editor {
                 if (value != null) {
-                    strings[key] = value
+                    values[key] = value
                 } else {
-                    strings.remove(key)
+                    values.remove(key)
                 }
+                return this
+            }
+
+            override fun putFloat(key: String, value: Float): SharedPreferences.Editor {
+                values[key] = value
                 return this
             }
 
@@ -554,16 +592,12 @@ class MockedSharedPreferences(val inner: SharedPreferences) : SharedPreferences 
                 TODO("Not yet implemented")
             }
 
-            override fun putFloat(key: String?, value: Float): SharedPreferences.Editor {
-                TODO("Not yet implemented")
-            }
-
             override fun putBoolean(key: String?, value: Boolean): SharedPreferences.Editor {
                 TODO("Not yet implemented")
             }
 
             override fun remove(key: String): SharedPreferences.Editor {
-                strings.remove(key)
+                values.remove(key)
                 return this
             }
 

@@ -22,8 +22,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import se.nullable.flickboard.model.Action
-import se.nullable.flickboard.ui.ConfiguredKeyboard
 import se.nullable.flickboard.ui.FlickBoardParent
+import se.nullable.flickboard.ui.Keyboard
 import se.nullable.flickboard.ui.Settings
 
 class MainActivity : ComponentActivity() {
@@ -50,16 +50,18 @@ class MainActivity : ComponentActivity() {
                                         color = MaterialTheme.colorScheme.secondary,
                                         modifier = Modifier.padding(8.dp)
                                     )
-                                    ConfiguredKeyboard(onAction = { action ->
-                                        val message = when {
-                                            action is Action.Text -> action.character
-                                            else -> action.toString()
-                                        }
-                                        scope.launch {
-                                            snackbarHostState.currentSnackbarData?.dismiss()
-                                            snackbarHostState.showSnackbar(message)
-                                        }
-                                    })
+                                    Keyboard(
+                                        onAction = { action: Action ->
+                                            val message = when {
+                                                action is Action.Text -> action.character
+                                                else -> action.toString()
+                                            }
+                                            scope.launch {
+                                                snackbarHostState.currentSnackbarData?.dismiss()
+                                                snackbarHostState.showSnackbar(message)
+                                            }
+                                        },
+                                    )
                                 }
                             }
                         }

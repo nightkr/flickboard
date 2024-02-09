@@ -21,9 +21,9 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.TextBoundary
-import se.nullable.flickboard.ui.ConfiguredKeyboard
 import se.nullable.flickboard.ui.EnabledLayers
 import se.nullable.flickboard.ui.FlickBoardParent
+import se.nullable.flickboard.ui.Keyboard
 import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 
@@ -66,8 +66,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                     ProvideDisplayLimits {
                         val appSettings = LocalAppSettings.current
                         Surface {
-                            ConfiguredKeyboard(
-                                onAction = { action ->
+                            Keyboard(
+                                onAction = { action: Action ->
                                     when (action) {
                                         is Action.Text ->
                                             currentInputConnection.commitText(action.character, 1)
@@ -156,7 +156,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             appSettings.cellHeight.currentValue += action.amount
                                     }
                                 },
-                                enterKeyLabel = currentInputEditorInfo.actionLabel?.toString()
+                                enterKeyLabel = currentInputEditorInfo.actionLabel?.toString(),
                             )
                         }
                     }
