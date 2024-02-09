@@ -25,6 +25,7 @@ import se.nullable.flickboard.ui.ConfiguredKeyboard
 import se.nullable.flickboard.ui.EnabledLayers
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
+import se.nullable.flickboard.ui.ProvideDisplayLimits
 
 class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistryOwner {
     private val lifecycleRegistry = LifecycleRegistry(this)
@@ -62,100 +63,102 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         return ComposeView(this).also { view ->
             view.setContent {
                 FlickBoardParent {
-                    val appSettings = LocalAppSettings.current
-                    Surface {
-                        ConfiguredKeyboard(
-                            onAction = { action ->
-                                when (action) {
-                                    is Action.Text ->
-                                        currentInputConnection.commitText(action.character, 1)
+                    ProvideDisplayLimits {
+                        val appSettings = LocalAppSettings.current
+                        Surface {
+                            ConfiguredKeyboard(
+                                onAction = { action ->
+                                    when (action) {
+                                        is Action.Text ->
+                                            currentInputConnection.commitText(action.character, 1)
 
-                                    is Action.Delete -> {
-                                        if (cursor?.selectionStart != cursor?.selectionEnd) {
-                                            // if selection is non-empty, delete it regardless of the mode requested by the user
-                                            currentInputConnection.commitText("", 0)
-                                        } else {
-                                            val length =
-                                                findBoundary(action.boundary, action.direction)
-                                            currentInputConnection.deleteSurroundingText(
-                                                if (action.direction == SearchDirection.Backwards) length else 0,
-                                                if (action.direction == SearchDirection.Forwards) length else 0,
-                                            )
-                                        }
-                                    }
-
-                                    is Action.Enter -> {
-                                        if (currentInputEditorInfo.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
-                                            currentInputConnection.commitText("\n", 1)
-                                        } else {
-                                            currentInputConnection.performEditorAction(
-                                                currentInputEditorInfo.actionId
-                                            )
-                                        }
-                                    }
-
-                                    is Action.Jump -> {
-                                        val currentPos = cursor?.let {
-                                            when (action.direction) {
-                                                SearchDirection.Backwards -> it.selectionStart
-                                                SearchDirection.Forwards -> it.selectionEnd
+                                        is Action.Delete -> {
+                                            if (cursor?.selectionStart != cursor?.selectionEnd) {
+                                                // if selection is non-empty, delete it regardless of the mode requested by the user
+                                                currentInputConnection.commitText("", 0)
+                                            } else {
+                                                val length =
+                                                    findBoundary(action.boundary, action.direction)
+                                                currentInputConnection.deleteSurroundingText(
+                                                    if (action.direction == SearchDirection.Backwards) length else 0,
+                                                    if (action.direction == SearchDirection.Forwards) length else 0,
+                                                )
                                             }
-                                        } ?: 0
-                                        val newPos = currentPos + findBoundary(
-                                            action.boundary,
-                                            action.direction
-                                        ) * when (action.direction) {
-                                            SearchDirection.Backwards -> -1
-                                            SearchDirection.Forwards -> 1
                                         }
-                                        currentInputConnection.setSelection(newPos, newPos)
-                                    }
 
-                                    is Action.Shift -> {
-                                        // handled internally in Keyboard
-                                    }
-
-                                    Action.Copy ->
-                                        currentInputConnection.performContextMenuAction(android.R.id.copy)
-
-                                    Action.Cut ->
-                                        currentInputConnection.performContextMenuAction(android.R.id.cut)
-
-                                    Action.Paste ->
-                                        currentInputConnection.performContextMenuAction(android.R.id.paste)
-
-                                    Action.SelectAll ->
-                                        currentInputConnection.performContextMenuAction(android.R.id.selectAll)
-
-                                    Action.Settings -> startActivity(
-                                        Intent.makeMainActivity(
-                                            ComponentName(this, MainActivity::class.java)
-                                        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    )
-
-                                    Action.ToggleLayerOrder -> {
-                                        when (appSettings.enabledLayers.currentValue) {
-                                            EnabledLayers.Letters ->
-                                                appSettings.enabledLayers.currentValue =
-                                                    EnabledLayers.Numbers
-
-                                            EnabledLayers.Numbers ->
-                                                appSettings.enabledLayers.currentValue =
-                                                    EnabledLayers.Letters
-
-                                            // Both layers are enabled, so switch their sides by toggling handedness
-                                            EnabledLayers.All ->
-                                                appSettings.handedness.currentValue =
-                                                    !appSettings.handedness.currentValue
+                                        is Action.Enter -> {
+                                            if (currentInputEditorInfo.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
+                                                currentInputConnection.commitText("\n", 1)
+                                            } else {
+                                                currentInputConnection.performEditorAction(
+                                                    currentInputEditorInfo.actionId
+                                                )
+                                            }
                                         }
-                                    }
 
-                                    is Action.AdjustCellHeight ->
-                                        appSettings.cellHeight.currentValue += action.amount
-                                }
-                            },
-                            enterKeyLabel = currentInputEditorInfo.actionLabel?.toString()
-                        )
+                                        is Action.Jump -> {
+                                            val currentPos = cursor?.let {
+                                                when (action.direction) {
+                                                    SearchDirection.Backwards -> it.selectionStart
+                                                    SearchDirection.Forwards -> it.selectionEnd
+                                                }
+                                            } ?: 0
+                                            val newPos = currentPos + findBoundary(
+                                                action.boundary,
+                                                action.direction
+                                            ) * when (action.direction) {
+                                                SearchDirection.Backwards -> -1
+                                                SearchDirection.Forwards -> 1
+                                            }
+                                            currentInputConnection.setSelection(newPos, newPos)
+                                        }
+
+                                        is Action.Shift -> {
+                                            // handled internally in Keyboard
+                                        }
+
+                                        Action.Copy ->
+                                            currentInputConnection.performContextMenuAction(android.R.id.copy)
+
+                                        Action.Cut ->
+                                            currentInputConnection.performContextMenuAction(android.R.id.cut)
+
+                                        Action.Paste ->
+                                            currentInputConnection.performContextMenuAction(android.R.id.paste)
+
+                                        Action.SelectAll ->
+                                            currentInputConnection.performContextMenuAction(android.R.id.selectAll)
+
+                                        Action.Settings -> startActivity(
+                                            Intent.makeMainActivity(
+                                                ComponentName(this, MainActivity::class.java)
+                                            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        )
+
+                                        Action.ToggleLayerOrder -> {
+                                            when (appSettings.enabledLayers.currentValue) {
+                                                EnabledLayers.Letters ->
+                                                    appSettings.enabledLayers.currentValue =
+                                                        EnabledLayers.Numbers
+
+                                                EnabledLayers.Numbers ->
+                                                    appSettings.enabledLayers.currentValue =
+                                                        EnabledLayers.Letters
+
+                                                // Both layers are enabled, so switch their sides by toggling handedness
+                                                EnabledLayers.All ->
+                                                    appSettings.handedness.currentValue =
+                                                        !appSettings.handedness.currentValue
+                                            }
+                                        }
+
+                                        is Action.AdjustCellHeight ->
+                                            appSettings.cellHeight.currentValue += action.amount
+                                    }
+                                },
+                                enterKeyLabel = currentInputEditorInfo.actionLabel?.toString()
+                            )
+                        }
                     }
                 }
             }

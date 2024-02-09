@@ -35,12 +35,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
+import se.nullable.flickboard.averageOf
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.ActionClass
 import se.nullable.flickboard.model.ActionVisual
 import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
+import se.nullable.flickboard.sqrt
 import kotlin.math.absoluteValue
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -288,11 +290,6 @@ private fun shapeLooksRound(points: List<Offset>, circleThreshold: Float): Boole
     val jaggedness = radiuses.averageOf { (it - averageRadius).absoluteValue } / averageRadius
     return jaggedness < circleThreshold / 100
 }
-
-private inline fun <T> List<T>.averageOf(f: (T) -> Float): Float =
-    (sumOf { f(it).toDouble() } / size).toFloat()
-
-private fun sqrt(x: Dp): Dp = Dp(sqrt(x.value))
 
 @Composable
 @Preview

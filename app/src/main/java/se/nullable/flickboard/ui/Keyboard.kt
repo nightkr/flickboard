@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
@@ -67,8 +68,13 @@ fun Keyboard(
     }
     val columns = layer.keyRows.maxOf { row -> row.sumOf { it.colspan } }
     BoxWithConstraints(modifier.background(MaterialTheme.colorScheme.surface)) {
-        val columnWidth = this.maxWidth / columns
-        Column {
+        // Enforce portrait aspect ratio in landscape mode
+        var thisWidth = maxWidth
+        LocalDisplayLimits.current?.let { limits ->
+            thisWidth = min(thisWidth, limits.portraitWidth)
+        }
+        val columnWidth = thisWidth / columns
+        Column(Modifier.width(thisWidth)) {
             layer.keyRows.forEachIndexed { rowI, row ->
                 Row(Modifier.padding(top = rowI.coerceAtMost(1).dp)) {
                     row.forEachIndexed { keyI, key ->
