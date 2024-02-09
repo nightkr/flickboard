@@ -65,12 +65,12 @@ data class KeyM(
 }
 
 sealed class Action {
-    abstract val visual: ActionVisual
+    abstract fun visual(modifier: ModifierState): ActionVisual
     open val actionClass = ActionClass.Other
     open fun shift(): Action = this
 
     data class Text(val character: String, val label: String = character) : Action() {
-        override val visual: ActionVisual = ActionVisual.Label(label)
+        override fun visual(modifier: ModifierState): ActionVisual = ActionVisual.Label(label)
         override val actionClass: ActionClass = when {
             character.isEmpty() -> ActionClass.Other
             character.all { it.isDigit() } -> ActionClass.Number
@@ -88,7 +88,7 @@ sealed class Action {
         val boundary: TextBoundary = TextBoundary.Letter,
         val hidden: Boolean = false,
     ) : Action() {
-        override val visual: ActionVisual = when {
+        override fun visual(modifier: ModifierState): ActionVisual = when {
             hidden -> ActionVisual.None
             else -> ActionVisual.Icon(R.drawable.baseline_backspace_24)
         }
@@ -97,7 +97,7 @@ sealed class Action {
     }
 
     data object Enter : Action() {
-        override val visual: ActionVisual =
+        override fun visual(modifier: ModifierState): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_keyboard_return_24)
     }
 
@@ -105,7 +105,7 @@ sealed class Action {
         val direction: SearchDirection,
         val boundary: TextBoundary = TextBoundary.Letter,
     ) : Action() {
-        override val visual: ActionVisual = when (direction) {
+        override fun visual(modifier: ModifierState): ActionVisual = when (direction) {
             SearchDirection.Backwards -> ActionVisual.Icon(R.drawable.baseline_keyboard_arrow_left_24)
             SearchDirection.Forwards -> ActionVisual.Icon(R.drawable.baseline_keyboard_arrow_right_24)
         }
@@ -113,8 +113,8 @@ sealed class Action {
         override fun shift(): Action = copy(boundary = TextBoundary.Word)
     }
 
-    data class Shift(val state: ShiftState) : Action() {
-        override val visual: ActionVisual = when (state) {
+    data class ToggleShift(val state: ShiftState) : Action() {
+        override fun visual(modifier: ModifierState): ActionVisual = when (state) {
             ShiftState.Normal -> ActionVisual.Icon(R.drawable.baseline_arrow_drop_down_24)
             ShiftState.Shift -> ActionVisual.Icon(R.drawable.baseline_arrow_drop_up_24)
             ShiftState.CapsLock -> ActionVisual.Icon(R.drawable.baseline_keyboard_capslock_24)
@@ -128,36 +128,54 @@ sealed class Action {
         }
     }
 
+    data object ToggleCtrl : Action() {
+        override fun visual(modifier: ModifierState): ActionVisual = when {
+            modifier.ctrl -> ActionVisual.Label("ctrl")
+            else -> ActionVisual.None
+        }
+    }
+
+    data object ToggleAlt : Action() {
+        override fun visual(modifier: ModifierState): ActionVisual = when {
+            modifier.alt -> ActionVisual.Label("alt")
+            else -> ActionVisual.None
+        }
+    }
+
     data object Cut : Action() {
-        override val visual: ActionVisual = ActionVisual.Icon(R.drawable.baseline_content_cut_24)
+        override fun visual(modifier: ModifierState): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_content_cut_24)
     }
 
     data object Copy : Action() {
-        override val visual: ActionVisual = ActionVisual.Icon(R.drawable.baseline_content_copy_24)
+        override fun visual(modifier: ModifierState): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_content_copy_24)
     }
 
     data object Paste : Action() {
-        override val visual: ActionVisual = ActionVisual.Icon(R.drawable.baseline_content_paste_24)
+        override fun visual(modifier: ModifierState): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_content_paste_24)
     }
 
     data object Settings : Action() {
-        override val visual: ActionVisual = ActionVisual.Icon(R.drawable.baseline_settings_24)
+        override fun visual(modifier: ModifierState): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_settings_24)
     }
 
     data object ToggleLayerOrder : Action() {
-        override val visual: ActionVisual =
+        override fun visual(modifier: ModifierState): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_flip_camera_android_24)
     }
 
     data class AdjustCellHeight(val amount: Float) : Action() {
-        override val visual: ActionVisual = when {
+        override fun visual(modifier: ModifierState): ActionVisual = when {
             amount >= 0 -> ActionVisual.Icon(R.drawable.baseline_zoom_in_24)
             else -> ActionVisual.Icon(R.drawable.baseline_zoom_out_24)
         }
     }
 
     data object SelectAll : Action() {
-        override val visual: ActionVisual =
+        override fun visual(modifier: ModifierState): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_select_all_24)
     }
 }

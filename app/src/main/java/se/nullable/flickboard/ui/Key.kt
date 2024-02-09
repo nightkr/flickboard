@@ -44,6 +44,7 @@ import se.nullable.flickboard.model.ActionVisual
 import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
+import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.sqrt
 import kotlin.math.absoluteValue
 import kotlin.math.atan2
@@ -55,6 +56,7 @@ import kotlin.math.sqrt
 fun Key(
     key: KeyM,
     onAction: ((Action) -> Unit)?,
+    modifierState: ModifierState,
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
     keyPointerTrailListener: State<KeyPointerTrailListener?> = remember { mutableStateOf(null) },
@@ -116,6 +118,7 @@ fun Key(
                 action,
                 enterKeyLabel = enterKeyLabel,
                 cornerRadius = sqrt(max(maxWidth, maxHeight) * keyRoundness * 0.01F),
+                modifiers = modifierState,
             )
         }
     }
@@ -126,7 +129,8 @@ fun BoxScope.KeyActionIndicator(
     direction: Direction,
     action: Action,
     enterKeyLabel: String?,
-    cornerRadius: Dp
+    cornerRadius: Dp,
+    modifiers: ModifierState,
 ) {
     var keyModifier = Modifier
         .align(
@@ -155,7 +159,7 @@ fun BoxScope.KeyActionIndicator(
         else -> true
     }
     if (showAction) {
-        when (val actionVisual = overrideActionVisual ?: action.visual) {
+        when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
             is ActionVisual.Label -> Text(
                 text = actionVisual.label,
                 color = when (action.actionClass) {
@@ -337,6 +341,7 @@ fun KeyPreview() {
                     ),
                     onAction = { lastAction = it },
                     modifier = Modifier.aspectRatio(1F),
+                    modifierState = ModifierState()
                 )
             }
         }

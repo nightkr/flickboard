@@ -32,7 +32,7 @@ import kotlinx.coroutines.delay
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
-import se.nullable.flickboard.model.ShiftState
+import se.nullable.flickboard.model.ModifierState
 
 @Composable
 fun Keyboard(
@@ -40,12 +40,16 @@ fun Keyboard(
     onAction: ((Action) -> Unit)?,
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
+    onModifierStateUpdated: (ModifierState) -> Unit = {},
 ) {
     val enabledLayers = LocalAppSettings.current.enabledLayers.state
     val handedness = LocalAppSettings.current.handedness.state
     val landscapeLocation = LocalAppSettings.current.landscapeLocation.state
     val enablePointerTrail = LocalAppSettings.current.enablePointerTrail.state
-    var shiftState: ShiftState by remember(layout) { mutableStateOf(ShiftState.Normal) }
+    var modifierState: ModifierState by remember { mutableStateOf(ModifierState()) }
+    LaunchedEffect(modifierState) {
+        onModifierStateUpdated(modifierState)
+    }
     val shiftLayer = remember(layout) { layout.shiftLayer.mergeFallback(layout.numericLayer) }
     val mainLayer =
         remember(layout) {
@@ -54,7 +58,7 @@ fun Keyboard(
     val layer by remember(layout) {
         derivedStateOf {
             val activeLayer = when {
-                shiftState.isShifted -> shiftLayer
+                modifierState.shift.isShifted -> shiftLayer
                 else -> mainLayer
             }
             listOfNotNull(
@@ -157,13 +161,16 @@ fun Keyboard(
                             key,
                             onAction = onAction?.let { onAction ->
                                 { action ->
-                                    shiftState = when (action) {
-                                        is Action.Shift -> action.state
-                                        else -> shiftState.next()
+                                    modifierState = when (action) {
+                                        is Action.ToggleShift -> modifierState.copy(shift = action.state)
+                                        is Action.ToggleCtrl -> modifierState.copy(ctrl = !modifierState.ctrl)
+                                        is Action.ToggleAlt -> modifierState.copy(alt = !modifierState.alt)
+                                        else -> modifierState.next()
                                     }
                                     onAction(action)
                                 }
                             },
+                            modifierState = modifierState,
                             modifier = Modifier
                                 .width(columnWidth * key.colspan)
                                 .padding(start = keyI.coerceAtMost(1).dp)
@@ -185,12 +192,14 @@ fun ConfiguredKeyboard(
     onAction: ((Action) -> Unit)?,
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
+    onModifierStateUpdated: (ModifierState) -> Unit = {},
 ) {
     Keyboard(
         layout = LocalAppSettings.current.layout.state.value.layout,
         onAction = onAction,
         modifier = modifier,
         enterKeyLabel = enterKeyLabel,
+        onModifierStateUpdated = onModifierStateUpdated,
     )
 }
 

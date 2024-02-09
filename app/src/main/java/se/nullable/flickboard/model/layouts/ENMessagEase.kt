@@ -56,9 +56,9 @@ val EN_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
-                    Direction.TOP to Action.Shift(ShiftState.Shift),
+                    Direction.TOP to Action.ToggleShift(ShiftState.Shift),
                     Direction.LEFT to Action.Text("m"),
-                    Direction.BOTTOM to Action.Shift(ShiftState.Normal),
+                    Direction.BOTTOM to Action.ToggleShift(ShiftState.Normal),
                 )
             ),
         ),

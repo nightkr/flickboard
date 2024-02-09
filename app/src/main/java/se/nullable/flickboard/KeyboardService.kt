@@ -4,6 +4,8 @@ import android.content.ComponentName
 import android.content.Intent
 import android.inputmethodservice.InputMethodService
 import android.os.Build
+import android.view.KeyCharacterMap
+import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
@@ -19,7 +21,9 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.SearchDirection
+import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.ui.ConfiguredKeyboard
 import se.nullable.flickboard.ui.EnabledLayers
@@ -36,6 +40,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         savedStateRegistryController.savedStateRegistry
 
     private var cursor: CursorAnchorInfo? = null
+
+    private var activeModifiers = ModifierState()
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
@@ -113,7 +119,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             currentInputConnection.setSelection(newPos, newPos)
                                         }
 
-                                        is Action.Shift -> {
+                                        is Action.ToggleShift, Action.ToggleCtrl, Action.ToggleAlt -> {
                                             // handled internally in Keyboard
                                         }
 
@@ -156,7 +162,72 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             appSettings.cellHeight.currentValue += action.amount
                                     }
                                 },
-                                enterKeyLabel = currentInputEditorInfo.actionLabel?.toString()
+                                onModifierStateUpdated = { newModifiers ->
+                                    if (newModifiers != activeModifiers) {
+                                        var modifierMask = when (newModifiers.shift) {
+                                            ShiftState.Normal -> 0
+                                            ShiftState.Shift -> KeyEvent.META_SHIFT_LEFT_ON
+                                            ShiftState.CapsLock -> KeyEvent.META_CAPS_LOCK_ON
+                                        }
+                                        if (newModifiers.ctrl) {
+                                            modifierMask =
+                                                modifierMask or KeyEvent.META_CTRL_LEFT_ON
+                                        }
+                                        if (newModifiers.alt) {
+                                            modifierMask = modifierMask or KeyEvent.META_ALT_LEFT_ON
+                                        }
+                                        fun newKeyEvent(isDown: Boolean, code: Int): KeyEvent =
+                                            KeyEvent(
+                                                0,
+                                                0,
+                                                when {
+                                                    isDown -> KeyEvent.ACTION_DOWN
+                                                    else -> KeyEvent.ACTION_UP
+                                                },
+                                                code,
+                                                0,
+//                                                0,
+                                                KeyEvent.normalizeMetaState(modifierMask),
+                                                KeyCharacterMap.VIRTUAL_KEYBOARD,
+                                                0,
+                                                KeyEvent.FLAG_SOFT_KEYBOARD,
+                                            )
+                                        if (newModifiers.shift.isShift != activeModifiers.shift.isShift) {
+                                            currentInputConnection.sendKeyEvent(
+                                                newKeyEvent(
+                                                    newModifiers.shift.isShift,
+                                                    KeyEvent.KEYCODE_SHIFT_LEFT
+                                                )
+                                            )
+                                        }
+                                        if (newModifiers.shift.isCapsLock != activeModifiers.shift.isCapsLock) {
+                                            currentInputConnection.sendKeyEvent(
+                                                newKeyEvent(
+                                                    newModifiers.shift.isCapsLock,
+                                                    KeyEvent.KEYCODE_CAPS_LOCK
+                                                )
+                                            )
+                                        }
+                                        if (newModifiers.ctrl != activeModifiers.ctrl) {
+                                            currentInputConnection.sendKeyEvent(
+                                                newKeyEvent(
+                                                    newModifiers.ctrl,
+                                                    KeyEvent.KEYCODE_CTRL_LEFT
+                                                )
+                                            )
+                                        }
+                                        if (newModifiers.alt != activeModifiers.alt) {
+                                            currentInputConnection.sendKeyEvent(
+                                                newKeyEvent(
+                                                    newModifiers.alt,
+                                                    KeyEvent.KEYCODE_ALT_LEFT
+                                                )
+                                            )
+                                        }
+                                        activeModifiers = newModifiers
+                                    }
+                                },
+                                enterKeyLabel = currentInputEditorInfo.actionLabel?.toString(),
                             )
                         }
                     }
