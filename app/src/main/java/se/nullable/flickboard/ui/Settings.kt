@@ -58,6 +58,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import se.nullable.flickboard.PiF
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
@@ -114,7 +115,7 @@ fun FloatSliderSetting(setting: Setting.FloatSlider) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 SettingLabel(setting)
-                Text(text = state.value.roundToInt().toString())
+                Text(text = setting.render(state.value))
             }
             Slider(
                 value = state.value,
@@ -383,13 +384,34 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx,
     )
 
-    val circleThreshold = Setting.FloatSlider(
-        key = "circleThreshold",
-        label = "Circle threshold",
-        description = "How round a shape must be to be recognized as a circle",
-        defaultValue = 50F,
-        range = 1F..100F,
+    val circleJaggednessThreshold = Setting.FloatSlider(
+        key = "circleJaggednessThreshold",
+        label = "Circle jaggedness threshold",
+        description = "How smooth a circle's radius must be",
+        defaultValue = .5F,
+        range = .01F..1F,
         ctx = ctx,
+        render = Setting.FloatSlider::percentage
+    )
+
+    val circleDiscontinuityThreshold = Setting.FloatSlider(
+        key = "circleDiscontinuityThreshold",
+        label = "Circle discontinuity threshold",
+        description = "How much a circle's angle is allowed to jump",
+        defaultValue = .3F * PiF,
+        range = 0F..PiF,
+        ctx = ctx,
+        render = Setting.FloatSlider::angle
+    )
+
+    val circleAngleThreshold = Setting.FloatSlider(
+        key = "circleAngleThreshold",
+        label = "Circle angle threshold",
+        description = "How full the circle must be",
+        defaultValue = 1.8F * PiF,
+        range = 1.5F * PiF..3F * PiF,
+        ctx = ctx,
+        render = Setting.FloatSlider::angle
     )
 
     val all =
@@ -411,7 +433,9 @@ class AppSettings(val ctx: SettingsContext) {
             cellHeight,
             swipeThreshold,
             fastSwipeThreshold,
-            circleThreshold,
+            circleJaggednessThreshold,
+            circleDiscontinuityThreshold,
+            circleAngleThreshold,
         )
 }
 
@@ -518,12 +542,18 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
         val range: ClosedFloatingPointRange<Float>,
         ctx: SettingsContext,
         override val description: String? = null,
+        val render: (Float) -> String = { it.roundToInt().toString() },
     ) : Setting<Float>(ctx) {
         override fun readFrom(prefs: SharedPreferences): Float =
             prefs.getFloat(key, defaultValue)
 
         override fun writeTo(prefs: SharedPreferences, value: Float) =
             prefs.edit { putFloat(key, value.coerceIn(range)) }
+
+        companion object {
+            fun percentage(x: Float): String = "${(x * 100).roundToInt()}%"
+            fun angle(x: Float): String = "${Math.toDegrees(x.toDouble()).roundToInt()}°"
+        }
     }
 
     class Enum<T : Labeled>(

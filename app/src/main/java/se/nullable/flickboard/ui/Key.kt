@@ -47,9 +47,12 @@ import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.sqrt
+import kotlin.math.PI
+import kotlin.math.absoluteValue
 import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.sign
 import kotlin.math.sqrt
 
 @Composable
@@ -73,7 +76,9 @@ fun Key(
     val enableFastActions = settings.enableFastActions.state
     val swipeThreshold = settings.swipeThreshold.state
     val fastSwipeThreshold = settings.fastSwipeThreshold.state
-    val circleThreshold = settings.circleThreshold.state
+    val circleJaggednessThreshold = settings.circleJaggednessThreshold.state
+    val circleDiscontinuityThreshold = settings.circleDiscontinuityThreshold.state
+    val circleAngleThreshold = settings.circleAngleThreshold.state
     val onActionModifier = if (onAction != null) {
         val handleAction = { action: Action ->
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -82,9 +87,11 @@ fun Key(
         Modifier.pointerInput(key) {
             awaitEachGesture {
                 awaitGesture(
-                    swipeThreshold = swipeThreshold.value.dp,
-                    fastSwipeThreshold = fastSwipeThreshold.value.dp,
-                    circleThreshold = circleThreshold.value,
+                    swipeThreshold = { swipeThreshold.value.dp },
+                    fastSwipeThreshold = { fastSwipeThreshold.value.dp },
+                    circleJaggednessThreshold = { circleJaggednessThreshold.value },
+                    circleDiscontinuityThreshold = { circleDiscontinuityThreshold.value },
+                    circleAngleThreshold = { circleAngleThreshold.value },
                     fastActions = key.fastActions.takeIf { enableFastActions.value }
                         ?: emptyMap(),
                     onFastAction = handleAction,
@@ -200,10 +207,12 @@ data class KeyPointerTrailListener(
     val onTrailUpdate: (List<Offset>) -> Unit = {}
 )
 
-private suspend fun AwaitPointerEventScope.awaitGesture(
-    swipeThreshold: Dp,
-    fastSwipeThreshold: Dp,
-    circleThreshold: Float,
+private suspend inline fun AwaitPointerEventScope.awaitGesture(
+    swipeThreshold: () -> Dp,
+    fastSwipeThreshold: () -> Dp,
+    circleJaggednessThreshold: () -> Float,
+    circleDiscontinuityThreshold: () -> Float,
+    circleAngleThreshold: () -> Float,
     fastActions: Map<Direction, Action>,
     onFastAction: (Action) -> Unit,
     // Passed as state to ensure that it's only grabbed once we have a down event
@@ -220,8 +229,8 @@ private suspend fun AwaitPointerEventScope.awaitGesture(
     var mostExtremeDistanceFromDownSquared = 0F
     var fastActionTraveled = Offset(0F, 0F)
     // cache squared slops to avoid having to take square roots
-    val swipeSlopSquared = swipeThreshold.toPx().pow(2)
-    val fastSwipeSlopSquared = fastSwipeThreshold.toPx().pow(2)
+    val swipeSlopSquared = swipeThreshold().toPx().pow(2)
+    val fastSwipeSlopSquared = fastSwipeThreshold().toPx().pow(2)
     while (true) {
         val event =
             withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { awaitPointerEvent() }
@@ -260,7 +269,13 @@ private suspend fun AwaitPointerEventScope.awaitGesture(
                 var isRound = false
                 val direction = if (!isDragging) {
                     Direction.CENTER
-                } else if (shapeLooksRound(positions, circleThreshold = circleThreshold)) {
+                } else if (shapeLooksRound(
+                        positions,
+                        jaggednessThreshold = circleJaggednessThreshold(),
+                        discontinuityThreshold = circleDiscontinuityThreshold(),
+                        angleThreshold = circleAngleThreshold(),
+                    )
+                ) {
                     isRound = true
                     Direction.CENTER
                 } else {
@@ -293,9 +308,10 @@ private suspend fun AwaitPointerEventScope.awaitGesture(
     }
 }
 
+private fun Offset.angle(): Float = atan2(y, x)
+
 private fun Offset.direction(): Direction {
-    val angle = atan2(y, x)
-    val slice = (angle * 4 / Math.PI)
+    val slice = (angle() * 4 / Math.PI)
         .roundToInt()
         .mod(8)
     return when (slice) {
@@ -307,11 +323,16 @@ private fun Offset.direction(): Direction {
         5 -> Direction.TOP_LEFT
         6 -> Direction.TOP
         7 -> Direction.TOP_RIGHT
-        else -> throw RuntimeException("Offset has invalid direction slice=$slice (angle=$angle)")
+        else -> throw RuntimeException("Offset has invalid direction slice=$slice (angle=${angle()}")
     }
 }
 
-private fun shapeLooksRound(points: List<Offset>, circleThreshold: Float): Boolean {
+private fun shapeLooksRound(
+    points: List<Offset>,
+    jaggednessThreshold: Float,
+    discontinuityThreshold: Float,
+    angleThreshold: Float,
+): Boolean {
     if (points.size < 5) {
         // Not enough data for there to be any "jaggedness" to detect
         return false
@@ -321,12 +342,45 @@ private fun shapeLooksRound(points: List<Offset>, circleThreshold: Float): Boole
         y = points.averageOf { it.y },
     )
     val radiuses = points.map { (it - midPoint).getDistanceSquared() }
+
     val averageRadius = radiuses.averageOf { it }
+    // If the radius is too small -> too hard to tell
     if (averageRadius < 10) {
         return false
     }
-    val jaggedness = radiuses.averageOf { (it - averageRadius).pow(4) } / averageRadius.pow(4)
-    return jaggedness < (circleThreshold / 100).pow(2)
+
+    // If the shape is too jagged -> not a circle
+    val jaggedness = radiuses.averageOf { (it - averageRadius).pow(2) } / averageRadius.pow(2)
+    if (jaggedness > jaggednessThreshold) {
+        return false
+    }
+
+    val angles = points
+        .map { (it - midPoint).angle() }
+        .zipWithNext { a, b -> (PI + (b - a)).mod(2 * PI) - PI }
+
+    // If the angle is too small -> not a complete circle
+    val totalAngle = angles.sum()
+    if (totalAngle.absoluteValue < angleThreshold) {
+        println("angle too small")
+        return false
+    }
+
+    // If the rotation flips direction -> round? but not a circle stroke
+    val sign = totalAngle.sign
+    val epsilon = -0.05
+    if (angles.any { it * sign < epsilon }) {
+        println("flipped!")
+        return false
+    }
+
+    // If there is too much of a gap in the angle -> probably not a circle
+    if (angles.any { it.absoluteValue > discontinuityThreshold }) {
+        println("discontinuity!")
+        return false
+    }
+
+    return true
 }
 
 @Composable

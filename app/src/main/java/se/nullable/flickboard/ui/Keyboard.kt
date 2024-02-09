@@ -23,6 +23,7 @@ import androidx.compose.ui.BiasAbsoluteAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.tooling.preview.Preview
@@ -106,14 +107,16 @@ fun Keyboard(
                 onDrawWithContent {
                     drawContent()
                     if (enablePointerTrail.value) {
-                        val keyPosition = activeKeyPosition.value
-                        pointerTrailRelativeToActiveKey.forEach {
-                            this.drawCircle(
-                                pointerTrailColor,
-                                center = it + keyPosition,
-                                radius = 10.dp.toPx(),
-                                alpha = 0.4f
-                            )
+                        clipRect {
+                            val keyPosition = activeKeyPosition.value
+                            pointerTrailRelativeToActiveKey.forEach {
+                                this.drawCircle(
+                                    pointerTrailColor,
+                                    center = it + keyPosition,
+                                    radius = 10.dp.toPx(),
+                                    alpha = 0.4f
+                                )
+                            }
                         }
                     }
                 }

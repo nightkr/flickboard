@@ -53,16 +53,18 @@ class MainActivity : ComponentActivity() {
                                         modifier = Modifier.padding(8.dp)
                                     )
                                     ProvideDisplayLimits {
-                                        ConfiguredKeyboard(onAction = { action ->
-                                            val message = when {
-                                                action is Action.Text -> action.character
-                                                else -> action.toString()
-                                            }
-                                            scope.launch {
-                                                snackbarHostState.currentSnackbarData?.dismiss()
-                                                snackbarHostState.showSnackbar(message)
-                                            }
-                                        }, modifier = Modifier.fillMaxWidth())
+                                        ConfiguredKeyboard(
+                                            onAction = { action ->
+                                                val message = when {
+                                                    action is Action.Text -> action.character
+                                                    else -> action.toString()
+                                                }
+                                                scope.launch {
+                                                    snackbarHostState.currentSnackbarData?.dismiss()
+                                                    snackbarHostState.showSnackbar(message)
+                                                }
+                                            }, modifier = Modifier.fillMaxWidth()
+                                        )
                                     }
                                 }
                             }
