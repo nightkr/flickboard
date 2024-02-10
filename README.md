@@ -16,7 +16,8 @@ installed.
 
 ## What does it look like?
 
-![Screenshot](screenshot.png)
+![Screenshot of the keyboard in use](screenshot-app.png)
+![Screenshot of settings panel](screenshot-settings.png)
 
 ## Why not MessagEase?
 
