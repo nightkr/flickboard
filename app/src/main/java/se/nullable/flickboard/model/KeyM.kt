@@ -52,13 +52,13 @@ data class KeyM(
     val actions: Map<Direction, Action>,
     // Fast actions are performed immediately when detected, rather than when the finger is released.
     val fastActions: Map<Direction, Action> = mapOf(),
+    val holdAction: Action? = null,
     val colspan: Int = 1,
-    val fallback: KeyM? = null,
     val shift: KeyM? = null
 ) {
     fun mergeFallback(fallback: KeyM): KeyM = copy(
         actions = fallback.actions + actions,
-        fallback = this.fallback ?: fallback
+        holdAction = this.holdAction ?: fallback.holdAction ?: fallback.actions[Direction.CENTER]
     )
 
     fun autoShift(): KeyM = copy(actions = actions.mapValues { it.value.shift() })
@@ -111,6 +111,13 @@ sealed class Action {
         }
 
         override fun shift(): Action = copy(boundary = TextBoundary.Word)
+    }
+
+    data class JumpLineKeepPos(val direction: SearchDirection) : Action() {
+        override fun visual(modifier: ModifierState): ActionVisual = when (direction) {
+            SearchDirection.Backwards -> ActionVisual.Icon(R.drawable.baseline_keyboard_arrow_up_24)
+            SearchDirection.Forwards -> ActionVisual.Icon(R.drawable.baseline_keyboard_arrow_down_24)
+        }
     }
 
     data class ToggleShift(val state: ShiftState) : Action() {
@@ -193,11 +200,12 @@ sealed class ActionVisual {
 enum class TextBoundary {
     Letter,
     Word,
+    Line,
 }
 
-enum class SearchDirection {
-    Backwards,
-    Forwards,
+enum class SearchDirection(val factor: Int) {
+    Backwards(factor = -1),
+    Forwards(factor = 1),
 }
 
 enum class Direction {
@@ -211,4 +219,4 @@ enum class Direction {
     }
 }
 
-data class Gesture(val direction: Direction, val forceFallback: Boolean, val shift: Boolean)
+data class Gesture(val direction: Direction, val longHold: Boolean, val shift: Boolean)

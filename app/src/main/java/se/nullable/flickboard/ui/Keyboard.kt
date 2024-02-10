@@ -34,6 +34,7 @@ import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ModifierState
+import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 
 @Composable
 fun Keyboard(
@@ -52,11 +53,11 @@ fun Keyboard(
     LaunchedEffect(modifierState) {
         onModifierStateUpdated(modifierState)
     }
-    val shiftLayer = remember(layout) { layout.shiftLayer.mergeFallback(layout.numericLayer) }
+    val mainLayerOverlay = OVERLAY_MESSAGEASE_LAYER.mergeFallback(layout.numericLayer)
+    val shiftLayer =
+        remember(layout) { layout.shiftLayer.mergeFallback(mainLayerOverlay.autoShift()) }
     val mainLayer =
-        remember(layout) {
-            layout.mainLayer.mergeFallback(layout.numericLayer).mergeShift(shiftLayer)
-        }
+        remember(layout) { layout.mainLayer.mergeFallback(mainLayerOverlay).mergeShift(shiftLayer) }
     val layer by remember(layout) {
         derivedStateOf {
             val activeLayer = when {

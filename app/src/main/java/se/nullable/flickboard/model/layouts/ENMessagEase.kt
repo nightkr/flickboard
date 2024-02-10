@@ -7,7 +7,6 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
-import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.Keyboard
 
@@ -56,9 +55,7 @@ val EN_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
-                    Direction.TOP to Action.ToggleShift(ShiftState.Shift),
                     Direction.LEFT to Action.Text("m"),
-                    Direction.BOTTOM to Action.ToggleShift(ShiftState.Normal),
                 )
             ),
         ),
@@ -90,7 +87,7 @@ val EN_MESSAGEASE_MAIN_LAYER = Layer(
 val EN_MESSAGEASE = Layout(
     mainLayer = EN_MESSAGEASE_MAIN_LAYER,
     numericLayer = MESSAGEASE_NUMERIC_LAYER,
-    controlLayer = COMMON_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER
 )
 
 @Composable

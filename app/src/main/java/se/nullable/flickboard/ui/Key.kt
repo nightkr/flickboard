@@ -97,17 +97,16 @@ fun Key(
                     onFastAction = handleAction,
                     trailListenerState = keyPointerTrailListener,
                 )?.let { gesture ->
-//                    println(gesture)
-                    var appliedKey: KeyM? = key
-                    if (gesture.forceFallback) {
-                        appliedKey = appliedKey?.fallback
+                    val action = when {
+                        gesture.longHold -> key.holdAction
+                        else -> {
+                            when {
+                                gesture.shift -> key.shift
+                                else -> key
+                            }?.actions?.get(gesture.direction)
+                        }
                     }
-                    if (gesture.shift) {
-                        appliedKey = appliedKey?.shift
-                    }
-                    appliedKey?.actions
-                        ?.get(gesture.direction)
-                        ?.let(handleAction)
+                    action?.let(handleAction)
                 }
             }
         }
@@ -236,7 +235,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
             withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { awaitPointerEvent() }
         if (event == null && !isDragging) {
             trailListener?.onUp?.invoke()
-            return Gesture(Direction.CENTER, forceFallback = true, shift = false)
+            return Gesture(Direction.CENTER, longHold = true, shift = false)
         }
         for (change in event?.changes ?: emptyList()) {
             if (change.isConsumed || change.changedToUp()) {
@@ -283,7 +282,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                 }
                 return Gesture(
                     direction = direction,
-                    forceFallback = false,
+                    longHold = false,
                     // shift if swipe is more than halfway to returned from the starting position (U shape),
                     // or a circle
                     shift = isRound ||

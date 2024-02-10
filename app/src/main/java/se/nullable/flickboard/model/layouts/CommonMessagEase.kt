@@ -12,6 +12,7 @@ import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.SearchDirection
+import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.Keyboard
 
@@ -30,7 +31,7 @@ val SPACE = KeyM(
     colspan = 3
 )
 
-val COMMON_MESSAGEASE_LAYER =
+val CONTROL_MESSAGEASE_LAYER =
     Layer(
         keyRows = listOf(
             // pointer
@@ -73,12 +74,38 @@ val COMMON_MESSAGEASE_LAYER =
         )
     )
 
+val OVERLAY_MESSAGEASE_LAYER = Layer(
+    keyRows = listOf(
+        listOf(
+            KeyM(actions = mapOf()),
+            KeyM(actions = mapOf()),
+            KeyM(actions = mapOf(Direction.TOP to Action.JumpLineKeepPos(SearchDirection.Backwards))),
+        ),
+        listOf(
+            KeyM(actions = mapOf()),
+            KeyM(actions = mapOf()),
+            KeyM(
+                actions = mapOf(
+                    Direction.TOP to Action.ToggleShift(ShiftState.Shift),
+                    Direction.BOTTOM to Action.ToggleShift(ShiftState.Normal),
+                )
+            ),
+        ),
+        listOf(
+            KeyM(actions = mapOf()),
+            KeyM(actions = mapOf()),
+            KeyM(actions = mapOf(Direction.BOTTOM to Action.JumpLineKeepPos(SearchDirection.Forwards))),
+        ),
+        listOf(KeyM(actions = mapOf()))
+    )
+)
+
 @Composable
 @Preview
 fun CommonKeyboardPreview() {
     FlickBoardParent {
         Box(Modifier.width(100.dp)) {
-            Keyboard(layout = Layout(COMMON_MESSAGEASE_LAYER), onAction = {})
+            Keyboard(layout = Layout(CONTROL_MESSAGEASE_LAYER), onAction = {})
         }
     }
 }
