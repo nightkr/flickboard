@@ -34,6 +34,7 @@ import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ModifierState
+import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 
@@ -208,8 +209,12 @@ fun ConfiguredKeyboard(
     enterKeyLabel: String? = null,
     onModifierStateUpdated: (ModifierState) -> Unit = {},
 ) {
+    val appSettings = LocalAppSettings.current
+    val enabledLetterLayers = appSettings.letterLayers.state.value
     Keyboard(
-        layout = LocalAppSettings.current.letterLayer.state.value.layout,
+        layout = enabledLetterLayers.getOrNull(appSettings.activeLetterLayerIndex.state.value)?.layout
+            ?: enabledLetterLayers.firstOrNull()?.layout
+            ?: EN_MESSAGEASE,
         onAction = onAction,
         modifier = modifier,
         enterKeyLabel = enterKeyLabel,

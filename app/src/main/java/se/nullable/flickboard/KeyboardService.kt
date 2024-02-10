@@ -206,6 +206,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                         )
 
+                                        is Action.SwitchLetterLayer -> {
+                                            appSettings.activeLetterLayerIndex.currentValue =
+                                                (appSettings.activeLetterLayerIndex.currentValue
+                                                        + action.direction.factor)
+                                                    .mod(appSettings.letterLayers.currentValue.size)
+                                        }
+
                                         Action.ToggleLayerOrder -> {
                                             when (appSettings.enabledLayers.currentValue) {
                                                 EnabledLayers.Letters ->

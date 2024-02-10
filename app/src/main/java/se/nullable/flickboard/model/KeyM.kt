@@ -168,6 +168,11 @@ sealed class Action {
             ActionVisual.Icon(R.drawable.baseline_settings_24)
     }
 
+    data class SwitchLetterLayer(val direction: SearchDirection) : Action() {
+        override fun visual(modifier: ModifierState): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_keyboard_24)
+    }
+
     data object ToggleLayerOrder : Action() {
         override fun visual(modifier: ModifierState): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_flip_camera_android_24)

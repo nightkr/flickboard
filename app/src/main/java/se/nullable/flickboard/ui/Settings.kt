@@ -24,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -49,6 +50,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
@@ -84,7 +86,9 @@ fun Settings(modifier: Modifier = Modifier) {
                     when (setting) {
                         is Setting.Section -> SettingsSection(setting)
                         is Setting.Bool -> BoolSetting(setting)
+                        is Setting.Integer -> {} // Not rendered right now, implement if used anywhere
                         is Setting.FloatSlider -> FloatSliderSetting(setting)
+                        is Setting.EnumList<*> -> EnumListSetting(setting)
                         is Setting.Enum -> EnumSetting(setting)
                     }
                 }
@@ -166,10 +170,66 @@ fun FloatSliderSetting(setting: Setting.FloatSlider) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun <T : Labeled> EnumListSetting(setting: Setting.EnumList<T>) {
+    fun toggleOption(option: T, add: Boolean? = null) {
+        val old = setting.currentValue
+        setting.currentValue = when {
+            add ?: !old.contains(option) -> old + option
+            else -> old - option
+        }
+    }
+    BaseEnumSetting(
+        setting,
+        valueLabel = { it.singleOrNull()?.label ?: "${it.size} enabled" },
+        options = setting.options,
+        optionSelectionControl = { selected, option ->
+            Switch(
+                checked = selected.contains(option),
+                onCheckedChange = { toggleOption(option, add = it) }
+            )
+        },
+        optionIsSelected = List<T>::contains,
+        onOptionSelected = { toggleOption(it) },
+        collapseOnOptionSelected = false,
+        writePreviewSettings = { prefs, option ->
+            setting.writePreviewSettings(prefs)
+            setting.writeTo(prefs, listOf(option))
+        },
+    )
+}
+
 @Composable
 fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
-    val state = setting.state
+    BaseEnumSetting(
+        setting,
+        valueLabel = { it.label },
+        options = setting.options,
+        optionSelectionControl = { selected, option ->
+            RadioButton(selected = selected == option, onClick = { setting.currentValue = option })
+        },
+        optionIsSelected = { selected, option -> option == selected },
+        onOptionSelected = { setting.currentValue = it },
+        collapseOnOptionSelected = true,
+        writePreviewSettings = { prefs, option ->
+            setting.writePreviewSettings(prefs)
+            setting.writeTo(prefs, option)
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun <T : Labeled, V : Any> BaseEnumSetting(
+    setting: Setting<V>,
+    valueLabel: (V) -> String,
+    options: List<T>,
+    optionSelectionControl: @Composable (V, T) -> Unit,
+    optionIsSelected: (V, T) -> Boolean,
+    onOptionSelected: (T) -> Unit,
+    collapseOnOptionSelected: Boolean,
+    writePreviewSettings: (SharedPreferences, T) -> Unit,
+) {
     val sheetState = rememberModalBottomSheetState()
     var expanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -184,7 +244,7 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
         SettingRow {
             SettingLabel(setting)
             Row {
-                Text(state.value.label)
+                Text(valueLabel(setting.state.value))
                 val angle: Float by animateFloatAsState(
                     when {
                         expanded -> 180F
@@ -201,12 +261,14 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
                 onDismissRequest = { expanded = false },
             ) {
                 LazyColumn {
-                    items(setting.options, key = { it.toString() }) { option ->
+                    items(options, key = { it.toString() }) { option ->
                         val appSettings = LocalAppSettings.current
-                        val isSelected = setting.state.value == option
+                        val isSelected = optionIsSelected(setting.state.value, option)
                         val select = {
-                            setting.currentValue = option
-                            collapse()
+                            onOptionSelected(option)
+                            if (collapseOnOptionSelected) {
+                                collapse()
+                            }
                         }
                         Card(
                             onClick = select,
@@ -222,15 +284,20 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
                             modifier = Modifier.padding(8.dp)
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = option.label,
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
+                                Row(
+                                    Modifier.padding(bottom = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = option.label,
+                                        fontSize = 16.sp,
+                                        modifier = Modifier.weight(1F)
+                                    )
+                                    optionSelectionControl(setting.state.value, option)
+                                }
                                 val prefs = remember(appSettings, setting, option) {
-                                    MockedSharedPreferences(appSettings.ctx.prefs).also {
-                                        setting.writePreviewSettings(it)
-                                        setting.writeTo(it, option)
-                                    }
+                                    MockedSharedPreferences(appSettings.ctx.prefs)
+                                        .also { writePreviewSettings(it, option) }
                                 }
                                 AppSettingsProvider(prefs) {
                                     ConfiguredKeyboard(onAction = null)
@@ -309,11 +376,11 @@ fun AppSettingsProvider(prefs: SharedPreferences? = null, content: @Composable (
 }
 
 class AppSettings(val ctx: SettingsContext) {
-    val letterLayer = Setting.Enum(
+    val letterLayers = Setting.EnumList(
         // Renaming this would reset the people's selected layer..
         key = "layout",
-        label = "Letter layout",
-        defaultValue = LetterLayerOption.English,
+        label = "Letter layouts",
+        defaultValue = listOf(LetterLayerOption.English),
         options = LetterLayerOption.entries,
         fromString = LetterLayerOption::valueOf,
         ctx = ctx,
@@ -322,6 +389,14 @@ class AppSettings(val ctx: SettingsContext) {
                 enabledLayers.writeTo(prefs, EnabledLayers.Letters)
             }
         }
+    )
+
+    // Intentionally not surfaced as a settings option
+    val activeLetterLayerIndex = Setting.Integer(
+        key = "activeLetterLayerIndex",
+        label = "Active letter layer index",
+        defaultValue = 0,
+        ctx = ctx
     )
 
     val numericLayer = Setting.Enum(
@@ -515,7 +590,7 @@ class AppSettings(val ctx: SettingsContext) {
     val all =
         listOf<Setting<*>>(
             Setting.Section("Layout", ctx),
-            letterLayer,
+            letterLayers,
             numericLayer,
             enabledLayers,
             handedness,
@@ -642,6 +717,20 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
             prefs.edit { putBoolean(key, value) }
     }
 
+    class Integer(
+        override val key: String,
+        override val label: String,
+        val defaultValue: Int,
+        ctx: SettingsContext,
+        override val description: String? = null,
+    ) : Setting<Int>(ctx) {
+        override fun readFrom(prefs: SharedPreferences): Int =
+            prefs.getInt(key, defaultValue)
+
+        override fun writeTo(prefs: SharedPreferences, value: Int) =
+            prefs.edit { putInt(key, value) }
+    }
+
     class FloatSlider(
         override val key: String,
         override val label: String,
@@ -661,6 +750,26 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
             fun percentage(x: Float): String = "${(x * 100).roundToInt()}%"
             fun angle(x: Float): String = "${Math.toDegrees(x.toDouble()).roundToInt()}°"
         }
+    }
+
+    class EnumList<T : Labeled>(
+        override val key: String,
+        override val label: String,
+        val defaultValue: List<T>,
+        val options: List<T>,
+        val fromString: (String) -> T?,
+        ctx: SettingsContext,
+        override val description: String? = null,
+        val writePreviewSettings: (SharedPreferences) -> Unit = {},
+    ) : Setting<List<T>>(ctx) {
+        override fun readFrom(prefs: SharedPreferences): List<T> =
+            prefs.getString(key, null)
+                ?.split(',')
+                ?.mapNotNull { it.takeIf { it.isNotEmpty() }?.let(fromString) }
+                ?: defaultValue
+
+        override fun writeTo(prefs: SharedPreferences, value: List<T>) =
+            prefs.edit { putString(key, value.joinToString(",") { it.toString() }) }
     }
 
     class Enum<T : Labeled>(

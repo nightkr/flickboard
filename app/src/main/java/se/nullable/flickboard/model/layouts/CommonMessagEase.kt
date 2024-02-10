@@ -41,7 +41,9 @@ val CONTROL_MESSAGEASE_LAYER =
                         Direction.CENTER to Action.ToggleLayerOrder,
                         Direction.TOP to Action.AdjustCellHeight(amount = 1F),
                         Direction.RIGHT to Action.Settings,
+                        Direction.BOTTOM_LEFT to Action.SwitchLetterLayer(SearchDirection.Backwards),
                         Direction.BOTTOM to Action.AdjustCellHeight(amount = -1F),
+                        Direction.BOTTOM_RIGHT to Action.SwitchLetterLayer(SearchDirection.Forwards),
                     ),
                 )
             ),
