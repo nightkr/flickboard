@@ -2,6 +2,10 @@
 
 FlickBoard is a flicking-style keyboard, in the style of [MessagEase] and [Thumb-Key].
 
+Type the letters in the center of a key by tapping it. Type the keys in the corners by swiping in
+that
+direction. That's it!
+
 ## How do I install it?
 
 There are currently no binary builds. You need to build it yourself, by running the following on a
