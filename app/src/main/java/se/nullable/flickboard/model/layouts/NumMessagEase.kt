@@ -10,12 +10,11 @@ import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.Keyboard
 
-val MESSAGEASE_NUMERIC_LAYER = Layer(
+val MESSAGEASE_SYMBOLS_LAYER = Layer(
     keyRows = listOf(
         listOf(
             KeyM(
                 actions = mapOf(
-                    Direction.CENTER to Action.Text("1"),
                     Direction.BOTTOM_LEFT to Action.Text("$"),
                     Direction.BOTTOM to Action.Text("…"),
                     Direction.RIGHT to Action.Text("-"),
@@ -23,7 +22,6 @@ val MESSAGEASE_NUMERIC_LAYER = Layer(
             ),
             KeyM(
                 actions = mapOf(
-                    Direction.CENTER to Action.Text("2"),
                     Direction.TOP_LEFT to Action.Text("`"),
                     Direction.TOP to Action.Text("^"),
                     Direction.TOP_RIGHT to Action.Text("´"),
@@ -35,7 +33,6 @@ val MESSAGEASE_NUMERIC_LAYER = Layer(
             ),
             KeyM(
                 actions = mapOf(
-                    Direction.CENTER to Action.Text("3"),
                     Direction.LEFT to Action.Text("?"),
                     Direction.BOTTOM to Action.Text("="),
                     Direction.BOTTOM_RIGHT to Action.Text("€"),
@@ -45,7 +42,6 @@ val MESSAGEASE_NUMERIC_LAYER = Layer(
         listOf(
             KeyM(
                 actions = mapOf(
-                    Direction.CENTER to Action.Text("4"),
                     Direction.TOP_LEFT to Action.Text("{"),
                     Direction.TOP_RIGHT to Action.Text("%"),
                     Direction.LEFT to Action.Text("("),
@@ -55,12 +51,10 @@ val MESSAGEASE_NUMERIC_LAYER = Layer(
             ),
             KeyM(
                 actions = mapOf(
-                    Direction.CENTER to Action.Text("5"),
                 )
             ),
             KeyM(
                 actions = mapOf(
-                    Direction.CENTER to Action.Text("6"),
                     Direction.TOP_LEFT to Action.Text("|"),
                     Direction.TOP_RIGHT to Action.Text("}"),
                     Direction.RIGHT to Action.Text(")"),
@@ -72,7 +66,6 @@ val MESSAGEASE_NUMERIC_LAYER = Layer(
         listOf(
             KeyM(
                 actions = mapOf(
-                    Direction.CENTER to Action.Text("7"),
                     Direction.TOP_LEFT to Action.Text("~"),
                     Direction.TOP to Action.Text("¨"),
                     Direction.LEFT to Action.Text("<"),
@@ -82,7 +75,6 @@ val MESSAGEASE_NUMERIC_LAYER = Layer(
             ),
             KeyM(
                 actions = mapOf(
-                    Direction.CENTER to Action.Text("8"),
                     Direction.TOP_LEFT to Action.Text("\""),
                     Direction.TOP_RIGHT to Action.Text("'"),
                     Direction.BOTTOM_LEFT to Action.Text(","),
@@ -92,7 +84,6 @@ val MESSAGEASE_NUMERIC_LAYER = Layer(
             ),
             KeyM(
                 actions = mapOf(
-                    Direction.CENTER to Action.Text("9"),
                     Direction.TOP to Action.Text("&"),
                     Direction.TOP_RIGHT to Action.Text("°"),
                     Direction.LEFT to Action.Text("#"),
@@ -100,6 +91,30 @@ val MESSAGEASE_NUMERIC_LAYER = Layer(
                     Direction.BOTTOM_LEFT to Action.Text(";"),
                 )
             ),
+        ),
+        listOf(
+            KeyM(actions = mapOf(), colspan = 2),
+            SPACE.copy(colspan = 1)
+        )
+    )
+)
+
+val MESSAGEASE_NUMERIC_PHONE_LAYER = Layer(
+    keyRows = listOf(
+        listOf(
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("1"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("2"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("3"))),
+        ),
+        listOf(
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("4"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("5"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("6"))),
+        ),
+        listOf(
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("7"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("8"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("9"))),
         ),
         listOf(
             KeyM(actions = mapOf(Direction.CENTER to Action.Text("0")), colspan = 2),
@@ -112,6 +127,6 @@ val MESSAGEASE_NUMERIC_LAYER = Layer(
 @Preview
 fun NumericKeyboardPreview() {
     FlickBoardParent {
-        Keyboard(layout = Layout(MESSAGEASE_NUMERIC_LAYER), onAction = {})
+        Keyboard(layout = Layout(Layer.empty), onAction = {})
     }
 }

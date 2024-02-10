@@ -5,7 +5,6 @@ import se.nullable.flickboard.R
 data class Layout(
     val mainLayer: Layer,
     val shiftLayer: Layer = mainLayer.autoShift(),
-    val numericLayer: Layer? = null,
     val controlLayer: Layer? = null
 )
 

@@ -62,9 +62,11 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import se.nullable.flickboard.PiF
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
+import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_PHONE_LAYER
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import kotlin.math.roundToInt
 
@@ -308,12 +310,22 @@ fun AppSettingsProvider(prefs: SharedPreferences? = null, content: @Composable (
 }
 
 class AppSettings(val ctx: SettingsContext) {
-    val layout = Setting.Enum(
+    val letterLayer = Setting.Enum(
+        // Renaming this would reset the people's selected layer..
         key = "layout",
-        label = "Layout",
-        defaultValue = LayoutOption.English,
-        options = LayoutOption.entries,
-        fromString = LayoutOption::valueOf,
+        label = "Letter layout",
+        defaultValue = LetterLayerOption.English,
+        options = LetterLayerOption.entries,
+        fromString = LetterLayerOption::valueOf,
+        ctx = ctx
+    )
+
+    val numericLayer = Setting.Enum(
+        key = "numericLayer",
+        label = "Number layout",
+        defaultValue = NumericLayerOption.Phone,
+        options = NumericLayerOption.entries,
+        fromString = NumericLayerOption::valueOf,
         ctx = ctx
     )
 
@@ -457,7 +469,8 @@ class AppSettings(val ctx: SettingsContext) {
     val all =
         listOf<Setting<*>>(
             Setting.Section("Layout", ctx),
-            layout,
+            letterLayer,
+            numericLayer,
             enabledLayers,
             handedness,
             landscapeLocation,
@@ -499,10 +512,14 @@ enum class Handedness(override val label: String) : Labeled {
     }
 }
 
-enum class LayoutOption(override val label: String, val layout: Layout) : Labeled {
+enum class LetterLayerOption(override val label: String, val layout: Layout) : Labeled {
     English("English (MessagEase)", EN_MESSAGEASE),
     Swedish("Swedish (MessagEase)", SV_MESSAGEASE),
-    German("German (MessagEase)", DE_MESSAGEASE);
+    German("German (MessagEase)", DE_MESSAGEASE),
+}
+
+enum class NumericLayerOption(override val label: String, val layer: Layer) : Labeled {
+    Phone("Phone", MESSAGEASE_NUMERIC_PHONE_LAYER),
 }
 
 class SettingsContext(val prefs: SharedPreferences, val coroutineScope: CoroutineScope)

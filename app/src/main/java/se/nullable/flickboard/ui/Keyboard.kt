@@ -34,6 +34,7 @@ import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ModifierState
+import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 
 @Composable
@@ -44,34 +45,43 @@ fun Keyboard(
     enterKeyLabel: String? = null,
     onModifierStateUpdated: (ModifierState) -> Unit = {},
 ) {
-    val enabledLayers = LocalAppSettings.current.enabledLayers.state
-    val handedness = LocalAppSettings.current.handedness.state
-    val landscapeLocation = LocalAppSettings.current.landscapeLocation.state
-    val landscapeScale = LocalAppSettings.current.landscapeScale.state
-    val enablePointerTrail = LocalAppSettings.current.enablePointerTrail.state
+    val appSettings = LocalAppSettings.current
+    val enabledLayers = appSettings.enabledLayers.state
+    val numericLayer = appSettings.numericLayer.state
+    val handedness = appSettings.handedness.state
+    val landscapeLocation = appSettings.landscapeLocation.state
+    val landscapeScale = appSettings.landscapeScale.state
+    val enablePointerTrail = appSettings.enablePointerTrail.state
     var modifierState: ModifierState by remember { mutableStateOf(ModifierState()) }
     LaunchedEffect(modifierState) {
         onModifierStateUpdated(modifierState)
     }
-    val mainLayerOverlay = OVERLAY_MESSAGEASE_LAYER.mergeFallback(layout.numericLayer)
+    val mergedNumericLayer =
+        remember { derivedStateOf { numericLayer.value.layer.mergeFallback(MESSAGEASE_SYMBOLS_LAYER) } }
+    val mainLayerOverlay =
+        remember { derivedStateOf { OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value) } }
     val shiftLayer =
-        remember(layout) { layout.shiftLayer.mergeFallback(mainLayerOverlay.autoShift()) }
+        remember(layout) { derivedStateOf { layout.shiftLayer.mergeFallback(mainLayerOverlay.value.autoShift()) } }
     val mainLayer =
-        remember(layout) { layout.mainLayer.mergeFallback(mainLayerOverlay).mergeShift(shiftLayer) }
+        remember(layout) {
+            derivedStateOf {
+                layout.mainLayer.mergeFallback(mainLayerOverlay.value).mergeShift(shiftLayer.value)
+            }
+        }
     val layer by remember(layout) {
         derivedStateOf {
             val activeLayer = when {
-                modifierState.shift.isShifted -> shiftLayer
-                else -> mainLayer
+                modifierState.shift.isShifted -> shiftLayer.value
+                else -> mainLayer.value
             }
             listOfNotNull(
                 when (enabledLayers.value) {
-                    EnabledLayers.All -> layout.numericLayer
+                    EnabledLayers.All -> mergedNumericLayer.value
                     else -> null
                 },
                 layout.controlLayer?.let { it.mergeShift(it.autoShift()) },
                 when (enabledLayers.value) {
-                    EnabledLayers.Numbers -> layout.numericLayer
+                    EnabledLayers.Numbers -> mergedNumericLayer.value
                     EnabledLayers.Letters, EnabledLayers.All -> activeLayer
                 },
             )
@@ -203,7 +213,7 @@ fun ConfiguredKeyboard(
     onModifierStateUpdated: (ModifierState) -> Unit = {},
 ) {
     Keyboard(
-        layout = LocalAppSettings.current.layout.state.value.layout,
+        layout = LocalAppSettings.current.letterLayer.state.value.layout,
         onAction = onAction,
         modifier = modifier,
         enterKeyLabel = enterKeyLabel,

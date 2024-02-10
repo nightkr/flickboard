@@ -86,7 +86,6 @@ val EN_MESSAGEASE_MAIN_LAYER = Layer(
 
 val EN_MESSAGEASE = Layout(
     mainLayer = EN_MESSAGEASE_MAIN_LAYER,
-    numericLayer = MESSAGEASE_NUMERIC_LAYER,
     controlLayer = CONTROL_MESSAGEASE_LAYER
 )
 

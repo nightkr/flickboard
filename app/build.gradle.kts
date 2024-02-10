@@ -40,6 +40,14 @@ android {
         debug {
             applicationIdSuffix = ".debug"
         }
+        create("optimizedDebug") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".optdebug"
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -86,5 +94,6 @@ dependencies {
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
+    "optimizedDebugImplementation"("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
