@@ -8,8 +8,10 @@ direction. That's it!
 
 ## How do I install it?
 
-There are currently no binary builds. You need to build it yourself, by running the following on a
-computer that is connected to your phone:
+Release builds are available from [GitHub Releases](https://github.com/nightkr/flickboard/releases).
+
+You can also build it yourself, by running the following on a computer that is connected to your
+phone:
 
 ```bash
 $ ./gradlew installDebug
