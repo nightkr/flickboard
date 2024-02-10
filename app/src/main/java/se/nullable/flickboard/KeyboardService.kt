@@ -224,7 +224,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         }
 
                                         is Action.AdjustCellHeight ->
-                                            appSettings.cellHeight.currentValue += action.amount
+                                            appSettings.keyHeight.currentValue += action.amount
                                     }
                                 },
                                 onModifierStateUpdated = { newModifiers ->

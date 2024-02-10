@@ -68,10 +68,10 @@ fun Key(
     val settings = LocalAppSettings.current
     val isLandscape = LocalDisplayLimits.current?.isLandscape ?: false
     val scale = when {
-        isLandscape -> settings.landscapeScale.state.value / 100
+        isLandscape -> settings.landscapeScale.state.value
         else -> 1F
     }
-    val cellHeight = settings.cellHeight.state.value * scale
+    val keyHeight = settings.keyHeight.state.value * scale
     val keyRoundness = settings.keyRoundness.state.value
     val enableFastActions = settings.enableFastActions.state
     val swipeThreshold = settings.swipeThreshold.state
@@ -118,9 +118,9 @@ fun Key(
         modifier = modifier
             .background(
                 MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(keyRoundness.roundToInt())
+                shape = RoundedCornerShape((keyRoundness * 100).roundToInt())
             )
-            .height(cellHeight.dp)
+            .height(keyHeight.dp)
             .then(onActionModifier)
     ) {
         key.actions.forEach { (direction, action) ->
@@ -128,7 +128,7 @@ fun Key(
                 direction,
                 action,
                 enterKeyLabel = enterKeyLabel,
-                cornerRadius = sqrt(max(maxWidth, maxHeight) * keyRoundness * 0.01F),
+                cornerRadius = sqrt(max(maxWidth, maxHeight) * keyRoundness),
                 scale = scale,
                 modifiers = modifierState,
             )

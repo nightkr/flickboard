@@ -128,7 +128,7 @@ fun Keyboard(
         LocalDisplayLimits.current?.let { limits ->
             thisWidth = min(thisWidth, limits.portraitWidth)
             if (limits.isLandscape) {
-                thisWidth *= landscapeScale.value / 100
+                thisWidth *= landscapeScale.value
             }
         }
         val columnWidth = thisWidth / columns
@@ -137,7 +137,7 @@ fun Keyboard(
                 .width(thisWidth)
                 .align(
                     BiasAbsoluteAlignment(
-                        horizontalBias = landscapeLocation.value / 100,
+                        horizontalBias = landscapeLocation.value,
                         verticalBias = 0F
                     )
                 )

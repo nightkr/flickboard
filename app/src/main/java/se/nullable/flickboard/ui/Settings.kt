@@ -339,16 +339,18 @@ class AppSettings(val ctx: SettingsContext) {
         key = "landscapeLocation",
         label = "Landscape location",
         defaultValue = 0F,
-        range = -100F..100F,
-        ctx = ctx
+        range = -1F..1F,
+        ctx = ctx,
+        render = Setting.FloatSlider::percentage
     )
 
     val landscapeScale = Setting.FloatSlider(
         key = "landscapeScale",
         label = "Landscape scale",
-        defaultValue = 100F,
-        range = 20F..100F,
+        defaultValue = 1F,
+        range = 0.2F..1F,
         ctx = ctx,
+        render = Setting.FloatSlider::percentage
     )
 
     val showLetters = Setting.Bool(
@@ -376,8 +378,9 @@ class AppSettings(val ctx: SettingsContext) {
         key = "keyRoundness",
         label = "Key roundness",
         defaultValue = 0F,
-        range = 0f..50f,
-        ctx = ctx
+        range = 0F..0.5F,
+        ctx = ctx,
+        render = Setting.FloatSlider::percentage
     )
 
     val enablePointerTrail = Setting.Bool(
@@ -395,9 +398,9 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
-    val cellHeight = Setting.FloatSlider(
-        key = "cellHeight",
-        label = "Cell height",
+    val keyHeight = Setting.FloatSlider(
+        key = "keyHeight",
+        label = "Key height",
         defaultValue = 72F,
         range = 48F..96F,
         ctx = ctx
@@ -467,7 +470,7 @@ class AppSettings(val ctx: SettingsContext) {
             enablePointerTrail,
             Setting.Section("Behaviour", ctx),
             enableFastActions,
-            cellHeight,
+            keyHeight,
             swipeThreshold,
             fastSwipeThreshold,
             circleJaggednessThreshold,
