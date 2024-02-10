@@ -228,10 +228,8 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
                                 )
                                 val prefs = remember(appSettings, setting, option) {
                                     MockedSharedPreferences(appSettings.ctx.prefs).also {
-                                        setting.writeTo(
-                                            it,
-                                            option
-                                        )
+                                        setting.writePreviewSettings(it)
+                                        setting.writeTo(it, option)
                                     }
                                 }
                                 AppSettingsProvider(prefs) {
@@ -318,7 +316,12 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = LetterLayerOption.English,
         options = LetterLayerOption.entries,
         fromString = LetterLayerOption::valueOf,
-        ctx = ctx
+        ctx = ctx,
+        writePreviewSettings = { prefs ->
+            if (enabledLayers.readFrom(prefs) == EnabledLayers.Numbers) {
+                enabledLayers.writeTo(prefs, EnabledLayers.Letters)
+            }
+        }
     )
 
     val numericLayer = Setting.Enum(
@@ -327,7 +330,12 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = NumericLayerOption.Phone,
         options = NumericLayerOption.entries,
         fromString = NumericLayerOption::valueOf,
-        ctx = ctx
+        ctx = ctx,
+        writePreviewSettings = { prefs ->
+            if (enabledLayers.readFrom(prefs) == EnabledLayers.Letters) {
+                enabledLayers.writeTo(prefs, EnabledLayers.Numbers)
+            }
+        }
     )
 
     val enabledLayers = Setting.Enum(
@@ -623,6 +631,7 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
         val fromString: (String) -> T?,
         ctx: SettingsContext,
         override val description: String? = null,
+        val writePreviewSettings: (SharedPreferences) -> Unit = {},
     ) : Setting<T>(ctx) {
         override fun readFrom(prefs: SharedPreferences): T =
             prefs.getString(key, null)?.let(fromString) ?: defaultValue
