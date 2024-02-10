@@ -123,6 +123,30 @@ val MESSAGEASE_NUMERIC_PHONE_LAYER = Layer(
     )
 )
 
+val MESSAGEASE_NUMERIC_CALCULATOR_LAYER = Layer(
+    keyRows = listOf(
+        listOf(
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("7"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("8"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("9"))),
+        ),
+        listOf(
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("4"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("5"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("6"))),
+        ),
+        listOf(
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("1"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("2"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("3"))),
+        ),
+        listOf(
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text("0")), colspan = 2),
+            SPACE.copy(colspan = 1)
+        )
+    )
+)
+
 @Composable
 @Preview
 fun NumericKeyboardPreview() {

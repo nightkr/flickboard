@@ -66,6 +66,7 @@ import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
+import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_CALCULATOR_LAYER
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_PHONE_LAYER
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import kotlin.math.roundToInt
@@ -520,6 +521,7 @@ enum class LetterLayerOption(override val label: String, val layout: Layout) : L
 
 enum class NumericLayerOption(override val label: String, val layer: Layer) : Labeled {
     Phone("Phone", MESSAGEASE_NUMERIC_PHONE_LAYER),
+    Calculator("Calculator", MESSAGEASE_NUMERIC_CALCULATOR_LAYER),
 }
 
 class SettingsContext(val prefs: SharedPreferences, val coroutineScope: CoroutineScope)
