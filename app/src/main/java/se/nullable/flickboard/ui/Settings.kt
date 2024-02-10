@@ -374,6 +374,36 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::percentage
     )
 
+    val portraitLocation = Setting.FloatSlider(
+        key = "portraitLocation",
+        label = "Portrait location",
+        defaultValue = 0F,
+        range = -1F..1F,
+        ctx = ctx,
+        render = Setting.FloatSlider::percentage
+    )
+
+    val portraitScale = Setting.FloatSlider(
+        key = "portraitScale",
+        label = "Portrait scale",
+        defaultValue = 1F,
+        range = 0.2F..1F,
+        ctx = ctx,
+        render = Setting.FloatSlider::percentage
+    )
+
+    val currentLocation: Float
+        @Composable get() = when {
+            LocalDisplayLimits.current?.isLandscape ?: false -> landscapeLocation.state.value
+            else -> portraitLocation.state.value
+        }
+
+    val currentScale: Float
+        @Composable get() = when {
+            LocalDisplayLimits.current?.isLandscape ?: false -> landscapeScale.state.value
+            else -> portraitScale.state.value
+        }
+
     val showLetters = Setting.Bool(
         key = "showLetters",
         label = "Show letters",
@@ -491,6 +521,8 @@ class AppSettings(val ctx: SettingsContext) {
             handedness,
             landscapeLocation,
             landscapeScale,
+            portraitLocation,
+            portraitScale,
             Setting.Section("Aesthetics", ctx),
             showLetters,
             showSymbols,

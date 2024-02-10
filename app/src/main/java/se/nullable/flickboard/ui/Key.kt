@@ -66,11 +66,7 @@ fun Key(
 ) {
     val haptic = LocalHapticFeedback.current
     val settings = LocalAppSettings.current
-    val isLandscape = LocalDisplayLimits.current?.isLandscape ?: false
-    val scale = when {
-        isLandscape -> settings.landscapeScale.state.value
-        else -> 1F
-    }
+    val scale = settings.currentScale
     val keyHeight = settings.keyHeight.state.value * scale
     val keyRoundness = settings.keyRoundness.state.value
     val enableFastActions = settings.enableFastActions.state

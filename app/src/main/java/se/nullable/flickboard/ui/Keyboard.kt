@@ -49,8 +49,6 @@ fun Keyboard(
     val enabledLayers = appSettings.enabledLayers.state
     val numericLayer = appSettings.numericLayer.state
     val handedness = appSettings.handedness.state
-    val landscapeLocation = appSettings.landscapeLocation.state
-    val landscapeScale = appSettings.landscapeScale.state
     val enablePointerTrail = appSettings.enablePointerTrail.state
     var modifierState: ModifierState by remember { mutableStateOf(ModifierState()) }
     LaunchedEffect(modifierState) {
@@ -133,21 +131,19 @@ fun Keyboard(
                 }
             }
     ) {
-        // Enforce portrait aspect ratio in landscape mode
         var thisWidth = maxWidth
         LocalDisplayLimits.current?.let { limits ->
+            // Enforce portrait aspect ratio in landscape mode
             thisWidth = min(thisWidth, limits.portraitWidth)
-            if (limits.isLandscape) {
-                thisWidth *= landscapeScale.value
-            }
         }
+        thisWidth *= appSettings.currentScale
         val columnWidth = thisWidth / columns
         Column(
             Modifier
                 .width(thisWidth)
                 .align(
                     BiasAbsoluteAlignment(
-                        horizontalBias = landscapeLocation.value,
+                        horizontalBias = appSettings.currentLocation,
                         verticalBias = 0F
                     )
                 )
