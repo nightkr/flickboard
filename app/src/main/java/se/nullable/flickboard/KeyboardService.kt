@@ -101,7 +101,17 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 currentInputConnection.commitText("\n", 1)
                                             } else {
                                                 currentInputConnection.performEditorAction(
-                                                    currentInputEditorInfo.actionId
+                                                    when {
+                                                        currentInputEditorInfo.actionLabel != null ->
+                                                            currentInputEditorInfo.actionId
+
+                                                        else -> currentInputEditorInfo.imeOptions and
+                                                                (EditorInfo.IME_ACTION_DONE or
+                                                                        EditorInfo.IME_ACTION_GO or
+                                                                        EditorInfo.IME_ACTION_NEXT or
+                                                                        EditorInfo.IME_ACTION_SEARCH or
+                                                                        EditorInfo.IME_ACTION_SEND)
+                                                    }
                                                 )
                                             }
                                         }
