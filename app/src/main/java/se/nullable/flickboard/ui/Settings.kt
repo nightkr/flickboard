@@ -419,6 +419,13 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val longHoldOnClockwiseCircle = Setting.Bool(
+        key = "digitOnClockwiseCircle",
+        label = "Type digit on clockwise circle",
+        defaultValue = false,
+        ctx = ctx
+    )
+
     val keyHeight = Setting.FloatSlider(
         key = "keyHeight",
         label = "Key height",
@@ -492,6 +499,7 @@ class AppSettings(val ctx: SettingsContext) {
             enablePointerTrail,
             Setting.Section("Behaviour", ctx),
             enableFastActions,
+            longHoldOnClockwiseCircle,
             keyHeight,
             swipeThreshold,
             fastSwipeThreshold,

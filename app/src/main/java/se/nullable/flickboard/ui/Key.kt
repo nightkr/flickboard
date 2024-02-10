@@ -74,6 +74,7 @@ fun Key(
     val keyHeight = settings.keyHeight.state.value * scale
     val keyRoundness = settings.keyRoundness.state.value
     val enableFastActions = settings.enableFastActions.state
+    val longHoldOnClockwiseCircle = settings.longHoldOnClockwiseCircle.state
     val swipeThreshold = settings.swipeThreshold.state
     val fastSwipeThreshold = settings.fastSwipeThreshold.state
     val circleJaggednessThreshold = settings.circleJaggednessThreshold.state
@@ -89,6 +90,7 @@ fun Key(
                 awaitGesture(
                     swipeThreshold = { swipeThreshold.value.dp },
                     fastSwipeThreshold = { fastSwipeThreshold.value.dp },
+                    longHoldOnClockwiseCircle = { longHoldOnClockwiseCircle.value },
                     circleJaggednessThreshold = { circleJaggednessThreshold.value },
                     circleDiscontinuityThreshold = { circleDiscontinuityThreshold.value },
                     circleAngleThreshold = { circleAngleThreshold.value },
@@ -209,6 +211,7 @@ data class KeyPointerTrailListener(
 private suspend inline fun AwaitPointerEventScope.awaitGesture(
     swipeThreshold: () -> Dp,
     fastSwipeThreshold: () -> Dp,
+    longHoldOnClockwiseCircle: () -> Boolean,
     circleJaggednessThreshold: () -> Float,
     circleDiscontinuityThreshold: () -> Float,
     circleAngleThreshold: () -> Float,
@@ -266,23 +269,30 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                 }
                 change.position - down.position
                 var isRound = false
+                var isLongHold = false
                 val direction = if (!isDragging) {
                     Direction.CENTER
-                } else if (shapeLooksRound(
+                } else {
+                    val circleDirection = shapeLooksLikeCircle(
                         positions,
                         jaggednessThreshold = circleJaggednessThreshold(),
                         discontinuityThreshold = circleDiscontinuityThreshold(),
                         angleThreshold = circleAngleThreshold(),
                     )
-                ) {
-                    isRound = true
-                    Direction.CENTER
-                } else {
-                    mostExtremePosFromDown.direction()
+                    if (circleDirection != null) {
+                        if (circleDirection == CircleDirection.Clockwise && longHoldOnClockwiseCircle()) {
+                            isLongHold = true
+                        } else {
+                            isRound = true
+                        }
+                        Direction.CENTER
+                    } else {
+                        mostExtremePosFromDown.direction()
+                    }
                 }
                 return Gesture(
                     direction = direction,
-                    longHold = false,
+                    longHold = isLongHold,
                     // shift if swipe is more than halfway to returned from the starting position (U shape),
                     // or a circle
                     shift = isRound ||
@@ -326,15 +336,20 @@ private fun Offset.direction(): Direction {
     }
 }
 
-private fun shapeLooksRound(
+enum class CircleDirection {
+    Clockwise,
+    CounterClockwise,
+}
+
+private fun shapeLooksLikeCircle(
     points: List<Offset>,
     jaggednessThreshold: Float,
     discontinuityThreshold: Float,
     angleThreshold: Float,
-): Boolean {
+): CircleDirection? {
     if (points.size < 5) {
         // Not enough data for there to be any "jaggedness" to detect
-        return false
+        return null
     }
     val midPoint = Offset(
         x = points.averageOf { it.x },
@@ -345,13 +360,13 @@ private fun shapeLooksRound(
     val averageRadius = radiuses.averageOf { it }
     // If the radius is too small -> too hard to tell
     if (averageRadius < 10) {
-        return false
+        return null
     }
 
     // If the shape is too jagged -> not a circle
     val jaggedness = radiuses.averageOf { (it - averageRadius).pow(2) } / averageRadius.pow(2)
     if (jaggedness > jaggednessThreshold) {
-        return false
+        return null
     }
 
     val angles = points
@@ -362,7 +377,7 @@ private fun shapeLooksRound(
     val totalAngle = angles.sum()
     if (totalAngle.absoluteValue < angleThreshold) {
         println("angle too small")
-        return false
+        return null
     }
 
     // If the rotation flips direction -> round? but not a circle stroke
@@ -370,16 +385,19 @@ private fun shapeLooksRound(
     val epsilon = -0.05
     if (angles.any { it * sign < epsilon }) {
         println("flipped!")
-        return false
+        return null
     }
 
     // If there is too much of a gap in the angle -> probably not a circle
     if (angles.any { it.absoluteValue > discontinuityThreshold }) {
         println("discontinuity!")
-        return false
+        return null
     }
 
-    return true
+    return when {
+        totalAngle > 0 -> CircleDirection.Clockwise
+        else -> CircleDirection.CounterClockwise
+    }
 }
 
 @Composable
