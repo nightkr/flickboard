@@ -622,7 +622,10 @@ class MockedSharedPreferences(val inner: SharedPreferences) : SharedPreferences 
     private val strings = mutableMapOf<String, String>()
 
     override fun getString(key: String, defValue: String?): String? =
-        strings.getOrElse(key) { inner.getString(key, defValue) }
+        strings[key] ?: inner.getString(key, defValue)
+
+    override fun getFloat(key: String, defValue: Float): Float =
+        strings[key]?.toFloat() ?: inner.getFloat(key, defValue)
 
     override fun edit(): SharedPreferences.Editor {
         return object : SharedPreferences.Editor {
@@ -632,6 +635,11 @@ class MockedSharedPreferences(val inner: SharedPreferences) : SharedPreferences 
                 } else {
                     strings.remove(key)
                 }
+                return this
+            }
+
+            override fun putFloat(key: String, value: Float): SharedPreferences.Editor {
+                strings[key] = value.toString()
                 return this
             }
 
@@ -647,10 +655,6 @@ class MockedSharedPreferences(val inner: SharedPreferences) : SharedPreferences 
             }
 
             override fun putLong(key: String?, value: Long): SharedPreferences.Editor {
-                TODO("Not yet implemented")
-            }
-
-            override fun putFloat(key: String?, value: Float): SharedPreferences.Editor {
                 TODO("Not yet implemented")
             }
 

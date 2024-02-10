@@ -227,3 +227,19 @@ fun KeyboardPreview() {
         }
     }
 }
+
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, widthDp = 1024, heightDp = 500)
+fun PlayKeyboardPreview() {
+    var lastAction by remember { mutableStateOf<Action?>(null) }
+    FlickBoardParent {
+        Surface {
+            val appSettings = LocalAppSettings.current
+            AppSettingsProvider(prefs = MockedSharedPreferences(appSettings.ctx.prefs).also {
+                appSettings.keyHeight.writeTo(it, 128F)
+            }) {
+                ConfiguredKeyboard(onAction = { lastAction = it })
+            }
+        }
+    }
+}
