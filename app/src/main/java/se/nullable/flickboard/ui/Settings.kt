@@ -25,6 +25,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -59,6 +61,7 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import se.nullable.flickboard.PiF
+import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
@@ -67,16 +70,50 @@ import kotlin.math.roundToInt
 
 @Composable
 fun Settings(modifier: Modifier = Modifier) {
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     val appSettings = LocalAppSettings.current
-    Column(modifier.verticalScroll(rememberScrollState())) {
-        appSettings.all.forEach { setting ->
-            when (setting) {
-                is Setting.Section -> SettingsSection(setting)
-                is Setting.Bool -> BoolSetting(setting)
-                is Setting.FloatSlider -> FloatSliderSetting(setting)
-                is Setting.Enum -> EnumSetting(setting)
+    Box {
+        Column {
+            Column(modifier.verticalScroll(rememberScrollState())) {
+                OnboardingPrompt()
+                appSettings.all.forEach { setting ->
+                    when (setting) {
+                        is Setting.Section -> SettingsSection(setting)
+                        is Setting.Bool -> BoolSetting(setting)
+                        is Setting.FloatSlider -> FloatSliderSetting(setting)
+                        is Setting.Enum -> EnumSetting(setting)
+                    }
+                }
+            }
+            Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
+                Column {
+                    Text(
+                        text = "Preview keyboard",
+                        color = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                    ProvideDisplayLimits {
+                        ConfiguredKeyboard(
+                            onAction = { action ->
+                                val message = when {
+                                    action is Action.Text -> action.character
+                                    else -> action.toString()
+                                }
+                                scope.launch {
+                                    snackbarHostState.currentSnackbarData?.dismiss()
+                                    snackbarHostState.showSnackbar(message)
+                                }
+                            }, modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
             }
         }
+        SnackbarHost(
+            snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
 }
 
