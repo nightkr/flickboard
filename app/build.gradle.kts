@@ -1,9 +1,25 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
 
+val keystoreProperties = Properties().also {
+    val propFile = rootProject.file("../flickboard.keystore.properties")
+    it.load(FileInputStream(propFile))
+}
+
 android {
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+        }
+    }
     namespace = "se.nullable.flickboard"
     compileSdk = 34
 
@@ -11,7 +27,7 @@ android {
         applicationId = "se.nullable.flickboard"
         minSdk = 30
         targetSdk = 34
-        versionCode = 1
+        versionCode = 4
         versionName = "0.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -31,6 +47,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
