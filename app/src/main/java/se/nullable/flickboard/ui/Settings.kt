@@ -383,7 +383,7 @@ class AppSettings(val ctx: SettingsContext) {
     val enablePointerTrail = Setting.Bool(
         key = "enablePointerTrail",
         label = "Enable pointer trail",
-        defaultValue = false,
+        defaultValue = true,
         ctx = ctx
     )
 
