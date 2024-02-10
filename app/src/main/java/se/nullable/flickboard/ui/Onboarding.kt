@@ -68,10 +68,12 @@ fun OnboardingPrompt() {
         if (!inputManager.enabledInputMethodList.any { it.component == keyboardServiceId }) {
             OnboardingPromptEnable()
         } else if (
-            Settings.Secure.getString(
-                context.contentResolver,
-                Settings.Secure.DEFAULT_INPUT_METHOD
-            ) != keyboardServiceId.flattenToString()
+            ComponentName.unflattenFromString(
+                Settings.Secure.getString(
+                    context.contentResolver,
+                    Settings.Secure.DEFAULT_INPUT_METHOD
+                )
+            ) != keyboardServiceId
         ) {
             OnboardingPromptSelect(inputManager)
         }
