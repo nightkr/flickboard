@@ -224,7 +224,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                         EnabledLayers.Letters
 
                                                 // Both layers are enabled, so switch their sides by toggling handedness
-                                                EnabledLayers.All ->
+                                                EnabledLayers.All, EnabledLayers.DoubleLetters ->
                                                     appSettings.handedness.currentValue =
                                                         !appSettings.handedness.currentValue
                                             }

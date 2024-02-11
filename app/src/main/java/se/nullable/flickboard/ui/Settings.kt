@@ -399,6 +399,19 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val secondaryLetterLayer = Setting.Enum(
+        key = "secondaryLetterLayer",
+        label = "Secondary letter layout",
+        description = "Only applies when using double letter layers",
+        defaultValue = LetterLayerOption.English,
+        options = LetterLayerOption.entries,
+        fromString = LetterLayerOption::valueOf,
+        ctx = ctx,
+        writePreviewSettings = { prefs ->
+            enabledLayers.writeTo(prefs, EnabledLayers.DoubleLetters)
+        }
+    )
+
     val numericLayer = Setting.Enum(
         key = "numericLayer",
         label = "Number layout",
@@ -591,6 +604,7 @@ class AppSettings(val ctx: SettingsContext) {
         listOf<Setting<*>>(
             Setting.Section("Layout", ctx),
             letterLayers,
+            secondaryLetterLayer,
             numericLayer,
             enabledLayers,
             handedness,
@@ -624,6 +638,7 @@ enum class EnabledLayers(override val label: String) : Labeled {
     All("All"),
     Letters("Letters only"),
     Numbers("Numbers only"),
+    DoubleLetters("Double letters"),
 }
 
 enum class Handedness(override val label: String) : Labeled {

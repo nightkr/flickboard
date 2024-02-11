@@ -51,6 +51,7 @@ fun Keyboard(
     val appSettings = LocalAppSettings.current
     val enabledLayers = appSettings.enabledLayers.state
     val numericLayer = appSettings.numericLayer.state
+    val secondaryLetterLayer = appSettings.secondaryLetterLayer.state
     val handedness = appSettings.handedness.state
     val enablePointerTrail = appSettings.enablePointerTrail.state
     var modifierState: ModifierState by remember { mutableStateOf(ModifierState()) }
@@ -78,12 +79,19 @@ fun Keyboard(
             listOfNotNull(
                 when (enabledLayers.value) {
                     EnabledLayers.All -> mergedNumericLayer.value
+                    EnabledLayers.DoubleLetters -> when {
+                        modifierState.shift.isShifted -> secondaryLetterLayer.value.layout.shiftLayer
+                        else -> secondaryLetterLayer.value.layout.mainLayer.mergeShift(
+                            secondaryLetterLayer.value.layout.shiftLayer
+                        )
+                    }.mergeFallback(mergedNumericLayer.value)
+
                     else -> null
                 },
                 layout.controlLayer?.let { it.mergeShift(it.autoShift()) },
                 when (enabledLayers.value) {
                     EnabledLayers.Numbers -> mergedNumericLayer.value
-                    EnabledLayers.Letters, EnabledLayers.All -> activeLayer
+                    EnabledLayers.Letters, EnabledLayers.DoubleLetters, EnabledLayers.All -> activeLayer
                 },
             )
                 .let {
