@@ -9,6 +9,7 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,7 +44,8 @@ import se.nullable.flickboard.KeyboardService
 fun OnboardingPrompt() {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val inputManager = remember(context) { context.getSystemService<InputMethodManager>() }
+    val inputManager =
+        remember(context) { context.getSystemService<InputMethodManager>() } ?: return
 
     val keyboardsUpdated = remember { mutableStateOf(Unit, neverEqualPolicy()) }
     // ACTION_INPUT_METHOD_CHANGED is triggered when the user changes their active keyboard.
@@ -62,21 +65,20 @@ fun OnboardingPrompt() {
 
     val keyboardServiceId =
         remember(context) { ComponentName(context, KeyboardService::class.java) }
-    if (inputManager != null &&
-        LocalLifecycleOwner.current.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+
+    if (!inputManager.enabledInputMethodList.any { it.component == keyboardServiceId }) {
+        OnboardingPromptEnable()
+    } else if (
+        ComponentName.unflattenFromString(
+            Settings.Secure.getString(
+                context.contentResolver,
+                Settings.Secure.DEFAULT_INPUT_METHOD
+            )
+        ) != keyboardServiceId
     ) {
-        if (!inputManager.enabledInputMethodList.any { it.component == keyboardServiceId }) {
-            OnboardingPromptEnable()
-        } else if (
-            ComponentName.unflattenFromString(
-                Settings.Secure.getString(
-                    context.contentResolver,
-                    Settings.Secure.DEFAULT_INPUT_METHOD
-                )
-            ) != keyboardServiceId
-        ) {
-            OnboardingPromptSelect(inputManager)
-        }
+        OnboardingPromptSelect(inputManager)
+    } else {
+        Box(modifier = Modifier.testTag("onboardingComplete"))
     }
 }
 

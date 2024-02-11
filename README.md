@@ -21,8 +21,8 @@ installed.
 
 ## What does it look like?
 
-![Screenshot of the keyboard in use](screenshot-app.png)
-![Screenshot of settings panel](screenshot-settings.png)
+![Screenshot of the keyboard in use](fastlane/metadata/android/en-US/images/phoneScreenshots/2.png)
+![Screenshot of settings panel](fastlane/metadata/android/en-US/images/phoneScreenshots/1.png)
 
 ## Why not MessagEase?
 
