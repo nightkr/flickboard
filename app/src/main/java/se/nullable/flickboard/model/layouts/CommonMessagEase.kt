@@ -72,7 +72,15 @@ val CONTROL_MESSAGEASE_LAYER =
                 )
             ),
             // enter
-            listOf(KeyM(actions = mapOf(Direction.CENTER to Action.Enter))),
+            listOf(
+                KeyM(
+                    actions = mapOf(
+                        Direction.CENTER to Action.Enter,
+                        Direction.TOP_LEFT to Action.ToggleEmojiMode,
+                        Direction.TOP_RIGHT to Action.ToggleEmojiMode,
+                    )
+                )
+            ),
         )
     )
 

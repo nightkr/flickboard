@@ -189,6 +189,11 @@ sealed class Action {
         override fun visual(modifier: ModifierState): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_select_all_24)
     }
+
+    data object ToggleEmojiMode : Action() {
+        override fun visual(modifier: ModifierState): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_emoji_emotions_24)
+    }
 }
 
 enum class ActionClass {
