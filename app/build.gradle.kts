@@ -6,18 +6,26 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
-val keystoreProperties = Properties().also {
-    val propFile = rootProject.file("../flickboard.keystore.properties")
-    it.load(FileInputStream(propFile))
-}
+val keystorePropertiesFile = rootProject.file("../flickboard.keystore.properties")
+val keystoreProperties = keystorePropertiesFile
+    .takeIf { it.exists() }
+    ?.let { propFile ->
+        Properties().also { props ->
+            FileInputStream(propFile).use(props::load)
+        }
+    }
 
 android {
     signingConfigs {
-        create("release") {
-            storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
-            storePassword = keystoreProperties["storePassword"] as String
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
+        if (keystoreProperties != null) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
+        } else {
+            logger.warn("$keystorePropertiesFile not found, no release signing config loaded")
         }
     }
     namespace = "se.nullable.flickboard"
@@ -40,14 +48,6 @@ android {
         debug {
             applicationIdSuffix = ".debug"
         }
-        create("optimizedDebug") {
-            initWith(getByName("debug"))
-            applicationIdSuffix = ".optdebug"
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -55,7 +55,14 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            if (keystoreProperties != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
+        create("unsignedRelease") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".unsigned"
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     flavorDimensions += "purpose"
@@ -107,6 +114,5 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("tools.fastlane:screengrab:2.1.1")
     debugImplementation("androidx.compose.ui:ui-tooling")
-    "optimizedDebugImplementation"("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
