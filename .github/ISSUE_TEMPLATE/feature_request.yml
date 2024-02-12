@@ -2,6 +2,16 @@ name: 🌟 Feature request
 description: Suggest a feature to improve the app
 labels: [feature]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Before you continue:
+        - Always check the [releases](https://github.com/nightkr/flickboard/releases) for the latest version
+        - Go through the settings
+        - Search through the [issues](https://github.com/nightkr/flickboard/issues?q=is%3Aissue) and [pull requests](https://github.com/nightkr/flickboard/pulls?q=is%3Apr) for what you're about to ask for.
+        - If you want to discuss a topic at length, you can use the [discussion](https://github.com/nightkr/flickboard/discussions) section
+      #  - Please open one feature request per feature. You can always link between issues if they are related.
+
   - type: textarea
     id: context
     attributes:
@@ -43,16 +53,14 @@ body:
             in case of multiple feature requests I will open a separate issue for each one
             (they can always link to each other if related)
           required: true
-        # - label: >-
-        #     This is not a question or a discussion, in which case I should have gone to
-        #     [lemmy.ml/c/thumbkey](https://lemmy.ml/c/thumbkey)
-        #   required: true
         - label: I have written a short but informative title.
           required: true
+        # - label: >-
+        #     This is not a question or a discussion, in which case I should have gone to (discussion URL)
+        #   required: true
         # - label: I have updated the app **[the latest version](https://github.com/user/repo/releases/latest)**.
         #   required: true
         - label: I have checked through the app settings for my feature.
           required: true
-        - label: I have admitted that I am a clown by having checked this box, as I have not read these acknowledgements. 🤡
         - label: I will fill out all of the requested information in this form.
           required: true

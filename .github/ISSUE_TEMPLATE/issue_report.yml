@@ -2,12 +2,21 @@ name: 🐞 Issue report
 description: Report an issue or bug
 labels: [bug]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Before you continue:
+        - Always check the [releases](https://github.com/nightkr/flickboard/releases) for the latest version.
+        - Search through the [issues](https://github.com/nightkr/flickboard/issues?q=is%3Aissue) and [pull requests](https://github.com/nightkr/flickboard/pulls?q=is%3Apr) for what you're about report.
+        - If you want to discuss a topic at length, you can use the [discussion](https://github.com/nightkr/flickboard/discussions) section
+      #  - Please open one bug report per feature. You can always link between issues if they are related.
+
   - type: textarea
     id: context
     attributes:
       label: Context
       description: If some context is required, describe it here
-      placeholder:
+      # placeholder:
   - type: textarea
     id: reproduce-steps
     attributes:
@@ -100,8 +109,7 @@ body:
             I have searched the existing issues and this is a new one, **NOT** a duplicate or related to another open issue.
           required: true
         # - label: >-
-        #     This is not a question or a discussion, in which case I should have gone to
-        #     (discussion URL)
+        #     This is not a question or a discussion, in which case I should have gone to (discussion URL)
         #   required: true
         # - label: >-
         #     This is a **single** bug report,
@@ -110,6 +118,5 @@ body:
         #   required: true
         # - label: I have updated the app **[the latest version](https://github.com/user/repo/releases/latest)**.
         #   required: true
-        - label: I have admitted that I am a clown by having checked this box, as I have not read these acknowledgements. 🤡
         - label: I have filled out all of the requested information in this form.
           required: true
