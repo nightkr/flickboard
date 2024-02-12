@@ -1,6 +1,5 @@
 package se.nullable.flickboard
 
-import android.R
 import android.content.ComponentName
 import android.content.Intent
 import android.inputmethodservice.InputMethodService
@@ -36,6 +35,9 @@ import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
+import java.text.BreakIterator
+import kotlin.math.max
+import kotlin.math.min
 
 class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistryOwner {
     private val lifecycleRegistry = LifecycleRegistry(this)
@@ -156,25 +158,19 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     // Find our position on the current line
                                     val posOnLine = findBoundary(
                                         TextBoundary.Line,
-                                        SearchDirection.Backwards
+                                        SearchDirection.Backwards,
                                     )
                                     val lineSearchSkip = when (action.direction) {
                                         // When going backwards, we need to find the linebreak before the current one
-                                        SearchDirection.Backwards -> posOnLine + 1
+                                        SearchDirection.Backwards -> 1
                                         SearchDirection.Forwards -> 0
-                                    }
-                                    val lineJumpOffset = when (action.direction) {
-                                        // This is baked into the search skip when going backwards
-                                        SearchDirection.Backwards -> 0
-                                        // but when going forwards we also need to skip the newline character itself
-                                        SearchDirection.Forwards -> 1
                                     }
                                     // Find the offset to the target line
                                     val targetLineOffset = (findBoundary(
                                         TextBoundary.Line,
                                         action.direction,
-                                        skip = lineSearchSkip,
-                                    )) * action.direction.factor + lineJumpOffset
+                                        skipBoundaries = lineSearchSkip,
+                                    )) * action.direction.factor
                                     // To reconstruct the position on the line, we also need to clamp
                                     // to the length of the new line, if it is shorter than the current one
                                     val targetLineLength = when (action.direction) {
@@ -185,9 +181,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         SearchDirection.Forwards -> findBoundary(
                                             TextBoundary.Line,
                                             action.direction,
-                                            skip = targetLineOffset,
-                                            endOfBufferOffset = -1,
-                                        ) - targetLineOffset
+                                            skipBoundaries = 1,
+                                            endOfBufferOffset = 1,
+                                        ) - targetLineOffset - 1
                                     }
                                     val newPos = (currentPos + targetLineOffset +
                                             posOnLine.coerceAtMost(targetLineLength))
@@ -204,22 +200,22 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                 Action.Copy ->
                                     currentInputConnection.performContextMenuAction(
-                                        R.id.copy
+                                        android.R.id.copy
                                     )
 
                                 Action.Cut ->
                                     currentInputConnection.performContextMenuAction(
-                                        R.id.cut
+                                        android.R.id.cut
                                     )
 
                                 Action.Paste ->
                                     currentInputConnection.performContextMenuAction(
-                                        R.id.paste
+                                        android.R.id.paste
                                     )
 
                                 Action.SelectAll ->
                                     currentInputConnection.performContextMenuAction(
-                                        R.id.selectAll
+                                        android.R.id.selectAll
                                     )
 
                                 Action.Settings -> startActivity(
@@ -351,47 +347,48 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
     private fun findBoundary(
         boundary: TextBoundary,
         direction: SearchDirection,
-        skip: Int = 0,
+        skipBoundaries: Int = 0,
         coalesce: Boolean = false,
         endOfBufferOffset: Int = 0,
     ): Int {
-        val boundaryChars = when (boundary) {
-            TextBoundary.Letter -> {
-                // Find surrogate pair if any
-                val char = when (direction) {
-                    SearchDirection.Backwards -> currentInputConnection.getTextBeforeCursor(1, 0)
-                    SearchDirection.Forwards -> currentInputConnection.getTextAfterCursor(1, 0)
-                }?.singleOrNull()
-                return when {
-                    char == null -> 0
-                    char.isSurrogate() -> 2
-                    else -> 1
-                }
-            }
-
-            TextBoundary.Word -> charArrayOf(' ', '\t', '\n')
-            TextBoundary.Line -> charArrayOf('\n')
+        val searchBufferSize = when (boundary) {
+            TextBoundary.Character -> 40
+            else -> 1000
         }
-        val searchBufferSize = 1000
         val searchBuffer = when (direction) {
             SearchDirection.Backwards -> currentInputConnection.getTextBeforeCursor(
                 searchBufferSize,
                 0
-            )?.reversed()
+            )
 
             SearchDirection.Forwards -> currentInputConnection.getTextAfterCursor(
                 searchBufferSize,
                 0
             )
-        }?.drop(skip) ?: ""
-        val initialDelimiters = when {
-            coalesce -> searchBuffer.takeWhile { boundaryChars.contains(it) }.length
-            else -> 0
+        } ?: ""
+        val breakIterator = boundary.breakIterator()
+        breakIterator.setText(searchBuffer.toString())
+        if (direction == SearchDirection.Backwards) {
+            breakIterator.last()
         }
-        val boundaryIndex = searchBuffer
-            .indexOfAny(boundaryChars, initialDelimiters)
-            .takeUnless { it == -1 }
-        return skip + (boundaryIndex ?: (searchBuffer.length + endOfBufferOffset))
+        val steps = skipBoundaries + 1
+        var pos = breakIterator.next(direction.factor * steps)
+        if (pos == BreakIterator.DONE) {
+            return searchBuffer.length + endOfBufferOffset
+        }
+        if (coalesce && boundary != TextBoundary.Character) {
+            val next = breakIterator.next(direction.factor)
+            if (next != BreakIterator.DONE &&
+                searchBuffer.subSequence(min(pos, next), max(pos, next)).isBlank()
+            ) {
+                pos = next
+            }
+        }
+        val posInDirection = when (direction) {
+            SearchDirection.Backwards -> searchBuffer.length - pos
+            SearchDirection.Forwards -> pos
+        }
+        return posInDirection
     }
 
     override fun onUpdateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo?) {
