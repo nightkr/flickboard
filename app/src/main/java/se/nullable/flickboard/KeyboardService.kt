@@ -356,7 +356,19 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         endOfBufferOffset: Int = 0,
     ): Int {
         val boundaryChars = when (boundary) {
-            TextBoundary.Letter -> return 1
+            TextBoundary.Letter -> {
+                // Find surrogate pair if any
+                val char = when (direction) {
+                    SearchDirection.Backwards -> currentInputConnection.getTextBeforeCursor(1, 0)
+                    SearchDirection.Forwards -> currentInputConnection.getTextAfterCursor(1, 0)
+                }?.singleOrNull()
+                return when {
+                    char == null -> 0
+                    char.isSurrogate() -> 2
+                    else -> 1
+                }
+            }
+
             TextBoundary.Word -> charArrayOf(' ', '\t', '\n')
             TextBoundary.Line -> charArrayOf('\n')
         }
