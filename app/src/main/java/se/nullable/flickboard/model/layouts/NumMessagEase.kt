@@ -18,7 +18,12 @@ val MESSAGEASE_SYMBOLS_LAYER = Layer(
                     Direction.BOTTOM_LEFT to Action.Text("$"),
                     Direction.BOTTOM to Action.Text("…"),
                     Direction.RIGHT to Action.Text("-"),
-                )
+                ),
+                shift = KeyM(actions = mapOf(
+                    Direction.RIGHT to Action.Text("÷"),
+                    Direction.BOTTOM_LEFT to Action.Text("¥"),
+                    Direction.BOTTOM to Action.Text("•")
+                ))
             ),
             KeyM(
                 actions = mapOf(
@@ -29,14 +34,28 @@ val MESSAGEASE_SYMBOLS_LAYER = Layer(
                     Direction.RIGHT to Action.Text("!"),
                     Direction.BOTTOM_LEFT to Action.Text("/"),
                     Direction.BOTTOM_RIGHT to Action.Text("\\"),
-                )
+                ),
+                shift = KeyM(actions = mapOf(
+                    Direction.TOP_LEFT to Action.Text("‘"),
+                    Direction.TOP to Action.Text("ˇ"),
+                    Direction.TOP_RIGHT to Action.Text("’"),
+                    Direction.LEFT to Action.Text("×"),
+                    Direction.RIGHT to Action.Text("¡"),
+                    Direction.BOTTOM_LEFT to Action.Text("–"),
+                    Direction.BOTTOM_RIGHT to Action.Text("—")
+                ))
             ),
             KeyM(
                 actions = mapOf(
                     Direction.LEFT to Action.Text("?"),
                     Direction.BOTTOM to Action.Text("="),
                     Direction.BOTTOM_RIGHT to Action.Text("€"),
-                )
+                ),
+                shift = KeyM(actions = mapOf(
+                    Direction.LEFT to Action.Text("¿"),
+                    Direction.BOTTOM to Action.Text("±"),
+                    Direction.BOTTOM_RIGHT to Action.Text("£")
+                ))
             ),
         ),
         listOf(
@@ -47,7 +66,14 @@ val MESSAGEASE_SYMBOLS_LAYER = Layer(
                     Direction.LEFT to Action.Text("("),
                     Direction.BOTTOM_LEFT to Action.Text("["),
                     Direction.BOTTOM_RIGHT to Action.Text("_"),
-                )
+                ),
+                shift = KeyM(actions = mapOf(
+                    Direction.TOP_LEFT to Action.Text("}"),
+                    Direction.TOP_RIGHT to Action.Text("‰"),
+                    Direction.LEFT to Action.Text(")"),
+                    Direction.BOTTOM_LEFT to Action.Text("]"),
+                    Direction.BOTTOM_RIGHT to Action.Text("¬")
+                ))
             ),
             KeyM(
                 actions = mapOf(
@@ -60,7 +86,14 @@ val MESSAGEASE_SYMBOLS_LAYER = Layer(
                     Direction.RIGHT to Action.Text(")"),
                     Direction.BOTTOM_LEFT to Action.Text("@"),
                     Direction.BOTTOM_RIGHT to Action.Text("]"),
-                )
+                ),
+                shift = KeyM(actions = mapOf(
+                    Direction.TOP_LEFT to Action.Text("¶"),
+                    Direction.TOP_RIGHT to Action.Text("{"),
+                    Direction.RIGHT to Action.Text("("),
+                    Direction.BOTTOM_LEFT to Action.Text("ª"),
+                    Direction.BOTTOM_RIGHT to Action.Text("[")
+                ))
             ),
         ),
         listOf(
@@ -71,7 +104,14 @@ val MESSAGEASE_SYMBOLS_LAYER = Layer(
                     Direction.LEFT to Action.Text("<"),
                     Direction.RIGHT to Action.Text("*"),
                     Direction.BOTTOM_RIGHT to Action.Text("\t"),
-                )
+                ),
+                shift = KeyM(actions = mapOf(
+                    Direction.TOP_LEFT to Action.Text("˜"),
+                    Direction.TOP to Action.Text("˝"),
+                    Direction.LEFT to Action.Text("‹"),
+                    Direction.RIGHT to Action.Text("†"),
+                    Direction.BOTTOM_LEFT to Action.Text("«")
+                ))
             ),
             KeyM(
                 actions = mapOf(
@@ -80,7 +120,14 @@ val MESSAGEASE_SYMBOLS_LAYER = Layer(
                     Direction.BOTTOM_LEFT to Action.Text(","),
                     Direction.BOTTOM to Action.Text("."),
                     Direction.BOTTOM_RIGHT to Action.Text(":"),
-                )
+                ),
+                shift = KeyM(actions = mapOf(
+                    Direction.TOP_LEFT to Action.Text("“"),
+                    Direction.TOP_RIGHT to Action.Text("”"),
+                    Direction.BOTTOM_LEFT to Action.Text("‚"),
+                    Direction.BOTTOM to Action.Text("…"),
+                    Direction.BOTTOM_RIGHT to Action.Text("„")
+                ))
             ),
             KeyM(
                 actions = mapOf(
@@ -89,7 +136,14 @@ val MESSAGEASE_SYMBOLS_LAYER = Layer(
                     Direction.LEFT to Action.Text("#"),
                     Direction.RIGHT to Action.Text(">"),
                     Direction.BOTTOM_LEFT to Action.Text(";"),
-                )
+                ),
+                shift = KeyM(actions = mapOf(
+                    Direction.TOP to Action.Text("§"),
+                    Direction.TOP_RIGHT to Action.Text("º"),
+                    Direction.LEFT to Action.Text("£"),
+                    Direction.RIGHT to Action.Text("›"),
+                    Direction.BOTTOM_RIGHT to Action.Text("»")
+                ))
             ),
         ),
         listOf(
