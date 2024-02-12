@@ -1,6 +1,8 @@
 package se.nullable.flickboard.model
 
 import se.nullable.flickboard.R
+import se.nullable.flickboard.util.HardLineBreakIterator
+import java.text.BreakIterator
 
 data class Layout(
     val mainLayer: Layer,
@@ -84,7 +86,7 @@ sealed class Action {
 
     data class Delete(
         val direction: SearchDirection = SearchDirection.Backwards,
-        val boundary: TextBoundary = TextBoundary.Letter,
+        val boundary: TextBoundary = TextBoundary.Character,
         val hidden: Boolean = false,
     ) : Action() {
         override fun visual(modifier: ModifierState): ActionVisual = when {
@@ -102,7 +104,7 @@ sealed class Action {
 
     data class Jump(
         val direction: SearchDirection,
-        val boundary: TextBoundary = TextBoundary.Letter,
+        val boundary: TextBoundary = TextBoundary.Character,
     ) : Action() {
         override fun visual(modifier: ModifierState): ActionVisual = when (direction) {
             SearchDirection.Backwards -> ActionVisual.Icon(R.drawable.baseline_keyboard_arrow_left_24)
@@ -189,6 +191,11 @@ sealed class Action {
         override fun visual(modifier: ModifierState): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_select_all_24)
     }
+
+    data object ToggleEmojiMode : Action() {
+        override fun visual(modifier: ModifierState): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_emoji_emotions_24)
+    }
 }
 
 enum class ActionClass {
@@ -202,9 +209,15 @@ sealed class ActionVisual {
 }
 
 enum class TextBoundary {
-    Letter,
+    Character,
     Word,
-    Line,
+    Line;
+
+    fun breakIterator(): BreakIterator = when (this) {
+        Character -> BreakIterator.getCharacterInstance()
+        Word -> BreakIterator.getWordInstance()
+        Line -> HardLineBreakIterator()
+    }
 }
 
 enum class SearchDirection(val factor: Int) {
