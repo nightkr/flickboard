@@ -674,9 +674,9 @@ enum class Handedness(override val label: String) : Labeled {
 
 enum class LetterLayerOption(override val label: String, val layout: Layout) : Labeled {
     English("English (MessagEase)", EN_MESSAGEASE),
-    Swedish("Swedish (MessagEase)", SV_MESSAGEASE),
     German("German (MessagEase)", DE_MESSAGEASE),
     Russian("Russian (MessagEase)", RU_MESSAGEASE),
+    Swedish("Swedish (MessagEase)", SV_MESSAGEASE),
     Ukrainian("Ukrainian (MessagEase)", UK_MESSAGEASE),
 }
 
