@@ -481,6 +481,15 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::percentage
     )
 
+    val actionVisualScale = Setting.FloatSlider(
+        key = "actionVisualScale",
+        label = "Key label scale",
+        defaultValue = 1F,
+        range = 0.5F..2F,
+        ctx = ctx,
+        render = Setting.FloatSlider::percentage
+    )
+
     val currentLocation: Float
         @Composable get() = when {
             LocalDisplayLimits.current?.isLandscape ?: false -> landscapeLocation.state.value
@@ -620,6 +629,7 @@ class AppSettings(val ctx: SettingsContext) {
             landscapeScale,
             portraitLocation,
             portraitScale,
+            actionVisualScale,
             Setting.Section("Aesthetics", ctx),
             showLetters,
             showSymbols,

@@ -66,6 +66,7 @@ fun Key(
 ) {
     val haptic = LocalHapticFeedback.current
     val settings = LocalAppSettings.current
+    val actionVisualScale = settings.actionVisualScale.state
     val scale = settings.currentScale
     val keyHeight = settings.keyHeight.state.value * scale
     val keyRoundness = settings.keyRoundness.state.value
@@ -130,7 +131,7 @@ fun Key(
                 action,
                 enterKeyLabel = enterKeyLabel,
                 cornerRadius = sqrt(max(maxWidth, maxHeight) * keyRoundness),
-                scale = scale,
+                scale = scale * actionVisualScale.value,
                 modifiers = modifierState,
             )
         }
