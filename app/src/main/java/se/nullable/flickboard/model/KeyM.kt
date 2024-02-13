@@ -59,6 +59,11 @@ data class KeyM(
 ) {
     fun mergeFallback(fallback: KeyM): KeyM = copy(
         actions = fallback.actions + actions,
+        shift = when {
+            shift == null -> fallback.shift
+            fallback.shift == null -> shift
+            else -> shift.mergeFallback(fallback.shift)
+        },
         holdAction = this.holdAction ?: fallback.holdAction ?: fallback.actions[Direction.CENTER]
     )
 
