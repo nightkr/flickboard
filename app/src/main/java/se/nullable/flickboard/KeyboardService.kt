@@ -9,6 +9,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
@@ -47,12 +48,52 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
     override val savedStateRegistry: SavedStateRegistry =
         savedStateRegistryController.savedStateRegistry
 
+    // Not available in all apps, use the helpers instead of accessing directly
     private var cursor: CursorAnchorInfo? = null
 
     private var activeModifiers = ModifierState()
 
+    private fun hasNonEmptySelection(): Boolean =
+        when (val currentCursor = cursor) {
+            null -> {
+                // Some apps (such as Firefox) don't always support requestCursorUpdates,
+                // in those cases, fall back to making a synchronous getExtractedText request instead.
+                val extractedText =
+                    currentInputConnection.getExtractedText(ExtractedTextRequest().also {
+                        it.hintMaxChars = 1
+                        it.hintMaxLines = 1
+                    }, 0)
+                extractedText.selectionStart != extractedText.selectionEnd
+            }
+
+            else -> currentCursor.selectionStart != currentCursor.selectionEnd
+        }
+
+    private fun currentCursorPosition(direction: SearchDirection): Int =
+        when (val currentCursor = cursor) {
+            null -> {
+                // Some apps (such as Firefox) don't always support requestCursorUpdates,
+                // in those cases, fall back to making a synchronous getExtractedText request instead.
+                val extractedText =
+                    currentInputConnection.getExtractedText(ExtractedTextRequest().also {
+                        it.hintMaxChars = 1
+                        it.hintMaxLines = 1
+                    }, 0)
+                extractedText.startOffset + when (direction) {
+                    SearchDirection.Backwards -> extractedText.selectionStart
+                    SearchDirection.Forwards -> extractedText.selectionEnd
+                }
+            }
+
+            else -> when (direction) {
+                SearchDirection.Backwards -> currentCursor.selectionStart
+                SearchDirection.Forwards -> currentCursor.selectionEnd
+            }
+        }
+
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
+        cursor = null
         var cursorUpdatesRequested = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 currentInputConnection.requestCursorUpdates(
                     InputConnection.CURSOR_UPDATE_MONITOR,
@@ -89,7 +130,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     )
 
                                 is Action.Delete -> {
-                                    if (cursor?.selectionStart != cursor?.selectionEnd) {
+                                    if (hasNonEmptySelection()) {
                                         // if selection is non-empty, delete it regardless of the mode requested by the user
                                         currentInputConnection.commitText("", 0)
                                     } else {
@@ -127,12 +168,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 }
 
                                 is Action.Jump -> {
-                                    val currentPos = cursor?.let {
-                                        when (action.direction) {
-                                            SearchDirection.Backwards -> it.selectionStart
-                                            SearchDirection.Forwards -> it.selectionEnd
-                                        }
-                                    } ?: 0
+                                    val currentPos = currentCursorPosition(action.direction)
                                     val newPos = currentPos + findBoundary(
                                         action.boundary,
                                         action.direction,
@@ -149,12 +185,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     // Yes, this should really be the editor's responsibility...
                                     // How is this different from Action.Jump? Action.Jump jumps to *the boundary*,
                                     // for TextBoundary.Line this is equivalent to Home/End.
-                                    val currentPos = cursor?.let {
-                                        when (action.direction) {
-                                            SearchDirection.Backwards -> it.selectionStart
-                                            SearchDirection.Forwards -> it.selectionEnd
-                                        }
-                                    } ?: 0
+                                    val currentPos = currentCursorPosition(action.direction)
                                     // Find our position on the current line
                                     val posOnLine = findBoundary(
                                         TextBoundary.Line,
