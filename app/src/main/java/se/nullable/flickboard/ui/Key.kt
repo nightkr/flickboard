@@ -76,9 +76,12 @@ fun Key(
     val circleJaggednessThreshold = settings.circleJaggednessThreshold.state
     val circleDiscontinuityThreshold = settings.circleDiscontinuityThreshold.state
     val circleAngleThreshold = settings.circleAngleThreshold.state
+    val enableHapticFeedback = settings.enableHapticFeedback.state
     val onActionModifier = if (onAction != null) {
         val handleAction = { action: Action ->
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            if (enableHapticFeedback.value) {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            }
             onAction(action)
         }
         Modifier.pointerInput(key) {

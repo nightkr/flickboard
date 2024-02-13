@@ -601,6 +601,13 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::angle
     )
 
+    val enableHapticFeedback = Setting.Bool(
+        key = "enableHapticFeedback",
+        label = "Vibrate on key input",
+        defaultValue = true,
+        ctx = ctx
+    )
+
     val all =
         listOf<Setting<*>>(
             Setting.Section("Layout", ctx),
@@ -628,6 +635,8 @@ class AppSettings(val ctx: SettingsContext) {
             circleJaggednessThreshold,
             circleDiscontinuityThreshold,
             circleAngleThreshold,
+            Setting.Section("Feedback", ctx),
+            enableHapticFeedback,
         )
 }
 
