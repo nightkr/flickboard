@@ -22,6 +22,8 @@ _fastlane_](https://docs.fastlane.tools/#installing-fastlane)
 [bundle exec] fastlane android screenshots
 ```
 
+
+
 ### android test
 
 ```sh

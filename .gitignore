@@ -15,4 +15,5 @@
 .cxx
 local.properties
 /app/release
+/app/plain/release
 /fastlane/report.xml
