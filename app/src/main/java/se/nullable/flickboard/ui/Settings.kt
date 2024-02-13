@@ -72,6 +72,7 @@ import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_CALCULATOR_LAYER
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_PHONE_LAYER
 import se.nullable.flickboard.model.layouts.RU_MESSAGEASE
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
+import se.nullable.flickboard.model.layouts.UK_MESSAGEASE
 import kotlin.math.roundToInt
 
 @Composable
@@ -676,6 +677,7 @@ enum class LetterLayerOption(override val label: String, val layout: Layout) : L
     Swedish("Swedish (MessagEase)", SV_MESSAGEASE),
     German("German (MessagEase)", DE_MESSAGEASE),
     Russian("Russian (MessagEase)", RU_MESSAGEASE),
+    Ukrainian("Ukrainian (MessagEase)", UK_MESSAGEASE),
 }
 
 enum class NumericLayerOption(override val label: String, val layer: Layer) : Labeled {
