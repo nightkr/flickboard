@@ -267,7 +267,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                 var isRound = false
                 var isLongHold = false
                 val direction = if (!isDragging) {
-                    Direction.CENTER
+                    return Gesture(direction = Direction.CENTER, longHold = false, shift = false)
                 } else {
                     val circleDirection = shapeLooksLikeCircle(
                         positions,
