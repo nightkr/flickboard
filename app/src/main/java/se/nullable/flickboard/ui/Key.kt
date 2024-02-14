@@ -225,6 +225,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     val trailListener = trailListenerState.value
     trailListener?.onDown?.invoke()
     var isDragging = false
+    var canBeFastAction = fastActions.isNotEmpty()
     var fastActionPerformed = false
     val positions = mutableListOf<Offset>()
     var mostExtremePosFromDown = Offset(0F, 0F)
@@ -298,7 +299,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                     shift = isRound ||
                             (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremeDistanceFromDownSquared / 4,
                 )
-            } else if (fastActions.isNotEmpty()) {
+            } else if (canBeFastAction) {
                 val posChange = change.positionChange()
                 fastActionTraveled += posChange
                 val fastActionCountSquared =
@@ -306,10 +307,13 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                 if (fastActionCountSquared >= 1) {
                     val fastActionCount = sqrt(fastActionCountSquared)
                     val direction = posChange.direction()
-                    fastActions[direction]?.let {
+                    val fastAction = fastActions[direction]
+                    if (fastAction != null) {
                         fastActionPerformed = true
                         fastActionTraveled -= fastActionTraveled / fastActionCount
-                        onFastAction(it)
+                        onFastAction(fastAction)
+                    } else {
+                        canBeFastAction = fastActionPerformed
                     }
                 }
             }
