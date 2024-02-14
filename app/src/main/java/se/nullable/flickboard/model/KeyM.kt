@@ -67,7 +67,9 @@ data class KeyM(
         holdAction = this.holdAction ?: fallback.holdAction ?: fallback.actions[Direction.CENTER]
     )
 
-    fun autoShift(): KeyM = copy(actions = actions.mapValues { it.value.shift() })
+    fun autoShift(): KeyM = (shift ?: this).copy(
+        actions = actions.mapValues { it.value.shift() } + (shift?.actions ?: emptyMap()),
+    )
 }
 
 sealed class Action {

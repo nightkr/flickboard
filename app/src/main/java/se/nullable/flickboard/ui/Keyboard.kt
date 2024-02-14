@@ -67,7 +67,7 @@ fun Keyboard(
     val mainLayer =
         remember(layout) {
             derivedStateOf {
-                layout.mainLayer.mergeFallback(mainLayerOverlay.value).mergeShift(shiftLayer.value)
+                layout.mainLayer.mergeShift(shiftLayer.value).mergeFallback(mainLayerOverlay.value)
             }
         }
     val layer by remember(layout) {
