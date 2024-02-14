@@ -38,6 +38,7 @@ import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
+import se.nullable.flickboard.model.layouts.MINI_NUMBERS_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 
 @Composable
@@ -79,6 +80,8 @@ fun Keyboard(
             listOfNotNull(
                 when (enabledLayers.value) {
                     EnabledLayers.All -> mergedNumericLayer.value
+                    EnabledLayers.AllMiniNumbers -> MINI_NUMBERS_LAYER
+
                     EnabledLayers.DoubleLetters -> when {
                         modifierState.shift.isShifted -> secondaryLetterLayer.value.layout.shiftLayer
                         else -> secondaryLetterLayer.value.layout.mainLayer.mergeShift(
@@ -91,7 +94,7 @@ fun Keyboard(
                 layout.controlLayer?.let { it.mergeShift(it.autoShift()) },
                 when (enabledLayers.value) {
                     EnabledLayers.Numbers -> mergedNumericLayer.value
-                    EnabledLayers.Letters, EnabledLayers.DoubleLetters, EnabledLayers.All -> activeLayer
+                    EnabledLayers.Letters, EnabledLayers.DoubleLetters, EnabledLayers.All, EnabledLayers.AllMiniNumbers -> activeLayer
                 },
             )
                 .let {

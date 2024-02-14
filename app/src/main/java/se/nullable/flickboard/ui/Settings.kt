@@ -734,6 +734,7 @@ enum class EnabledLayers(override val label: String) : Labeled {
     Letters("Letters only"),
     Numbers("Numbers only"),
     DoubleLetters("Double letters"),
+    AllMiniNumbers("All (mini numbers)"),
 }
 
 enum class Handedness(override val label: String) : Labeled {
