@@ -6,15 +6,26 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import se.nullable.flickboard.ui.FlickBoardParent
-import se.nullable.flickboard.ui.Settings
+import se.nullable.flickboard.ui.LocalAppSettings
+import se.nullable.flickboard.ui.SettingsHomePage
+import se.nullable.flickboard.ui.SettingsSectionPage
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -22,6 +33,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             FlickBoardParent {
+                val navController = rememberNavController()
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -29,8 +41,43 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Box {
                         Column {
-                            TopAppBar(title = { Text(stringResource(id = R.string.app_name)) })
-                            Settings(Modifier.weight(1F))
+                            val appSettings = LocalAppSettings.current
+                            NavHost(
+                                navController = navController,
+                                startDestination = "settings",
+                            ) {
+                                composable("settings") {
+                                    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(id = R.string.app_name)) }) }) { padding ->
+                                        SettingsHomePage(
+                                            onNavigateToSection = { section ->
+                                                navController.navigate("settings/${section.key}")
+                                            },
+                                            modifier = Modifier.padding(padding)
+                                        )
+                                    }
+                                }
+                                appSettings.all.forEach { settingsSection ->
+                                    composable("settings/${settingsSection.key}") {
+                                        Scaffold(topBar = {
+                                            TopAppBar(
+                                                title = { Text(settingsSection.label) },
+                                                navigationIcon = {
+                                                    IconButton(onClick = { navController.navigateUp() }) {
+                                                        Icon(
+                                                            Icons.AutoMirrored.Default.ArrowBack,
+                                                            "Up"
+                                                        )
+                                                    }
+                                                })
+                                        }) { padding ->
+                                            SettingsSectionPage(
+                                                section = settingsSection,
+                                                modifier = Modifier.padding(padding)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

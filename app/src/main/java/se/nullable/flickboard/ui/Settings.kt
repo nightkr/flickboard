@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -47,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -63,6 +65,7 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import se.nullable.flickboard.PiF
+import se.nullable.flickboard.R
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
@@ -76,46 +79,85 @@ import se.nullable.flickboard.model.layouts.UK_MESSAGEASE
 import kotlin.math.roundToInt
 
 @Composable
-fun Settings(modifier: Modifier = Modifier) {
-    val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
+fun SettingsHomePage(
+    onNavigateToSection: (SettingsSection) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val appSettings = LocalAppSettings.current
-    Box {
-        Column {
-            Column(modifier.verticalScroll(rememberScrollState())) {
+    Column {
+        LazyColumn(modifier.weight(1F)) {
+            item {
                 OnboardingPrompt()
-                appSettings.all.forEach { setting ->
-                    when (setting) {
-                        is Setting.Section -> SettingsSection(setting)
-                        is Setting.Bool -> BoolSetting(setting)
-                        is Setting.Integer -> {} // Not rendered right now, implement if used anywhere
-                        is Setting.FloatSlider -> FloatSliderSetting(setting)
-                        is Setting.EnumList<*> -> EnumListSetting(setting)
-                        is Setting.Enum -> EnumSetting(setting)
+            }
+            items(appSettings.all, key = { it.key }) { section ->
+                Box(Modifier.clickable { onNavigateToSection(section) }) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        Icon(painterResource(section.icon), null)
+                        Text(
+                            section.label,
+                            Modifier
+                                .weight(1F)
+                                .padding(horizontal = 8.dp)
+                        )
+                        Icon(Icons.AutoMirrored.Default.ArrowForward, null)
                     }
                 }
             }
-            Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
-                Column {
-                    Text(
-                        text = "Preview keyboard",
-                        color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.padding(8.dp)
+        }
+        SettingsKeyboardPreview()
+    }
+}
+
+@Composable
+fun SettingsSectionPage(section: SettingsSection, modifier: Modifier = Modifier) {
+    Column {
+        Column(
+            modifier
+                .verticalScroll(rememberScrollState())
+                .weight(1F)
+        ) {
+            section.settings.forEach { setting ->
+                when (setting) {
+                    is Setting.Bool -> BoolSetting(setting)
+                    is Setting.Integer -> {} // Not rendered right now, implement if used anywhere
+                    is Setting.FloatSlider -> FloatSliderSetting(setting)
+                    is Setting.EnumList<*> -> EnumListSetting(setting)
+                    is Setting.Enum -> EnumSetting(setting)
+                }
+            }
+        }
+        SettingsKeyboardPreview()
+    }
+}
+
+@Composable
+fun SettingsKeyboardPreview() {
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    Box {
+        Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
+            Column {
+                Text(
+                    text = "Preview keyboard",
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(8.dp)
+                )
+                ProvideDisplayLimits {
+                    ConfiguredKeyboard(
+                        onAction = { action ->
+                            val message = when {
+                                action is Action.Text -> action.character
+                                else -> action.toString()
+                            }
+                            scope.launch {
+                                snackbarHostState.currentSnackbarData?.dismiss()
+                                snackbarHostState.showSnackbar(message)
+                            }
+                        }, modifier = Modifier.fillMaxWidth()
                     )
-                    ProvideDisplayLimits {
-                        ConfiguredKeyboard(
-                            onAction = { action ->
-                                val message = when {
-                                    action is Action.Text -> action.character
-                                    else -> action.toString()
-                                }
-                                scope.launch {
-                                    snackbarHostState.currentSnackbarData?.dismiss()
-                                    snackbarHostState.showSnackbar(message)
-                                }
-                            }, modifier = Modifier.fillMaxWidth()
-                        )
-                    }
                 }
             }
         }
@@ -123,13 +165,6 @@ fun Settings(modifier: Modifier = Modifier) {
             snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
-    }
-}
-
-@Composable
-fun SettingsSection(setting: Setting.Section) {
-    SettingRow {
-        Text(setting.label, color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -348,10 +383,23 @@ fun RowScope.SettingLabel(setting: Setting<*>) {
 
 @Composable
 @Preview
-fun SettingsPreview() {
+fun SettingsHomePreview() {
     FlickBoardParent {
         Surface {
-            Settings(Modifier.width(1000.dp))
+            SettingsHomePage(
+                onNavigateToSection = {},
+//                modifier = Modifier.width(1000.dp)
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun SettingsSectionPagePreview() {
+    FlickBoardParent {
+        Surface {
+            SettingsSectionPage(LocalAppSettings.current.all[0], Modifier.width(1000.dp))
         }
     }
 }
@@ -619,37 +667,62 @@ class AppSettings(val ctx: SettingsContext) {
     )
 
     val all =
-        listOf<Setting<*>>(
-            Setting.Section("Layout", ctx),
-            letterLayers,
-            secondaryLetterLayer,
-            numericLayer,
-            enabledLayers,
-            handedness,
-            landscapeLocation,
-            landscapeScale,
-            portraitLocation,
-            portraitScale,
-            actionVisualScale,
-            Setting.Section("Aesthetics", ctx),
-            showLetters,
-            showSymbols,
-            showNumbers,
-            keyRoundness,
-            enablePointerTrail,
-            Setting.Section("Behaviour", ctx),
-            enableFastActions,
-            longHoldOnClockwiseCircle,
-            keyHeight,
-            swipeThreshold,
-            fastSwipeThreshold,
-            circleJaggednessThreshold,
-            circleDiscontinuityThreshold,
-            circleAngleThreshold,
-            Setting.Section("Feedback", ctx),
-            enableHapticFeedback,
+        listOf<SettingsSection>(
+            SettingsSection(
+                key = "layout", label = "Layout", icon = R.drawable.baseline_apps_24,
+                settings = listOf(
+                    letterLayers,
+                    secondaryLetterLayer,
+                    numericLayer,
+                    enabledLayers,
+                    handedness,
+                    landscapeLocation,
+                    landscapeScale,
+                    portraitLocation,
+                    portraitScale,
+                    actionVisualScale
+                )
+            ),
+            SettingsSection(
+                key = "aesthetics", label = "Aesthetics", icon = R.drawable.baseline_palette_24,
+                settings = listOf(
+                    showLetters,
+                    showSymbols,
+                    showNumbers,
+                    keyRoundness,
+                    enablePointerTrail
+                )
+            ),
+            SettingsSection(
+                key = "behaviour",
+                label = "Behaviour",
+                icon = R.drawable.baseline_app_settings_alt_24,
+                settings = listOf(
+                    enableFastActions,
+                    longHoldOnClockwiseCircle,
+                    keyHeight,
+                    swipeThreshold,
+                    fastSwipeThreshold,
+                    circleJaggednessThreshold,
+                    circleDiscontinuityThreshold,
+                    circleAngleThreshold
+                )
+            ),
+            SettingsSection(
+                key = "feedback", label = "Feedback", icon = R.drawable.baseline_vibration_24,
+                settings = listOf(
+                    enableHapticFeedback,
+                ),
+            )
         )
 }
+
+data class SettingsSection(
+    val key: String,
+    val label: String,
+    val icon: Int,
+    val settings: List<Setting<*>>
+)
 
 interface Labeled {
     val label: String
@@ -732,14 +805,6 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
     val state: State<T>
         @Composable
         get() = watch.collectAsState(initial = cachedValue)
-
-    class Section(override val label: String, ctx: SettingsContext) : Setting<Unit>(ctx) {
-        override val key: String = "section-dummy-key"
-        override val description: String? = null
-
-        override fun readFrom(prefs: SharedPreferences) {}
-        override fun writeTo(prefs: SharedPreferences, value: Unit) {}
-    }
 
     class Bool(
         override val key: String,

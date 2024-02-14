@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -131,7 +131,7 @@ fun OnboardingPromptCard(title: String, onClick: () -> Unit, content: @Composabl
                 content()
             }
             Icon(
-                Icons.Filled.ArrowForward, null,
+                Icons.AutoMirrored.Filled.ArrowForward, null,
                 modifier = Modifier.padding(start = 8.dp)
             )
         }
