@@ -56,7 +56,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
     enum class SelectionSize {
         Empty,
         NonEmpty,
-        NoAccessToBuffer,
+        BufferUnavailable,
     }
 
     private fun selectionSize(): SelectionSize {
@@ -74,14 +74,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                         it.hintMaxLines = 1
                     }, 0)
                 extractedText?.let { fromIsNonEmpty(it.selectionStart != it.selectionEnd) }
-                    ?: SelectionSize.NoAccessToBuffer
+                    ?: SelectionSize.BufferUnavailable
             }
 
             else -> fromIsNonEmpty(currentCursor.selectionStart != currentCursor.selectionEnd)
         }
     }
 
-    private fun currentCursorPosition(direction: SearchDirection): Int =
+    // Returns null if the input buffer is unavailable
+    private fun currentCursorPosition(direction: SearchDirection): Int? =
         when (val currentCursor = cursor) {
             null -> {
                 // Some apps (such as Firefox) don't always support requestCursorUpdates,
@@ -91,9 +92,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                         it.hintMaxChars = 1
                         it.hintMaxLines = 1
                     }, 0)
-                extractedText.startOffset + when (direction) {
-                    SearchDirection.Backwards -> extractedText.selectionStart
-                    SearchDirection.Forwards -> extractedText.selectionEnd
+                extractedText?.let {
+                    it.startOffset + when (direction) {
+                        SearchDirection.Backwards -> it.selectionStart
+                        SearchDirection.Forwards -> it.selectionEnd
+                    }
                 }
             }
 
@@ -178,7 +181,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             )
                                         }
 
-                                        SelectionSize.NoAccessToBuffer -> {
+                                        SelectionSize.BufferUnavailable -> {
                                             sendKeyPressEvents(
                                                 keyCode = when (action.direction) {
                                                     SearchDirection.Backwards -> KeyEvent.KEYCODE_DEL
@@ -210,16 +213,27 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 }
 
                                 is Action.Jump -> {
-                                    val currentPos = currentCursorPosition(action.direction)
-                                    val newPos = currentPos + findBoundary(
-                                        action.boundary,
-                                        action.direction,
-                                        coalesce = true,
-                                    ) * action.direction.factor
-                                    currentInputConnection.setSelection(
-                                        newPos,
-                                        newPos
-                                    )
+                                    when (val currentPos =
+                                        currentCursorPosition(action.direction)) {
+                                        null -> sendKeyPressEvents(
+                                            keyCode = when (action.direction) {
+                                                SearchDirection.Backwards -> KeyEvent.KEYCODE_DPAD_LEFT
+                                                SearchDirection.Forwards -> KeyEvent.KEYCODE_DPAD_RIGHT
+                                            }
+                                        )
+
+                                        else -> {
+                                            val newPos = currentPos + findBoundary(
+                                                action.boundary,
+                                                action.direction,
+                                                coalesce = true,
+                                            ) * action.direction.factor
+                                            currentInputConnection.setSelection(
+                                                newPos,
+                                                newPos
+                                            )
+                                        }
+                                    }
                                 }
 
                                 is Action.JumpLineKeepPos -> {
@@ -227,44 +241,55 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     // Yes, this should really be the editor's responsibility...
                                     // How is this different from Action.Jump? Action.Jump jumps to *the boundary*,
                                     // for TextBoundary.Line this is equivalent to Home/End.
-                                    val currentPos = currentCursorPosition(action.direction)
-                                    // Find our position on the current line
-                                    val posOnLine = findBoundary(
-                                        TextBoundary.Line,
-                                        SearchDirection.Backwards,
-                                    )
-                                    val lineSearchSkip = when (action.direction) {
-                                        // When going backwards, we need to find the linebreak before the current one
-                                        SearchDirection.Backwards -> 1
-                                        SearchDirection.Forwards -> 0
+                                    when (val currentPos =
+                                        currentCursorPosition(action.direction)) {
+                                        null -> sendKeyPressEvents(
+                                            keyCode = when (action.direction) {
+                                                SearchDirection.Backwards -> KeyEvent.KEYCODE_DPAD_UP
+                                                SearchDirection.Forwards -> KeyEvent.KEYCODE_DPAD_DOWN
+                                            }
+                                        )
+
+                                        else -> {
+                                            // Find our position on the current line
+                                            val posOnLine = findBoundary(
+                                                TextBoundary.Line,
+                                                SearchDirection.Backwards,
+                                            )
+                                            val lineSearchSkip = when (action.direction) {
+                                                // When going backwards, we need to find the linebreak before the current one
+                                                SearchDirection.Backwards -> 1
+                                                SearchDirection.Forwards -> 0
+                                            }
+                                            // Find the offset to the target line
+                                            val targetLineOffset = (findBoundary(
+                                                TextBoundary.Line,
+                                                action.direction,
+                                                skipBoundaries = lineSearchSkip,
+                                            )) * action.direction.factor
+                                            // To reconstruct the position on the line, we also need to clamp
+                                            // to the length of the new line, if it is shorter than the current one
+                                            val targetLineLength = when (action.direction) {
+                                                // When jumping backwards, we already know the length of the
+                                                // line since we're jumping into it
+                                                SearchDirection.Backwards -> -targetLineOffset - posOnLine - 1
+                                                // When jumping forwards.. search for the next newline after the current one
+                                                SearchDirection.Forwards -> findBoundary(
+                                                    TextBoundary.Line,
+                                                    action.direction,
+                                                    skipBoundaries = 1,
+                                                    endOfBufferOffset = 1,
+                                                ) - targetLineOffset - 1
+                                            }
+                                            val newPos = (currentPos + targetLineOffset +
+                                                    posOnLine.coerceAtMost(targetLineLength))
+                                                .coerceAtLeast(0)
+                                            currentInputConnection.setSelection(
+                                                newPos,
+                                                newPos
+                                            )
+                                        }
                                     }
-                                    // Find the offset to the target line
-                                    val targetLineOffset = (findBoundary(
-                                        TextBoundary.Line,
-                                        action.direction,
-                                        skipBoundaries = lineSearchSkip,
-                                    )) * action.direction.factor
-                                    // To reconstruct the position on the line, we also need to clamp
-                                    // to the length of the new line, if it is shorter than the current one
-                                    val targetLineLength = when (action.direction) {
-                                        // When jumping backwards, we already know the length of the
-                                        // line since we're jumping into it
-                                        SearchDirection.Backwards -> -targetLineOffset - posOnLine - 1
-                                        // When jumping forwards.. search for the next newline after the current one
-                                        SearchDirection.Forwards -> findBoundary(
-                                            TextBoundary.Line,
-                                            action.direction,
-                                            skipBoundaries = 1,
-                                            endOfBufferOffset = 1,
-                                        ) - targetLineOffset - 1
-                                    }
-                                    val newPos = (currentPos + targetLineOffset +
-                                            posOnLine.coerceAtMost(targetLineLength))
-                                        .coerceAtLeast(0)
-                                    currentInputConnection.setSelection(
-                                        newPos,
-                                        newPos
-                                    )
                                 }
 
                                 is Action.ToggleShift, Action.ToggleCtrl, Action.ToggleAlt -> {
