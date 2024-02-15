@@ -16,9 +16,7 @@ val DE_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("a"),
-                    Direction.TOP to Action.Text("ö"),
-                    Direction.TOP_RIGHT to Action.Text("ß"),
-                    Direction.LEFT to Action.Text("ä"),
+                    Direction.BOTTOM to Action.Text("ä"),
                     Direction.BOTTOM_RIGHT to Action.Text("v")
                 )
             ),
@@ -38,27 +36,29 @@ val DE_MESSAGEASE_MAIN_LAYER = Layer(
         listOf(
             KeyM(
                 actions = mapOf(
+                    Direction.TOP to Action.Text("ü"),
                     Direction.CENTER to Action.Text("h"),
-                    Direction.RIGHT to Action.Text("k")
+                    Direction.RIGHT to Action.Text("k"),
+                    Direction.BOTTOM to Action.Text("ö")
                 )
             ),
             KeyM(
                 actions = mapOf(
-                    Direction.CENTER to Action.Text("o"),
+                    Direction.CENTER to Action.Text("d"),
                     Direction.TOP_LEFT to Action.Text("q"),
                     Direction.TOP to Action.Text("u"),
                     Direction.TOP_RIGHT to Action.Text("p"),
                     Direction.LEFT to Action.Text("c"),
                     Direction.RIGHT to Action.Text("b"),
                     Direction.BOTTOM_LEFT to Action.Text("g"),
-                    Direction.BOTTOM to Action.Text("d"),
-                    Direction.BOTTOM_RIGHT to Action.Text("j"),
+                    Direction.BOTTOM to Action.Text("o"),
+                    Direction.BOTTOM_RIGHT to Action.Text("j")
                 )
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
-                    Direction.LEFT to Action.Text("m"),
+                    Direction.LEFT to Action.Text("m")
                 )
             ),
         ),
@@ -66,7 +66,8 @@ val DE_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("t"),
-                    Direction.TOP_RIGHT to Action.Text("y")
+                    Direction.TOP_RIGHT to Action.Text("y"),
+                    Direction.BOTTOM to Action.Text("ß")
                 )
             ),
             KeyM(
