@@ -103,6 +103,24 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
             }
         }
 
+    private fun sendKeyPressEvents(keyCode: Int) {
+        listOf(KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP).forEach { keyAction ->
+            currentInputConnection.sendKeyEvent(
+                KeyEvent(
+                    0,
+                    0,
+                    keyAction,
+                    keyCode,
+                    0,
+                    0,
+                    KeyCharacterMap.VIRTUAL_KEYBOARD,
+                    0,
+                    KeyEvent.FLAG_SOFT_KEYBOARD,
+                )
+            )
+        }
+    }
+
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         cursor = null
@@ -161,27 +179,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         }
 
                                         SelectionSize.NoAccessToBuffer -> {
-                                            for (keyAction in listOf(
-                                                KeyEvent.ACTION_DOWN,
-                                                KeyEvent.ACTION_UP
-                                            )) {
-                                                currentInputConnection.sendKeyEvent(
-                                                    KeyEvent(
-                                                        0,
-                                                        0,
-                                                        keyAction,
-                                                        when (action.direction) {
-                                                            SearchDirection.Backwards -> KeyEvent.KEYCODE_DEL
-                                                            SearchDirection.Forwards -> KeyEvent.KEYCODE_FORWARD_DEL
-                                                        },
-                                                        0,
-                                                        0,
-                                                        KeyCharacterMap.VIRTUAL_KEYBOARD,
-                                                        0,
-                                                        KeyEvent.FLAG_SOFT_KEYBOARD,
-                                                    )
-                                                )
-                                            }
+                                            sendKeyPressEvents(
+                                                keyCode = when (action.direction) {
+                                                    SearchDirection.Backwards -> KeyEvent.KEYCODE_DEL
+                                                    SearchDirection.Forwards -> KeyEvent.KEYCODE_FORWARD_DEL
+                                                }
+                                            )
                                         }
                                     }
                                 }
