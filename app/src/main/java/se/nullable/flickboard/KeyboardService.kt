@@ -53,8 +53,18 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
     private var activeModifiers = ModifierState()
 
-    private fun hasNonEmptySelection(): Boolean =
-        when (val currentCursor = cursor) {
+    enum class SelectionSize {
+        Empty,
+        NonEmpty,
+        NoAccessToBuffer,
+    }
+
+    private fun selectionSize(): SelectionSize {
+        fun fromIsNonEmpty(isNonEmpty: Boolean) = when {
+            isNonEmpty -> SelectionSize.NonEmpty
+            else -> SelectionSize.Empty
+        }
+        return when (val currentCursor = cursor) {
             null -> {
                 // Some apps (such as Firefox) don't always support requestCursorUpdates,
                 // in those cases, fall back to making a synchronous getExtractedText request instead.
@@ -63,11 +73,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                         it.hintMaxChars = 1
                         it.hintMaxLines = 1
                     }, 0)
-                extractedText.selectionStart != extractedText.selectionEnd
+                extractedText?.let { fromIsNonEmpty(it.selectionStart != it.selectionEnd) }
+                    ?: SelectionSize.NoAccessToBuffer
             }
 
-            else -> currentCursor.selectionStart != currentCursor.selectionEnd
+            else -> fromIsNonEmpty(currentCursor.selectionStart != currentCursor.selectionEnd)
         }
+    }
 
     private fun currentCursorPosition(direction: SearchDirection): Int =
         when (val currentCursor = cursor) {
@@ -130,20 +142,47 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     )
 
                                 is Action.Delete -> {
-                                    if (hasNonEmptySelection()) {
-                                        // if selection is non-empty, delete it regardless of the mode requested by the user
-                                        currentInputConnection.commitText("", 0)
-                                    } else {
-                                        val length =
-                                            findBoundary(
+                                    when (selectionSize()) {
+                                        SelectionSize.NonEmpty -> {
+                                            // if selection is non-empty, delete it regardless of the mode requested by the user
+                                            currentInputConnection.commitText("", 0)
+                                        }
+
+                                        SelectionSize.Empty -> {
+                                            val length = findBoundary(
                                                 action.boundary,
                                                 action.direction,
                                                 coalesce = true
                                             )
-                                        currentInputConnection.deleteSurroundingText(
-                                            if (action.direction == SearchDirection.Backwards) length else 0,
-                                            if (action.direction == SearchDirection.Forwards) length else 0,
-                                        )
+                                            currentInputConnection.deleteSurroundingText(
+                                                if (action.direction == SearchDirection.Backwards) length else 0,
+                                                if (action.direction == SearchDirection.Forwards) length else 0,
+                                            )
+                                        }
+
+                                        SelectionSize.NoAccessToBuffer -> {
+                                            for (keyAction in listOf(
+                                                KeyEvent.ACTION_DOWN,
+                                                KeyEvent.ACTION_UP
+                                            )) {
+                                                currentInputConnection.sendKeyEvent(
+                                                    KeyEvent(
+                                                        0,
+                                                        0,
+                                                        keyAction,
+                                                        when (action.direction) {
+                                                            SearchDirection.Backwards -> KeyEvent.KEYCODE_DEL
+                                                            SearchDirection.Forwards -> KeyEvent.KEYCODE_FORWARD_DEL
+                                                        },
+                                                        0,
+                                                        0,
+                                                        KeyCharacterMap.VIRTUAL_KEYBOARD,
+                                                        0,
+                                                        KeyEvent.FLAG_SOFT_KEYBOARD,
+                                                    )
+                                                )
+                                            }
+                                        }
                                     }
                                 }
 
