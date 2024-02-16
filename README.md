@@ -1,5 +1,8 @@
 # FlickBoard
 
+[![Discord](https://img.shields.io/discord/1207841722327896104
+)](https://discord.gg/tVp8MGaeUr)
+
 FlickBoard is a flicking-style keyboard, in the style of [MessagEase] and [Thumb-Key].
 
 Type the letters in the center of a key by tapping it. Type the keys in the corners by swiping in
