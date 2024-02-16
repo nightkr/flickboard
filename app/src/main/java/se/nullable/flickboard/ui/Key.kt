@@ -3,14 +3,13 @@ package se.nullable.flickboard.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -22,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -36,7 +34,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import se.nullable.flickboard.averageOf
 import se.nullable.flickboard.model.Action
@@ -46,7 +43,7 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.ModifierState
-import se.nullable.flickboard.sqrt
+import se.nullable.flickboard.ui.layout.KeyGrid
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.atan2
@@ -117,8 +114,8 @@ fun Key(
         // No action handler defined => disable input
         Modifier
     }
-    BoxWithConstraints(
-        modifier = modifier
+    Box(
+        modifier
             .background(
                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = keyOpacity.value),
                 shape = RoundedCornerShape((keyRoundness.value * 100).roundToInt())
@@ -126,45 +123,33 @@ fun Key(
             .height(keyHeight.dp)
             .then(onActionModifier)
     ) {
-        key.actions.forEach { (direction, action) ->
-            KeyActionIndicator(
-                direction,
-                action,
-                enterKeyLabel = enterKeyLabel,
-                cornerRadius = sqrt(max(maxWidth, maxHeight) * keyRoundness.value),
-                scale = scale * actionVisualScale.value,
-                modifiers = modifierState,
-            )
+        KeyGrid(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(2.dp),
+            cornerRoundness = keyRoundness.value,
+        ) {
+            key.actions.forEach { (direction, action) ->
+                KeyActionIndicator(
+                    action,
+                    enterKeyLabel = enterKeyLabel,
+                    scale = scale * actionVisualScale.value,
+                    modifiers = modifierState,
+                    modifier = Modifier.direction(direction)
+                )
+            }
         }
     }
 }
 
 @Composable
-fun BoxScope.KeyActionIndicator(
-    direction: Direction,
+fun KeyActionIndicator(
     action: Action,
     enterKeyLabel: String?,
-    cornerRadius: Dp,
     scale: Float,
     modifiers: ModifierState,
+    modifier: Modifier = Modifier
 ) {
-    var keyModifier = Modifier
-        .align(
-            when (direction) {
-                Direction.TOP_LEFT -> Alignment.TopStart
-                Direction.TOP -> Alignment.TopCenter
-                Direction.TOP_RIGHT -> Alignment.TopEnd
-                Direction.LEFT -> Alignment.CenterStart
-                Direction.CENTER -> Alignment.Center
-                Direction.RIGHT -> Alignment.CenterEnd
-                Direction.BOTTOM_LEFT -> Alignment.BottomStart
-                Direction.BOTTOM -> Alignment.BottomCenter
-                Direction.BOTTOM_RIGHT -> Alignment.BottomEnd
-            }
-        )
-    if (direction.isCorner()) {
-        keyModifier = keyModifier.padding(all = cornerRadius)
-    }
     val overrideActionVisual =
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
     val settings = LocalAppSettings.current
@@ -185,7 +170,7 @@ fun BoxScope.KeyActionIndicator(
                     text = actionVisual.label,
                     color = color,
                     fontSize = 14.sp * scale,
-                    modifier = keyModifier.padding(horizontal = 2.dp)
+                    modifier = modifier.padding(horizontal = 2.dp)
                 )
             }
 
@@ -193,9 +178,7 @@ fun BoxScope.KeyActionIndicator(
                 painter = painterResource(id = actionVisual.resource),
                 contentDescription = null,
                 tint = color,
-                modifier = keyModifier
-                    .size(24.dp * scale)
-                    .padding(all = 4.dp)
+                modifier = modifier
             )
 
             ActionVisual.None -> {}
