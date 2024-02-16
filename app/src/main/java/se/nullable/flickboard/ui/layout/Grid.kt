@@ -1,4 +1,4 @@
-package se.nullable.flickboard.ui
+package se.nullable.flickboard.ui.layout
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
