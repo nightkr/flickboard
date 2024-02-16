@@ -11,7 +11,7 @@ import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -356,7 +356,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     emojiMode = !emojiMode
                             }
                         }
-                        Surface {
+                        Box {
                             when {
                                 emojiMode -> EmojiKeyboard(onAction = onAction)
                                 else -> {

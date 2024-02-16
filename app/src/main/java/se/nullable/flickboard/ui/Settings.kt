@@ -583,6 +583,24 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::percentage
     )
 
+    val keyOpacity = Setting.FloatSlider(
+        key = "keyOpacity",
+        label = "Key opacity",
+        defaultValue = 1F,
+        range = 0F..1F,
+        ctx = ctx,
+        render = Setting.FloatSlider::percentage
+    )
+
+    val backgroundOpacity = Setting.FloatSlider(
+        key = "backgroundOpacity",
+        label = "Background opacity",
+        defaultValue = 1F,
+        range = 0F..1F,
+        ctx = ctx,
+        render = Setting.FloatSlider::percentage
+    )
+
     val enablePointerTrail = Setting.Bool(
         key = "enablePointerTrail",
         label = "Enable pointer trail",
@@ -692,6 +710,8 @@ class AppSettings(val ctx: SettingsContext) {
                     showSymbols,
                     showNumbers,
                     keyRoundness,
+                    keyOpacity,
+                    backgroundOpacity,
                     enablePointerTrail
                 )
             ),

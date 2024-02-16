@@ -69,7 +69,8 @@ fun Key(
     val actionVisualScale = settings.actionVisualScale.state
     val scale = settings.currentScale
     val keyHeight = settings.keyHeight.state.value * scale
-    val keyRoundness = settings.keyRoundness.state.value
+    val keyRoundness = settings.keyRoundness.state
+    val keyOpacity = settings.keyOpacity.state
     val enableFastActions = settings.enableFastActions.state
     val longHoldOnClockwiseCircle = settings.longHoldOnClockwiseCircle.state
     val swipeThreshold = settings.swipeThreshold.state
@@ -119,8 +120,8 @@ fun Key(
     BoxWithConstraints(
         modifier = modifier
             .background(
-                MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape((keyRoundness * 100).roundToInt())
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = keyOpacity.value),
+                shape = RoundedCornerShape((keyRoundness.value * 100).roundToInt())
             )
             .height(keyHeight.dp)
             .then(onActionModifier)
@@ -130,7 +131,7 @@ fun Key(
                 direction,
                 action,
                 enterKeyLabel = enterKeyLabel,
-                cornerRadius = sqrt(max(maxWidth, maxHeight) * keyRoundness),
+                cornerRadius = sqrt(max(maxWidth, maxHeight) * keyRoundness.value),
                 scale = scale * actionVisualScale.value,
                 modifiers = modifierState,
             )

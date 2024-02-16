@@ -54,6 +54,7 @@ fun Keyboard(
     val numericLayer = appSettings.numericLayer.state
     val secondaryLetterLayer = appSettings.secondaryLetterLayer.state
     val handedness = appSettings.handedness.state
+    val backgroundOpacity = appSettings.backgroundOpacity.state
     val enablePointerTrail = appSettings.enablePointerTrail.state
     var modifierState: ModifierState by remember { mutableStateOf(ModifierState()) }
     LaunchedEffect(modifierState) {
@@ -124,7 +125,7 @@ fun Keyboard(
     val pointerTrailColor = MaterialTheme.colorScheme.onSurface
     BoxWithConstraints(
         modifier
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = backgroundOpacity.value))
             .onGloballyPositioned { globalPosition = it.positionInRoot() }
             .drawWithCache {
                 onDrawWithContent {
