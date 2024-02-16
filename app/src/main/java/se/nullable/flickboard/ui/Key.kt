@@ -48,7 +48,7 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.ModifierState
-import se.nullable.flickboard.ui.layout.KeyGrid
+import se.nullable.flickboard.ui.layout.KeyLabelGrid
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.atan2
@@ -128,7 +128,7 @@ fun Key(
             .height(keyHeight.dp)
             .then(onActionModifier)
     ) {
-        KeyGrid(
+        KeyLabelGrid(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(2.dp),

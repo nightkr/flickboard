@@ -12,15 +12,22 @@ import se.nullable.flickboard.times
 import se.nullable.flickboard.ui.LocalAppSettings
 import kotlin.math.sqrt
 
+/**
+ * Tries to lay out a 3x3 grid of labels, such that:
+ * - They have a uniform size
+ * - The center item is scaled up somewhat (the "center bias")
+ * - They do not overlay
+ * - Corner labels duck out of the way of the corner radius
+ */
 @Composable
-fun KeyGrid(
+fun KeyLabelGrid(
     modifier: Modifier = Modifier,
     cornerRoundness: Float = 0F,
-    content: @Composable KeyGridScope.() -> Unit = {}
+    content: @Composable KeyLabelGridScope.() -> Unit = {}
 ) {
     val centerBias = LocalAppSettings.current.actionVisualBiasCenter.state.value
     Layout(
-        content = { KeyGridScope().content() },
+        content = { KeyLabelGridScope().content() },
         modifier = modifier
     ) { measurables, constraints ->
         val xCornerInset = sqrt(constraints.maxWidth * cornerRoundness).toInt() * 2
@@ -31,7 +38,9 @@ fun KeyGrid(
         val outerCellWidth = safeHeight / (2 + centerBias)
 
         val parentData =
-            measurables.map { it.parentData as KeyGridParentData? ?: KeyGridParentData.Default }
+            measurables.map {
+                it.parentData as KeyLabelGridParentData? ?: KeyLabelGridParentData.Default
+            }
 
         val placeables = measurables.zip(parentData) { measurable, itemParentData ->
             measurable.measure(
@@ -71,27 +80,29 @@ fun KeyGrid(
     }
 }
 
-class KeyGridScope {
-    fun Modifier.direction(direction: Direction) = this then KeyGridDirectionElement(direction)
+class KeyLabelGridScope {
+    fun Modifier.direction(direction: Direction) = this then KeyLabelGridDirectionElement(direction)
 }
 
-private data class KeyGridParentData(val direction: Direction = Direction.CENTER) {
+private data class KeyLabelGridParentData(val direction: Direction = Direction.CENTER) {
     companion object {
-        val Default = KeyGridParentData()
+        val Default = KeyLabelGridParentData()
     }
 }
 
-private data class KeyGridDirectionElement(val direction: Direction) :
-    ModifierNodeElement<KeyGridDirectionNode>() {
-    override fun create(): KeyGridDirectionNode = KeyGridDirectionNode(direction = direction)
-    override fun update(node: KeyGridDirectionNode) {
+private data class KeyLabelGridDirectionElement(val direction: Direction) :
+    ModifierNodeElement<KeyLabelGridDirectionNode>() {
+    override fun create(): KeyLabelGridDirectionNode =
+        KeyLabelGridDirectionNode(direction = direction)
+
+    override fun update(node: KeyLabelGridDirectionNode) {
         node.direction = direction
     }
 }
 
-private class KeyGridDirectionNode(var direction: Direction) : ParentDataModifierNode,
+private class KeyLabelGridDirectionNode(var direction: Direction) : ParentDataModifierNode,
     Modifier.Node() {
     override fun Density.modifyParentData(parentData: Any?): Any =
-        ((parentData as KeyGridParentData?)
-            ?: KeyGridParentData.Default).copy(direction = direction)
+        ((parentData as KeyLabelGridParentData?)
+            ?: KeyLabelGridParentData.Default).copy(direction = direction)
 }
