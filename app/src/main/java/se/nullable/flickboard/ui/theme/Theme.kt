@@ -44,8 +44,10 @@ fun FlickBoardTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val view = LocalView.current
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        // Dynamic colour is unavailable in previews, and makes them crash
+        !view.isInEditMode && dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
@@ -53,7 +55,6 @@ fun FlickBoardTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
-    val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             (view.context as? Activity)?.window?.let { window ->
