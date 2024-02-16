@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.times
+import se.nullable.flickboard.ui.LocalAppSettings
 import kotlin.math.sqrt
 
 @Composable
@@ -17,11 +18,11 @@ fun KeyGrid(
     cornerRoundness: Float = 0F,
     content: @Composable KeyGridScope.() -> Unit = {}
 ) {
+    val centerBias = LocalAppSettings.current.actionVisualBiasCenter.state.value
     Layout(
         content = { KeyGridScope().content() },
         modifier = modifier
     ) { measurables, constraints ->
-        val centerBias = 1.5F
         val xCornerInset = sqrt(constraints.maxWidth * cornerRoundness).toInt() * 2
         val yCornerInset = sqrt(constraints.maxHeight * cornerRoundness).toInt() * 2
         val safeWidth = constraints.maxWidth - xCornerInset

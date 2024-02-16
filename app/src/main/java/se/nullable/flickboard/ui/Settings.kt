@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeGesturesPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -120,6 +121,7 @@ fun SettingsSectionPage(section: SettingsSection, modifier: Modifier = Modifier)
             modifier
                 .verticalScroll(rememberScrollState())
                 .weight(1F)
+                .safeGesturesPadding()
         ) {
             section.settings.forEach { setting ->
                 when (setting) {
@@ -532,15 +534,6 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::percentage
     )
 
-    val actionVisualScale = Setting.FloatSlider(
-        key = "actionVisualScale",
-        label = "Key label scale",
-        defaultValue = 1F,
-        range = 0.5F..1F,
-        ctx = ctx,
-        render = Setting.FloatSlider::percentage
-    )
-
     val currentLocation: Float
         @Composable get() = when {
             LocalDisplayLimits.current?.isLandscape ?: false -> landscapeLocation.state.value
@@ -579,6 +572,24 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Key roundness",
         defaultValue = 0F,
         range = 0F..0.5F,
+        ctx = ctx,
+        render = Setting.FloatSlider::percentage
+    )
+
+    val actionVisualBiasCenter = Setting.FloatSlider(
+        key = "actionVisualBiasCenter",
+        label = "Center key label scale",
+        defaultValue = 1.5F,
+        range = 1F..2F,
+        ctx = ctx,
+        render = Setting.FloatSlider::percentage
+    )
+
+    val actionVisualScale = Setting.FloatSlider(
+        key = "actionVisualScale",
+        label = "Key label scale",
+        defaultValue = 1F,
+        range = 0.5F..1F,
         ctx = ctx,
         render = Setting.FloatSlider::percentage
     )
@@ -700,7 +711,6 @@ class AppSettings(val ctx: SettingsContext) {
                     landscapeScale,
                     portraitLocation,
                     portraitScale,
-                    actionVisualScale
                 )
             ),
             SettingsSection(
@@ -710,9 +720,11 @@ class AppSettings(val ctx: SettingsContext) {
                     showSymbols,
                     showNumbers,
                     keyRoundness,
+                    actionVisualBiasCenter,
+                    actionVisualScale,
                     keyOpacity,
                     backgroundOpacity,
-                    enablePointerTrail
+                    enablePointerTrail,
                 )
             ),
             SettingsSection(
@@ -727,7 +739,7 @@ class AppSettings(val ctx: SettingsContext) {
                     fastSwipeThreshold,
                     circleJaggednessThreshold,
                     circleDiscontinuityThreshold,
-                    circleAngleThreshold
+                    circleAngleThreshold,
                 )
             ),
             SettingsSection(
