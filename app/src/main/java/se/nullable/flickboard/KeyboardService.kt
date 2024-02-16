@@ -388,7 +388,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 EnabledLayers.Letters
 
                                         // Both layers are enabled, so switch their sides by toggling handedness
-                                        EnabledLayers.All, EnabledLayers.AllMiniNumbers, EnabledLayers.DoubleLetters ->
+                                        EnabledLayers.All, EnabledLayers.DoubleLetters,
+                                        EnabledLayers.AllMiniNumbers, EnabledLayers.AllMiniNumbersMiddle ->
                                             appSettings.handedness.currentValue =
                                                 !appSettings.handedness.currentValue
                                     }

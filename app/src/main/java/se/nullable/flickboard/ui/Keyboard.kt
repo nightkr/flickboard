@@ -93,8 +93,14 @@ fun Keyboard(
                 },
                 layout.controlLayer?.let { it.mergeShift(it.autoShift()) },
                 when (enabledLayers.value) {
+                    EnabledLayers.AllMiniNumbersMiddle -> MINI_NUMBERS_LAYER
+                    else -> null
+                },
+                when (enabledLayers.value) {
                     EnabledLayers.Numbers -> mergedNumericLayer.value
-                    EnabledLayers.Letters, EnabledLayers.DoubleLetters, EnabledLayers.All, EnabledLayers.AllMiniNumbers -> activeLayer
+
+                    EnabledLayers.Letters, EnabledLayers.DoubleLetters, EnabledLayers.All,
+                    EnabledLayers.AllMiniNumbers, EnabledLayers.AllMiniNumbersMiddle -> activeLayer
                 },
             )
                 .let {
