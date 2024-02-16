@@ -24,8 +24,8 @@ fun KeyGrid(
         val centerBias = 1.5F
         val xCornerInset = sqrt(constraints.maxWidth * cornerRoundness).toInt() * 2
         val yCornerInset = sqrt(constraints.maxHeight * cornerRoundness).toInt() * 2
-        val safeWidth = constraints.maxWidth - xCornerInset * 2
-        val safeHeight = constraints.maxHeight - yCornerInset * 2
+        val safeWidth = constraints.maxWidth - xCornerInset
+        val safeHeight = constraints.maxHeight - yCornerInset
         val outerCellHeight = safeWidth / (2 + centerBias)
         val outerCellWidth = safeHeight / (2 + centerBias)
 

@@ -536,7 +536,7 @@ class AppSettings(val ctx: SettingsContext) {
         key = "actionVisualScale",
         label = "Key label scale",
         defaultValue = 1F,
-        range = 0.5F..2F,
+        range = 0.5F..1F,
         ctx = ctx,
         render = Setting.FloatSlider::percentage
     )
