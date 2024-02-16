@@ -1,12 +1,35 @@
 package se.nullable.flickboard
 
+import androidx.compose.ui.geometry.Offset
+import se.nullable.flickboard.model.Direction
 import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.roundToInt
 
-val PiF: Float = PI.toFloat()
+const val PiF: Float = PI.toFloat()
 
 operator fun Int.times(cond: Boolean): Int = when {
     cond -> this
     else -> 0
+}
+
+fun Offset.angle(): Float = atan2(y, x)
+
+fun Offset.direction(): Direction {
+    val slice = (angle() * 4 / Math.PI)
+        .roundToInt()
+        .mod(8)
+    return when (slice) {
+        0 -> Direction.RIGHT
+        1 -> Direction.BOTTOM_RIGHT
+        2 -> Direction.BOTTOM
+        3 -> Direction.BOTTOM_LEFT
+        4 -> Direction.LEFT
+        5 -> Direction.TOP_LEFT
+        6 -> Direction.TOP
+        7 -> Direction.TOP_RIGHT
+        else -> throw RuntimeException("Offset has invalid direction slice=$slice (angle=${angle()}")
+    }
 }
 
 inline fun <T> List<T>.averageOf(f: (T) -> Float): Float =

@@ -40,7 +40,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import se.nullable.flickboard.angle
 import se.nullable.flickboard.averageOf
+import se.nullable.flickboard.direction
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.ActionClass
 import se.nullable.flickboard.model.ActionVisual
@@ -51,7 +53,6 @@ import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.ui.layout.KeyLabelGrid
 import kotlin.math.PI
 import kotlin.math.absoluteValue
-import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sign
@@ -325,25 +326,6 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                 }
             }
         }
-    }
-}
-
-private fun Offset.angle(): Float = atan2(y, x)
-
-private fun Offset.direction(): Direction {
-    val slice = (angle() * 4 / Math.PI)
-        .roundToInt()
-        .mod(8)
-    return when (slice) {
-        0 -> Direction.RIGHT
-        1 -> Direction.BOTTOM_RIGHT
-        2 -> Direction.BOTTOM
-        3 -> Direction.BOTTOM_LEFT
-        4 -> Direction.LEFT
-        5 -> Direction.TOP_LEFT
-        6 -> Direction.TOP
-        7 -> Direction.TOP_RIGHT
-        else -> throw RuntimeException("Offset has invalid direction slice=$slice (angle=${angle()}")
     }
 }
 
