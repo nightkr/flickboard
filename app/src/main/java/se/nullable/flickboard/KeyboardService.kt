@@ -36,6 +36,8 @@ import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
+import se.nullable.flickboard.util.LastTypedData
+import se.nullable.flickboard.util.singleCodePointOrNull
 import java.text.BreakIterator
 import kotlin.math.max
 import kotlin.math.min
@@ -124,6 +126,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         }
     }
 
+    private var lastTyped: LastTypedData? = null
+        // The lastTyped is no longer relevant if the position doesn't match,
+        // also cleared in onUpdateCursorAnchorInfo but we still want to double-check
+        // as a fallback.
+        get() = field?.takeIf { currentCursorPosition(SearchDirection.Backwards) == it.position }
+
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         cursor = null
@@ -156,11 +164,31 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                         val appSettings = LocalAppSettings.current
                         val onAction: (Action) -> Unit = { action ->
                             when (action) {
-                                is Action.Text ->
+                                is Action.Text -> {
+                                    var char = action.character
+                                    val combiner = lastTyped?.tryCombineWith(char)
+                                    if (combiner != null) {
+                                        char = combiner.combiningMark
+                                    }
+                                    val codePoint = char.singleCodePointOrNull()
+                                    val positionOfChar =
+                                        currentCursorPosition(SearchDirection.Backwards)
+                                            ?.plus(char.length)
+                                    lastTyped = when {
+                                        codePoint != null && positionOfChar != null ->
+                                            LastTypedData(
+                                                codePoint = codePoint,
+                                                position = positionOfChar,
+                                                combiner = combiner
+                                            )
+
+                                        else -> null
+                                    }
                                     currentInputConnection.commitText(
-                                        action.character,
+                                        char,
                                         1
                                     )
+                                }
 
                                 is Action.Delete -> {
                                     when (selectionSize()) {
@@ -175,10 +203,27 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 action.direction,
                                                 coalesce = true
                                             )
-                                            currentInputConnection.deleteSurroundingText(
-                                                if (action.direction == SearchDirection.Backwards) length else 0,
-                                                if (action.direction == SearchDirection.Forwards) length else 0,
-                                            )
+                                            val lastTypedComposed = lastTyped?.combiner
+                                            if (action.direction == SearchDirection.Backwards && lastTypedComposed != null) {
+                                                currentInputConnection.beginBatchEdit()
+                                                currentInputConnection.deleteSurroundingText(
+                                                    lastTypedComposed.combiningMark.length,
+                                                    0
+                                                )
+                                                currentInputConnection.commitText(
+                                                    lastTypedComposed.original,
+                                                    1
+                                                )
+                                                currentInputConnection.endBatchEdit()
+                                                // Clear last-typed data even if we're in a context without
+                                                // a working requestCursorUpdates
+                                                lastTyped = null
+                                            } else {
+                                                currentInputConnection.deleteSurroundingText(
+                                                    if (action.direction == SearchDirection.Backwards) length else 0,
+                                                    if (action.direction == SearchDirection.Forwards) length else 0,
+                                                )
+                                            }
                                         }
 
                                         SelectionSize.BufferUnavailable -> {
@@ -492,6 +537,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
     override fun onUpdateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo?) {
         super.onUpdateCursorAnchorInfo(cursorAnchorInfo)
         cursor = cursorAnchorInfo
+        // Best-effort: drop lastTyped when the user moves the selection,
+        // such that moving the cursor away and then back into position
+        // will still clear it.
+        if (cursorAnchorInfo?.selectionStart != lastTyped?.position) {
+            lastTyped = null
+        }
     }
 
     override fun onCreate() {
