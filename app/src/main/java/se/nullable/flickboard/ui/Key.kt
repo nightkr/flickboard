@@ -175,21 +175,24 @@ fun BoxScope.KeyActionIndicator(
         else -> true
     }
     if (showAction) {
+        val color = when (action.actionClass) {
+            ActionClass.Symbol -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4F)
+            else -> MaterialTheme.colorScheme.primary
+        }
         when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
-            is ActionVisual.Label -> Text(
-                text = actionVisual.label,
-                color = when (action.actionClass) {
-                    ActionClass.Symbol -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4F)
-                    else -> MaterialTheme.colorScheme.primary
-                },
-                fontSize = 14.sp * scale,
-                modifier = keyModifier.padding(horizontal = 2.dp)
-            )
+            is ActionVisual.Label -> {
+                Text(
+                    text = actionVisual.label,
+                    color = color,
+                    fontSize = 14.sp * scale,
+                    modifier = keyModifier.padding(horizontal = 2.dp)
+                )
+            }
 
             is ActionVisual.Icon -> Icon(
                 painter = painterResource(id = actionVisual.resource),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = color,
                 modifier = keyModifier
                     .size(24.dp * scale)
                     .padding(all = 4.dp)

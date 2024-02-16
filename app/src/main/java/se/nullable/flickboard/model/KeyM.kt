@@ -77,8 +77,13 @@ sealed class Action {
     open val actionClass = ActionClass.Other
     open fun shift(): Action = this
 
-    data class Text(val character: String, val label: String = character) : Action() {
-        override fun visual(modifier: ModifierState): ActionVisual = ActionVisual.Label(label)
+    data class Text(
+        val character: String,
+        val visualOverride: ActionVisual? = null,
+    ) : Action() {
+        override fun visual(modifier: ModifierState): ActionVisual =
+            visualOverride ?: ActionVisual.Label(character)
+
         override val actionClass: ActionClass = when {
             character.isEmpty() -> ActionClass.Other
             character.all { it.isDigit() } -> ActionClass.Number
@@ -87,7 +92,7 @@ sealed class Action {
         }
 
         override fun shift(): Action {
-            return copy(character = character.uppercase(), label = label.uppercase())
+            return copy(character = character.uppercase())
         }
     }
 
