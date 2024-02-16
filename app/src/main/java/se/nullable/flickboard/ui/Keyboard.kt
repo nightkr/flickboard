@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -107,7 +106,6 @@ fun Keyboard(
                 .fold(Layer.empty, Layer::chain)
         }
     }
-    val columns = layer.keyRows.maxOf { row -> row.sumOf { it.colspan } }
     var globalPosition: Offset by remember { mutableStateOf(Offset.Zero) }
     var activeKeyPosition: State<Offset> by remember { mutableStateOf(mutableStateOf(Offset.Zero)) }
     var pointerTrailRelativeToActiveKey: List<Offset> by remember {
@@ -155,20 +153,20 @@ fun Keyboard(
             thisWidth = min(thisWidth, limits.portraitWidth)
         }
         thisWidth *= appSettings.currentScale
-        val columnWidth = thisWidth / columns
-        Column(
-            Modifier
+        Grid(
+            modifier = Modifier
                 .width(thisWidth)
                 .align(
                     BiasAbsoluteAlignment(
                         horizontalBias = appSettings.currentLocation,
                         verticalBias = 0F
                     )
-                )
-        ) {
-            layer.keyRows.forEachIndexed { rowI, row ->
-                Row(Modifier.padding(top = rowI.coerceAtMost(1).dp)) {
-                    row.forEachIndexed { keyI, key ->
+                ),
+            columnGap = 1.dp,
+            rowGap = 1.dp,
+            rows = layer.keyRows.map { row ->
+                {
+                    row.forEach { key ->
                         val keyPosition = remember { mutableStateOf(Offset.Zero) }
                         val keyPointerTrailListener = remember {
                             derivedStateOf {
@@ -204,8 +202,7 @@ fun Keyboard(
                             },
                             modifierState = modifierState,
                             modifier = Modifier
-                                .width(columnWidth * key.colspan)
-                                .padding(start = keyI.coerceAtMost(1).dp)
+                                .colspan(key.colspan)
                                 .onGloballyPositioned {
                                     keyPosition.value = it.positionInRoot() - globalPosition
                                 },
@@ -215,7 +212,7 @@ fun Keyboard(
                     }
                 }
             }
-        }
+        )
     }
 }
 
