@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
@@ -172,19 +173,21 @@ fun Key(
             cornerRoundness = keyRoundness.value,
         ) {
             key.actions.forEach { (direction, action) ->
-                var actionModifier = Modifier
-                    .direction(direction)
-                    .scale(actionVisualScale.value)
-                actionModifier = when (action) {
-                    Action.ToggleCtrl, Action.ToggleAlt -> actionModifier.unrestrictedWidth()
-                    else -> actionModifier
+                key(direction) {
+                    var actionModifier = Modifier
+                        .direction(direction)
+                        .scale(actionVisualScale.value)
+                    actionModifier = when (action) {
+                        Action.ToggleCtrl, Action.ToggleAlt -> actionModifier.unrestrictedWidth()
+                        else -> actionModifier
+                    }
+                    KeyActionIndicator(
+                        action,
+                        enterKeyLabel = enterKeyLabel,
+                        modifiers = modifierState,
+                        modifier = actionModifier
+                    )
                 }
-                KeyActionIndicator(
-                    action,
-                    enterKeyLabel = enterKeyLabel,
-                    modifiers = modifierState,
-                    modifier = actionModifier
-                )
             }
         }
         lastActionTaken?.let {
