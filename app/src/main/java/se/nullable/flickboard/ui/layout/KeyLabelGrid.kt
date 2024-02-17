@@ -34,8 +34,8 @@ fun KeyLabelGrid(
         val yCornerInset = sqrt(constraints.maxHeight * cornerRoundness).toInt() * 2
         val safeWidth = constraints.maxWidth - xCornerInset
         val safeHeight = constraints.maxHeight - yCornerInset
-        val outerCellHeight = safeWidth / (2 + centerBias)
-        val outerCellWidth = safeHeight / (2 + centerBias)
+        val outerCellWidth = safeWidth / (2 + centerBias)
+        val outerCellHeight = safeHeight / (2 + centerBias)
 
         val parentData =
             measurables.map {
@@ -43,19 +43,22 @@ fun KeyLabelGrid(
             }
 
         val placeables = measurables.zip(parentData) { measurable, itemParentData ->
-            measurable.measure(
-                when (itemParentData.direction) {
-                    Direction.CENTER -> Constraints(
-                        maxWidth = (outerCellWidth * centerBias).toInt(),
-                        maxHeight = (outerCellHeight * centerBias).toInt(),
-                    )
+            var itemConstraints = when (itemParentData.direction) {
+                Direction.CENTER -> Constraints(
+                    maxWidth = (outerCellWidth * centerBias).toInt(),
+                    maxHeight = (outerCellHeight * centerBias).toInt(),
+                )
 
-                    else -> Constraints(
-                        maxWidth = outerCellWidth.toInt(),
-                        maxHeight = outerCellHeight.toInt(),
-                    )
-                }
-            )
+                else -> Constraints(
+                    maxWidth = outerCellWidth.toInt(),
+                    maxHeight = outerCellHeight.toInt(),
+                )
+            }
+            if (!itemParentData.restrictWidth) {
+                // Hack to avoid wide text labels clipping...
+                itemConstraints = itemConstraints.copy(maxWidth = safeWidth)
+            }
+            measurable.measure(itemConstraints)
         }
 
         layout(constraints.maxWidth, constraints.maxHeight) {
@@ -82,9 +85,13 @@ fun KeyLabelGrid(
 
 class KeyLabelGridScope {
     fun Modifier.direction(direction: Direction) = this then KeyLabelGridDirectionElement(direction)
+    fun Modifier.unrestrictedWidth() = this then KeyLabelGridUnrestrictedWidthElement
 }
 
-private data class KeyLabelGridParentData(val direction: Direction = Direction.CENTER) {
+private data class KeyLabelGridParentData(
+    val direction: Direction = Direction.CENTER,
+    val restrictWidth: Boolean = true
+) {
     companion object {
         val Default = KeyLabelGridParentData()
     }
@@ -105,4 +112,17 @@ private class KeyLabelGridDirectionNode(var direction: Direction) : ParentDataMo
     override fun Density.modifyParentData(parentData: Any?): Any =
         ((parentData as KeyLabelGridParentData?)
             ?: KeyLabelGridParentData.Default).copy(direction = direction)
+}
+
+private data object KeyLabelGridUnrestrictedWidthElement :
+    ModifierNodeElement<KeyLabelGridUnrestrictedWidthNode>() {
+    override fun create(): KeyLabelGridUnrestrictedWidthNode = KeyLabelGridUnrestrictedWidthNode()
+
+    override fun update(node: KeyLabelGridUnrestrictedWidthNode) {}
+}
+
+private class KeyLabelGridUnrestrictedWidthNode : ParentDataModifierNode, Modifier.Node() {
+    override fun Density.modifyParentData(parentData: Any?): Any =
+        ((parentData as KeyLabelGridParentData?)
+            ?: KeyLabelGridParentData.Default).copy(restrictWidth = false)
 }

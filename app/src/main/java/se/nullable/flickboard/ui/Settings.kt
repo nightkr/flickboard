@@ -152,13 +152,16 @@ fun SettingsKeyboardPreview() {
                 ProvideDisplayLimits {
                     ConfiguredKeyboard(
                         onAction = { action ->
-                            val message = when {
-                                action is Action.Text -> action.character
+                            val message = when (action) {
+                                is Action.Text -> action.character
+                                Action.ToggleCtrl, Action.ToggleAlt -> null
                                 else -> action.toString()
                             }
                             scope.launch {
                                 snackbarHostState.currentSnackbarData?.dismiss()
-                                snackbarHostState.showSnackbar(message)
+                                if (message != null) {
+                                    snackbarHostState.showSnackbar(message)
+                                }
                             }
                         }, modifier = Modifier.fillMaxWidth()
                     )

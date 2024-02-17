@@ -76,7 +76,7 @@ import kotlin.time.Duration.Companion.milliseconds
 fun Key(
     key: KeyM,
     onAction: ((Action) -> Unit)?,
-    modifierState: ModifierState,
+    modifierState: ModifierState?,
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
     keyPointerTrailListener: State<KeyPointerTrailListener?> = remember { mutableStateOf(null) },
@@ -169,13 +169,18 @@ fun Key(
             cornerRoundness = keyRoundness.value,
         ) {
             key.actions.forEach { (direction, action) ->
+                var actionModifier = Modifier
+                    .direction(direction)
+                    .scale(actionVisualScale.value)
+                actionModifier = when (action) {
+                    Action.ToggleCtrl, Action.ToggleAlt -> actionModifier.unrestrictedWidth()
+                    else -> actionModifier
+                }
                 KeyActionIndicator(
                     action,
                     enterKeyLabel = enterKeyLabel,
                     modifiers = modifierState,
-                    modifier = Modifier
-                        .direction(direction)
-                        .scale(actionVisualScale.value)
+                    modifier = actionModifier
                 )
             }
         }
@@ -256,7 +261,7 @@ fun KeyActionIndicator(
                             lineHeightStyle = LineHeightStyle(
                                 alignment = LineHeightStyle.Alignment.Center,
                                 trim = LineHeightStyle.Trim.Both
-                            )
+                            ),
                         ),
                     )
                 }

@@ -101,6 +101,6 @@ fun EnKeyboardPreview() {
 @Preview
 fun EnFullKeyboardPreview() {
     FlickBoardParent {
-        Keyboard(layout = EN_MESSAGEASE, onAction = {})
+        Keyboard(layout = EN_MESSAGEASE, showAllModifiers = true, onAction = {})
     }
 }

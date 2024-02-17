@@ -48,6 +48,7 @@ fun Keyboard(
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
     onModifierStateUpdated: (ModifierState) -> Unit = {},
+    showAllModifiers: Boolean = false,
 ) {
     val appSettings = LocalAppSettings.current
     val enabledLayers = appSettings.enabledLayers.state
@@ -207,7 +208,7 @@ fun Keyboard(
                                     onAction(action)
                                 }
                             },
-                            modifierState = modifierState,
+                            modifierState = modifierState.takeUnless { showAllModifiers },
                             modifier = Modifier
                                 .colspan(key.colspan)
                                 .onGloballyPositioned {
