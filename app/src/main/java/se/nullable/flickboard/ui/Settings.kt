@@ -28,8 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -67,7 +65,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import se.nullable.flickboard.PiF
 import se.nullable.flickboard.R
-import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
@@ -139,8 +136,6 @@ fun SettingsSectionPage(section: SettingsSection, modifier: Modifier = Modifier)
 
 @Composable
 fun SettingsKeyboardPreview() {
-    val scope = rememberCoroutineScope()
-    val snackbarHostState = remember { SnackbarHostState() }
     Box {
         Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
             Column {
@@ -151,27 +146,12 @@ fun SettingsKeyboardPreview() {
                 )
                 ProvideDisplayLimits {
                     ConfiguredKeyboard(
-                        onAction = { action ->
-                            val message = when (action) {
-                                is Action.Text -> action.character
-                                Action.ToggleCtrl, Action.ToggleAlt -> null
-                                else -> action.toString()
-                            }
-                            scope.launch {
-                                snackbarHostState.currentSnackbarData?.dismiss()
-                                if (message != null) {
-                                    snackbarHostState.showSnackbar(message)
-                                }
-                            }
-                        }, modifier = Modifier.fillMaxWidth()
+                        onAction = { }, // Keyboard provides internal visual feedback if enabled
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
         }
-        SnackbarHost(
-            snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter),
-        )
     }
 }
 

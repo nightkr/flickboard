@@ -117,7 +117,10 @@ fun Key(
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             }
             if (enableVisualFeedback.value) {
-                lastActionTaken = TakenAction(action)
+                when (action) {
+                    Action.ToggleCtrl, Action.ToggleAlt, is Action.ToggleShift -> {}
+                    else -> lastActionTaken = TakenAction(action)
+                }
             }
             onAction(action)
         }
