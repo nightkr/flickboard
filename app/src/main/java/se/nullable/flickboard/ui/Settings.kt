@@ -697,6 +697,13 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val enableVisualFeedback = Setting.Bool(
+        key = "enableVisualFeedback",
+        label = "Highlight taken actions",
+        defaultValue = true,
+        ctx = ctx
+    )
+
     val all =
         listOf<SettingsSection>(
             SettingsSection(
@@ -746,6 +753,7 @@ class AppSettings(val ctx: SettingsContext) {
                 key = "feedback", label = "Feedback", icon = R.drawable.baseline_vibration_24,
                 settings = listOf(
                     enableHapticFeedback,
+                    enableVisualFeedback,
                 ),
             )
         )

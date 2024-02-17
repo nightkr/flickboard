@@ -1,5 +1,6 @@
 package se.nullable.flickboard.ui
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -7,25 +8,35 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.changedToUp
@@ -40,6 +51,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import kotlinx.coroutines.delay
 import se.nullable.flickboard.angle
 import se.nullable.flickboard.averageOf
 import se.nullable.flickboard.direction
@@ -50,6 +62,7 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.ModifierState
+import se.nullable.flickboard.times
 import se.nullable.flickboard.ui.layout.KeyLabelGrid
 import kotlin.math.PI
 import kotlin.math.absoluteValue
@@ -57,6 +70,7 @@ import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sign
 import kotlin.math.sqrt
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun Key(
@@ -82,10 +96,28 @@ fun Key(
     val circleDiscontinuityThreshold = settings.circleDiscontinuityThreshold.state
     val circleAngleThreshold = settings.circleAngleThreshold.state
     val enableHapticFeedback = settings.enableHapticFeedback.state
+    val enableVisualFeedback = settings.enableVisualFeedback.state
+    var lastActionTaken: TakenAction? by remember { mutableStateOf(null, neverEqualPolicy()) }
+    var lastActionIsVisible by remember { mutableStateOf(false) }
+    val lastActionAlpha = animateFloatAsState(1F * lastActionIsVisible, label = "lastActionAlpha") {
+        if (!lastActionIsVisible) {
+            lastActionTaken = null
+        }
+    }
+    LaunchedEffect(lastActionTaken) {
+        lastActionIsVisible = lastActionTaken != null
+        if (lastActionTaken != null) {
+            delay(300.milliseconds)
+            lastActionIsVisible = false
+        }
+    }
     val onActionModifier = if (onAction != null) {
         val handleAction = { action: Action ->
             if (enableHapticFeedback.value) {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            }
+            if (enableVisualFeedback.value) {
+                lastActionTaken = TakenAction(action)
             }
             onAction(action)
         }
@@ -120,11 +152,12 @@ fun Key(
         // No action handler defined => disable input
         Modifier
     }
+    val shape = RoundedCornerShape((keyRoundness.value * 100).roundToInt())
     Box(
         modifier
             .background(
                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = keyOpacity.value),
-                shape = RoundedCornerShape((keyRoundness.value * 100).roundToInt())
+                shape = shape
             )
             .height(keyHeight.dp)
             .then(onActionModifier)
@@ -146,6 +179,39 @@ fun Key(
                 )
             }
         }
+        lastActionTaken?.let {
+            KeyActionTakenIndicator(
+                action = it.action,
+                enterKeyLabel = enterKeyLabel,
+                shape = shape,
+                modifier = Modifier.alpha(lastActionAlpha.value),
+            )
+        }
+    }
+}
+
+// NOT a data class, so that we get a new identity every time
+class TakenAction(val action: Action)
+
+@Composable
+fun KeyActionTakenIndicator(
+    action: Action,
+    enterKeyLabel: String?,
+    shape: Shape,
+    modifier: Modifier = Modifier
+) {
+//    Surface(modifier.background(MaterialTheme.colorScheme.tertiary)) {
+    Surface(color = MaterialTheme.colorScheme.tertiary, shape = shape, modifier = modifier) {
+        Box(Modifier.fillMaxSize()) {
+            KeyActionIndicator(
+                action = action,
+                enterKeyLabel = enterKeyLabel,
+                modifiers = null,
+                modifier = Modifier.align(Alignment.Center),
+                alwaysShowAction = true,
+                colorOverride = MaterialTheme.colorScheme.onTertiary,
+            )
+        }
     }
 }
 
@@ -153,26 +219,28 @@ fun Key(
 fun KeyActionIndicator(
     action: Action,
     enterKeyLabel: String?,
-    modifiers: ModifierState,
-    modifier: Modifier = Modifier
+    modifiers: ModifierState?,
+    modifier: Modifier = Modifier,
+    alwaysShowAction: Boolean = false,
+    colorOverride: Color? = null,
 ) {
     val overrideActionVisual =
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
     val settings = LocalAppSettings.current
-    val showAction = when (action.actionClass) {
+    val showAction = alwaysShowAction || when (action.actionClass) {
         ActionClass.Letter -> settings.showLetters.state.value
         ActionClass.Symbol -> settings.showSymbols.state.value
         ActionClass.Number -> settings.showNumbers.state.value
         else -> true
     }
     if (showAction) {
-        val color = when (action.actionClass) {
+        val color = colorOverride ?: when (action.actionClass) {
             ActionClass.Symbol -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4F)
             else -> MaterialTheme.colorScheme.primary
         }
         when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
             is ActionVisual.Label -> {
-                BoxWithConstraints(modifier) {
+                BoxWithConstraints(modifier.padding(horizontal = 2.dp)) {
                     val density = LocalDensity.current
                     Text(
                         text = actionVisual.label,
@@ -181,16 +249,15 @@ fun KeyActionIndicator(
                             min(
                                 maxWidth,
                                 // Make room for descenders
-                                maxHeight * 0.9F
+                                maxHeight * 0.8F,
                             ).toSp()
                         },
                         style = LocalTextStyle.current.merge(
                             lineHeightStyle = LineHeightStyle(
                                 alignment = LineHeightStyle.Alignment.Center,
-                                trim = LineHeightStyle.Trim.FirstLineTop
+                                trim = LineHeightStyle.Trim.Both
                             )
                         ),
-                        modifier = Modifier.padding(horizontal = 2.dp)
                     )
                 }
             }
@@ -418,6 +485,30 @@ fun KeyPreview() {
                     onAction = { lastAction = it },
                     modifier = Modifier.aspectRatio(1F),
                     modifierState = ModifierState()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+@Preview
+fun KeyActionTakenPreview() {
+    FlickBoardParent {
+        Column {
+            Box(Modifier.size(100.dp)) {
+                KeyActionTakenIndicator(
+                    action = Action.Text("A"),
+                    enterKeyLabel = null,
+                    shape = RectangleShape,
+                )
+            }
+            Spacer(modifier = Modifier.size(10.dp))
+            Box(Modifier.size(100.dp)) {
+                KeyActionTakenIndicator(
+                    action = Action.Text("{"),
+                    enterKeyLabel = null,
+                    shape = RectangleShape,
                 )
             }
         }

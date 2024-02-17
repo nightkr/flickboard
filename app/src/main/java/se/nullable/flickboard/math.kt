@@ -13,6 +13,11 @@ operator fun Int.times(cond: Boolean): Int = when {
     else -> 0
 }
 
+operator fun Float.times(cond: Boolean): Float = when {
+    cond -> this
+    else -> 0F
+}
+
 fun Offset.angle(): Float = atan2(y, x)
 
 fun Offset.direction(): Direction {
