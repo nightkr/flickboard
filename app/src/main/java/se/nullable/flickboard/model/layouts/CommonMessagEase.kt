@@ -64,6 +64,10 @@ val CONTROL_MESSAGEASE_LAYER =
                 KeyM(
                     actions = mapOf(
                         Direction.CENTER to Action.Delete(),
+                        // Hide since it's not the primary way, but
+                        // it's a nice bit of symmetry with the right-hand
+                        // version.
+                        Direction.LEFT to Action.Delete(hidden = true),
                         Direction.RIGHT to Action.Delete(
                             direction = SearchDirection.Forwards,
                             hidden = true
