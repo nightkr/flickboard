@@ -210,7 +210,8 @@ fun Keyboard(
                                     keyPosition.value = it.positionInRoot() - globalPosition
                                 },
                             enterKeyLabel = enterKeyLabel,
-                            keyPointerTrailListener = keyPointerTrailListener
+                            keyPointerTrailListener = keyPointerTrailListener,
+                            columnWidth
                         )
                     }
                 }

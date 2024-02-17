@@ -33,6 +33,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -63,12 +64,12 @@ fun Key(
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
     keyPointerTrailListener: State<KeyPointerTrailListener?> = remember { mutableStateOf(null) },
+    keyWidth: Dp = 100.dp,
 ) {
     val haptic = LocalHapticFeedback.current
     val settings = LocalAppSettings.current
     val actionVisualScale = settings.actionVisualScale.state
     val scale = settings.currentScale
-    val keyHeight = settings.keyHeight.state.value * scale
     val keyRoundness = settings.keyRoundness.state
     val keyOpacity = settings.keyOpacity.state
     val enableFastActions = settings.enableFastActions.state
@@ -123,7 +124,7 @@ fun Key(
                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = keyOpacity.value),
                 shape = RoundedCornerShape((keyRoundness.value * 100).roundToInt())
             )
-            .height(keyHeight.dp)
+            .height(keyWidth)
             .then(onActionModifier)
     ) {
         key.actions.forEach { (direction, action) ->
@@ -174,6 +175,21 @@ fun BoxScope.KeyActionIndicator(
         ActionClass.Number -> settings.showNumbers.state.value
         else -> true
     }
+    val calcFontSize = if (direction == Direction.CENTER) {
+        18.sp * scale
+    } else {
+        10.sp * scale
+    }
+    val calcIconSize = if (direction == Direction.CENTER) {
+        24.dp * scale
+    } else {
+        18.dp * scale
+    }
+    val calcFontWeight = if (direction == Direction.CENTER) {
+        FontWeight.ExtraBold
+    } else {
+        FontWeight.Normal
+    }
     if (showAction) {
         val color = when (action.actionClass) {
             ActionClass.Symbol -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4F)
@@ -184,8 +200,10 @@ fun BoxScope.KeyActionIndicator(
                 Text(
                     text = actionVisual.label,
                     color = color,
-                    fontSize = 14.sp * scale,
-                    modifier = keyModifier.padding(horizontal = 2.dp)
+                    modifier = keyModifier.padding(all = 2.dp),
+                    fontSize = calcFontSize,
+                    fontWeight = calcFontWeight,
+                    lineHeight = calcFontSize
                 )
             }
 
@@ -194,7 +212,7 @@ fun BoxScope.KeyActionIndicator(
                 contentDescription = null,
                 tint = color,
                 modifier = keyModifier
-                    .size(24.dp * scale)
+                    .size(calcIconSize)
                     .padding(all = 4.dp)
             )
 
