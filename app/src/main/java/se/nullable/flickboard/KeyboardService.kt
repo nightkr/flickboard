@@ -12,10 +12,12 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -407,6 +409,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 emojiMode -> EmojiKeyboard(onAction = onAction)
                                 else -> {
                                     ConfiguredKeyboard(
+                                        modifier = Modifier.fillMaxWidth(),
                                         onAction = onAction,
                                         onModifierStateUpdated = { newModifiers ->
                                             if (newModifiers != activeModifiers) {
