@@ -77,6 +77,8 @@ sealed class Action {
     open val actionClass = ActionClass.Other
     open fun shift(): Action = this
 
+    open val isModifier = false
+
     data class Text(
         val character: String,
         val visualOverride: ActionVisual? = null,
@@ -134,6 +136,8 @@ sealed class Action {
     }
 
     data class ToggleShift(val state: ShiftState) : Action() {
+        override val isModifier: Boolean = true
+
         override fun visual(modifier: ModifierState?): ActionVisual = when (state) {
             ShiftState.Normal -> ActionVisual.Icon(R.drawable.baseline_arrow_drop_down_24)
             ShiftState.Shift -> ActionVisual.Icon(R.drawable.baseline_arrow_drop_up_24)
@@ -149,6 +153,8 @@ sealed class Action {
     }
 
     data object ToggleCtrl : Action() {
+        override val isModifier: Boolean = true
+
         override fun visual(modifier: ModifierState?): ActionVisual = when {
             modifier?.ctrl ?: true -> ActionVisual.Label("ctrl")
             else -> ActionVisual.None
@@ -156,8 +162,19 @@ sealed class Action {
     }
 
     data object ToggleAlt : Action() {
+        override val isModifier: Boolean = true
+
         override fun visual(modifier: ModifierState?): ActionVisual = when {
             modifier?.alt ?: true -> ActionVisual.Label("alt")
+            else -> ActionVisual.None
+        }
+    }
+
+    data object ToggleZalgo : Action() {
+        override val isModifier: Boolean = true
+
+        override fun visual(modifier: ModifierState?): ActionVisual = when {
+            modifier?.zalgo ?: true -> ActionVisual.Label("ź̸̥͂a̶̝̲͊͠l̶̻͈͛g̶͖̋̾o̶̠̅")
             else -> ActionVisual.None
         }
     }

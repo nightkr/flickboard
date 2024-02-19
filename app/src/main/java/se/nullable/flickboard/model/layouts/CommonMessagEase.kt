@@ -82,6 +82,7 @@ val CONTROL_MESSAGEASE_LAYER =
                         Direction.CENTER to Action.Enter,
                         Direction.TOP_LEFT to Action.ToggleEmojiMode,
                         Direction.TOP_RIGHT to Action.ToggleEmojiMode,
+                        Direction.BOTTOM to Action.ToggleZalgo,
                     )
                 )
             ),

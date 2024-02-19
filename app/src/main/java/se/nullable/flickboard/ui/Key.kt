@@ -118,9 +118,8 @@ fun Key(
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             }
             if (enableVisualFeedback.value) {
-                when (action) {
-                    Action.ToggleCtrl, Action.ToggleAlt, is Action.ToggleShift -> {}
-                    else -> lastActionTaken = TakenAction(action)
+                if (!action.isModifier) {
+                    TakenAction(action)
                 }
             }
             onAction(action)
@@ -177,8 +176,8 @@ fun Key(
                     var actionModifier = Modifier
                         .direction(direction)
                         .scale(actionVisualScale.value)
-                    actionModifier = when (action) {
-                        Action.ToggleCtrl, Action.ToggleAlt -> actionModifier.unrestrictedWidth()
+                    actionModifier = when {
+                        action.isModifier -> actionModifier.unrestrictedWidth()
                         else -> actionModifier
                     }
                     KeyActionIndicator(

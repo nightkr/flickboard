@@ -4,6 +4,7 @@ data class ModifierState(
     val shift: ShiftState = ShiftState.Normal,
     val ctrl: Boolean = false,
     val alt: Boolean = false,
+    val zalgo: Boolean = false,
 ) {
     fun next(): ModifierState = ModifierState(shift = shift.next())
 }

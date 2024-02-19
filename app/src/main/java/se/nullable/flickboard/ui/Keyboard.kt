@@ -201,8 +201,9 @@ fun Keyboard(
                                 { action ->
                                     modifierState = when (action) {
                                         is Action.ToggleShift -> modifierState.copy(shift = action.state)
-                                        is Action.ToggleCtrl -> modifierState.copy(ctrl = !modifierState.ctrl)
-                                        is Action.ToggleAlt -> modifierState.copy(alt = !modifierState.alt)
+                                        Action.ToggleCtrl -> modifierState.copy(ctrl = !modifierState.ctrl)
+                                        Action.ToggleAlt -> modifierState.copy(alt = !modifierState.alt)
+                                        Action.ToggleZalgo -> modifierState.copy(zalgo = !modifierState.zalgo)
                                         else -> modifierState.next()
                                     }
                                     onAction(action)

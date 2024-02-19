@@ -168,7 +168,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                             when (action) {
                                 is Action.Text -> {
                                     var char = action.character
-                                    val combiner = lastTyped?.tryCombineWith(char)
+                                    val combiner = lastTyped?.tryCombineWith(
+                                        char,
+                                        zalgoMode = activeModifiers.zalgo
+                                    )
                                     if (combiner != null) {
                                         char = combiner.combinedReplacement
                                     }
@@ -348,7 +351,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     }
                                 }
 
-                                is Action.ToggleShift, Action.ToggleCtrl, Action.ToggleAlt -> {
+                                is Action.ToggleShift, Action.ToggleCtrl, Action.ToggleAlt, Action.ToggleZalgo -> {
                                     // handled internally in Keyboard
                                 }
 

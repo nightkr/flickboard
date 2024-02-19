@@ -10,7 +10,7 @@ data class LastTypedData(val codePoint: Int, val position: Int, val combiner: Co
         val baseCharLength: Int
     )
 
-    fun tryCombineWith(nextChar: String): Combiner? {
+    fun tryCombineWith(nextChar: String, zalgoMode: Boolean): Combiner? {
         val normalizer = Normalizer2.getNFKDInstance()
         val nextCodePoint = nextChar.singleCodePointOrNull()
         if (nextCodePoint != null) {
@@ -30,6 +30,12 @@ data class LastTypedData(val codePoint: Int, val position: Int, val combiner: Co
                         original = UCharacter.toString(codePoint) + nextChar,
                         combinedReplacement = UCharacter.toString(composed),
                         baseCharLength = UCharacter.charCount(codePoint),
+                    )
+                } else if (zalgoMode) {
+                    return Combiner(
+                        original = nextChar,
+                        combinedReplacement = combiningMark,
+                        baseCharLength = 0,
                     )
                 }
             }
