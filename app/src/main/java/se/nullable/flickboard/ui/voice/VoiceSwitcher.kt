@@ -13,7 +13,7 @@ fun getAvailableVoiceInputMethod() : String? {
     val inputManager =
         remember(context) { context.getSystemService<InputMethodManager>() } ?: return null
 
-    val candidateMethod = inputManager.enabledInputMethodList.find { meth -> inputMethodIsVoice(meth) } ?: return null
+    val candidateMethod = inputManager.enabledInputMethodList.find(inputMethodIsVoice) ?: return null
     return candidateMethod.id
 }
 
