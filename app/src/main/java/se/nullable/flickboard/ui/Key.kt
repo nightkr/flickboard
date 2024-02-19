@@ -130,7 +130,7 @@ fun Key(
                 awaitGesture(
                     swipeThreshold = { swipeThreshold.value.dp },
                     fastSwipeThreshold = { fastSwipeThreshold.value.dp },
-                    longHoldOnClockwiseCircle = { longHoldOnClockwiseCircle.value },
+                    longHoldOnClockwiseCircle = { key.holdAction != null && longHoldOnClockwiseCircle.value },
                     circleJaggednessThreshold = { circleJaggednessThreshold.value },
                     circleDiscontinuityThreshold = { circleDiscontinuityThreshold.value },
                     circleAngleThreshold = { circleAngleThreshold.value },
