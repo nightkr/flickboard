@@ -37,6 +37,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.res.getResourceIdOrThrow
+import androidx.core.content.res.use
 import se.nullable.flickboard.R
 import se.nullable.flickboard.model.Action
 import androidx.emoji2.emojipicker.R as Emoji2R
