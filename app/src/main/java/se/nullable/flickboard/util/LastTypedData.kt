@@ -1,9 +1,14 @@
 package se.nullable.flickboard.util
 
+import android.icu.lang.UCharacter
 import android.icu.text.Normalizer2
 
 data class LastTypedData(val codePoint: Int, val position: Int, val combiner: Combiner?) {
-    data class Combiner(val original: String, val combiningMark: String)
+    data class Combiner(
+        val original: String,
+        val combinedReplacement: String,
+        val baseCharLength: Int
+    )
 
     fun tryCombineWith(nextChar: String): Combiner? {
         val normalizer = Normalizer2.getNFKDInstance()
@@ -18,15 +23,15 @@ data class LastTypedData(val codePoint: Int, val position: Int, val combiner: Co
             }
             val combiningMarkCodePoint =
                 combiningMark?.singleCodePointOrNull()
-            if (combiningMarkCodePoint != null && normalizer.composePair(
-                    this.codePoint,
-                    combiningMarkCodePoint
-                ) >= 0
-            ) {
-                return Combiner(
-                    original = nextChar,
-                    combiningMark = combiningMark,
-                )
+            if (combiningMarkCodePoint != null) {
+                val composed = normalizer.composePair(this.codePoint, combiningMarkCodePoint)
+                if (composed >= 0) {
+                    return Combiner(
+                        original = UCharacter.toString(codePoint) + nextChar,
+                        combinedReplacement = UCharacter.toString(composed),
+                        baseCharLength = UCharacter.charCount(codePoint),
+                    )
+                }
             }
         }
         return null

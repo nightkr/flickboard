@@ -170,12 +170,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     var char = action.character
                                     val combiner = lastTyped?.tryCombineWith(char)
                                     if (combiner != null) {
-                                        char = combiner.combiningMark
+                                        char = combiner.combinedReplacement
                                     }
                                     val codePoint = char.singleCodePointOrNull()
                                     val positionOfChar =
                                         currentCursorPosition(SearchDirection.Backwards)
                                             ?.plus(char.length)
+                                            ?.minus(combiner?.baseCharLength ?: 0)
                                     lastTyped = when {
                                         codePoint != null && positionOfChar != null ->
                                             LastTypedData(
@@ -186,10 +187,18 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                         else -> null
                                     }
+                                    currentInputConnection.beginBatchEdit()
+                                    if (combiner != null) {
+                                        currentInputConnection.deleteSurroundingText(
+                                            combiner.baseCharLength,
+                                            0
+                                        )
+                                    }
                                     currentInputConnection.commitText(
                                         char,
                                         1
                                     )
+                                    currentInputConnection.endBatchEdit()
                                 }
 
                                 is Action.Delete -> {
@@ -209,7 +218,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             if (action.direction == SearchDirection.Backwards && lastTypedComposed != null) {
                                                 currentInputConnection.beginBatchEdit()
                                                 currentInputConnection.deleteSurroundingText(
-                                                    lastTypedComposed.combiningMark.length,
+                                                    lastTypedComposed.combinedReplacement.length,
                                                     0
                                                 )
                                                 currentInputConnection.commitText(
