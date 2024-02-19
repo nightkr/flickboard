@@ -38,6 +38,7 @@ import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
+import se.nullable.flickboard.ui.voice.getAvailableVoiceInputMethod
 import se.nullable.flickboard.util.LastTypedData
 import se.nullable.flickboard.util.asCombiningMarkOrNull
 import se.nullable.flickboard.util.singleCodePointOrNull
@@ -164,6 +165,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                 FlickBoardParent {
                     ProvideDisplayLimits {
                         var emojiMode by remember { mutableStateOf(false) }
+                        var voiceMode by remember { mutableStateOf(false) }
                         val appSettings = LocalAppSettings.current
                         val onAction: (Action) -> Unit = { action ->
                             when (action) {
@@ -426,11 +428,26 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 Action.ToggleShowSymbols ->
                                     appSettings.showSymbols.currentValue =
                                         !appSettings.showSymbols.currentValue
+
+                                Action.EnableVoiceMode -> {
+                                    voiceMode = true
+                                }
                             }
                         }
                         Box {
                             when {
                                 emojiMode -> EmojiKeyboard(onAction = onAction)
+                                voiceMode -> {
+                                    voiceMode = false
+                                    val voiceMethodId = getAvailableVoiceInputMethod()
+
+                                    if(voiceMethodId != null) {
+                                        // Only works on Android 9+
+                                        switchInputMethod((voiceMethodId))
+                                    } else {
+                                        // TODO - some sort of user feedback indicating no voice found
+                                    }
+                                }
                                 else -> {
                                     ConfiguredKeyboard(
                                         modifier = Modifier.fillMaxWidth(),

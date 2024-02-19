@@ -56,6 +56,7 @@ val CONTROL_MESSAGEASE_LAYER =
                         Direction.TOP to Action.Copy,
                         Direction.TOP_RIGHT to Action.Cut,
                         Direction.BOTTOM to Action.Paste,
+                        Direction.BOTTOM_LEFT to Action.EnableVoiceMode,
                     ),
                     shift = KeyM(actions = mapOf(Direction.CENTER to Action.SelectAll)),
                 )
