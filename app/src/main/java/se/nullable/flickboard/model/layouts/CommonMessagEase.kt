@@ -56,6 +56,7 @@ val CONTROL_MESSAGEASE_LAYER =
                         Direction.TOP_RIGHT to Action.Cut,
                         Direction.BOTTOM to Action.Paste,
                     ),
+                    holdAction = Action.SelectAll,
                     shift = KeyM(actions = mapOf(Direction.CENTER to Action.SelectAll)),
                 )
             ),
