@@ -10,36 +10,19 @@ data class LastTypedData(val codePoint: Int, val position: Int, val combiner: Co
         val baseCharLength: Int
     )
 
-    fun tryCombineWith(nextChar: String, zalgoMode: Boolean): Combiner? {
+    fun tryCombineWith(nextChar: String): Combiner? {
         val normalizer = Normalizer2.getNFKDInstance()
-        val nextCodePoint = nextChar.singleCodePointOrNull()
-        if (nextCodePoint != null) {
-            val combiningMark = when (nextCodePoint) {
-                // Some standalone diacritics are not considered composed of their composing variants...
-                '`'.code -> "\u0300"
-                '^'.code -> "\u0302"
-                '~'.code -> "\u0303"
-                else -> normalizer.getRawDecomposition(nextCodePoint)?.dropInitialSpace()
-            }
-            val combiningMarkCodePoint =
-                combiningMark?.singleCodePointOrNull()
-            if (combiningMarkCodePoint != null) {
-                val composed = normalizer.composePair(this.codePoint, combiningMarkCodePoint)
-                if (composed >= 0) {
-                    return Combiner(
-                        original = UCharacter.toString(codePoint) + nextChar,
-                        combinedReplacement = UCharacter.toString(composed),
-                        baseCharLength = UCharacter.charCount(codePoint),
-                    )
-                } else if (zalgoMode) {
-                    return Combiner(
-                        original = nextChar,
-                        combinedReplacement = combiningMark,
-                        baseCharLength = 0,
-                    )
-                }
-            }
+        val combiningMark = nextChar.asCombiningMarkOrNull() ?: return null
+        val combiningMarkCodePoint = combiningMark.singleCodePointOrNull() ?: return null
+        val composed = normalizer.composePair(this.codePoint, combiningMarkCodePoint)
+        return if (composed >= 0) {
+            Combiner(
+                original = UCharacter.toString(codePoint) + nextChar,
+                combinedReplacement = UCharacter.toString(composed),
+                baseCharLength = UCharacter.charCount(codePoint),
+            )
+        } else {
+            null
         }
-        return null
     }
 }

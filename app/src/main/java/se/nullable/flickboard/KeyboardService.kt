@@ -39,6 +39,7 @@ import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
 import se.nullable.flickboard.util.LastTypedData
+import se.nullable.flickboard.util.asCombiningMarkOrNull
 import se.nullable.flickboard.util.singleCodePointOrNull
 import java.text.BreakIterator
 import kotlin.math.max
@@ -168,10 +169,17 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                             when (action) {
                                 is Action.Text -> {
                                     var char = action.character
-                                    val combiner = lastTyped?.tryCombineWith(
-                                        char,
-                                        zalgoMode = activeModifiers.zalgo
-                                    )
+                                    val combiner = when {
+                                        activeModifiers.zalgo -> char.asCombiningMarkOrNull()?.let {
+                                            LastTypedData.Combiner(
+                                                original = char,
+                                                combinedReplacement = it,
+                                                baseCharLength = 0
+                                            )
+                                        }
+
+                                        else -> lastTyped?.tryCombineWith(char)
+                                    }
                                     if (combiner != null) {
                                         char = combiner.combinedReplacement
                                     }
