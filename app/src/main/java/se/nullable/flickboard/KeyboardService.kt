@@ -11,6 +11,7 @@ import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
+import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.getValue
@@ -19,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -38,7 +40,7 @@ import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
-import se.nullable.flickboard.ui.voice.getAvailableVoiceInputMethod
+import se.nullable.flickboard.ui.voice.getVoiceInputId
 import se.nullable.flickboard.util.LastTypedData
 import se.nullable.flickboard.util.asCombiningMarkOrNull
 import se.nullable.flickboard.util.singleCodePointOrNull
@@ -165,7 +167,6 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                 FlickBoardParent {
                     ProvideDisplayLimits {
                         var emojiMode by remember { mutableStateOf(false) }
-                        var voiceMode by remember { mutableStateOf(false) }
                         val appSettings = LocalAppSettings.current
                         val onAction: (Action) -> Unit = { action ->
                             when (action) {
@@ -430,24 +431,23 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         !appSettings.showSymbols.currentValue
 
                                 Action.EnableVoiceMode -> {
-                                    voiceMode = true
+                                    val inputManager = getSystemService<InputMethodManager>()
+                                    if(null != inputManager) {
+                                        val voiceMethodId = getVoiceInputId(inputManager)
+
+                                        if(voiceMethodId != null) {
+                                            // Only works on Android 9+
+                                            switchInputMethod((voiceMethodId))
+                                        } else {
+                                            // TODO - some sort of user feedback indicating no voice found
+                                        }
+                                    }
                                 }
                             }
                         }
                         Box {
                             when {
                                 emojiMode -> EmojiKeyboard(onAction = onAction)
-                                voiceMode -> {
-                                    voiceMode = false
-                                    val voiceMethodId = getAvailableVoiceInputMethod()
-
-                                    if(voiceMethodId != null) {
-                                        // Only works on Android 9+
-                                        switchInputMethod((voiceMethodId))
-                                    } else {
-                                        // TODO - some sort of user feedback indicating no voice found
-                                    }
-                                }
                                 else -> {
                                     ConfiguredKeyboard(
                                         modifier = Modifier.fillMaxWidth(),

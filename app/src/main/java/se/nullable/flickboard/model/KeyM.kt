@@ -247,8 +247,8 @@ sealed class Action {
     }
 
     data object EnableVoiceMode : Action() {
-        // TODO - Do the SVGs come from some existing set? Does it have a microphone we can use?
-        override fun visual(modifier: ModifierState?): ActionVisual = ActionVisual.None
+        override fun visual(modifier: ModifierState?): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_mic_24)
     }
 }
 
