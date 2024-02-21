@@ -119,7 +119,7 @@ fun Key(
             }
             if (enableVisualFeedback.value) {
                 if (!action.isModifier) {
-                    TakenAction(action)
+                    lastActionTaken = TakenAction(action)
                 }
             }
             onAction(action)
