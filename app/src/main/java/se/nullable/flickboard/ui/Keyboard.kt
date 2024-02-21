@@ -57,6 +57,8 @@ fun Keyboard(
     val handedness = appSettings.handedness.state
     val backgroundOpacity = appSettings.backgroundOpacity.state
     val enablePointerTrail = appSettings.enablePointerTrail.state
+    val shownActionClasses = appSettings.shownActionClasses
+    val enableHiddenActions = appSettings.enableHiddenActions.state
     var modifierState: ModifierState by remember { mutableStateOf(ModifierState()) }
     LaunchedEffect(modifierState) {
         onModifierStateUpdated(modifierState)
@@ -66,11 +68,23 @@ fun Keyboard(
     val mainLayerOverlay =
         remember { derivedStateOf { OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value) } }
     val shiftLayer =
-        remember(layout) { derivedStateOf { layout.shiftLayer.mergeFallback(mainLayerOverlay.value.autoShift()) } }
+        remember(layout) {
+            derivedStateOf {
+                layout.shiftLayer.mergeFallback(mainLayerOverlay.value.autoShift())
+                    .filterActions(
+                        shownActionClasses = shownActionClasses.value,
+                        enableHiddenActions = enableHiddenActions.value,
+                    )
+            }
+        }
     val mainLayer =
         remember(layout) {
             derivedStateOf {
-                layout.mainLayer.mergeShift(shiftLayer.value).mergeFallback(mainLayerOverlay.value)
+                layout.mainLayer.mergeFallback(mainLayerOverlay.value).setShift(shiftLayer.value)
+                    .filterActions(
+                        shownActionClasses = shownActionClasses.value,
+                        enableHiddenActions = enableHiddenActions.value,
+                    )
             }
         }
     val layer by remember(layout) {
@@ -86,21 +100,19 @@ fun Keyboard(
 
                     EnabledLayers.DoubleLetters -> when {
                         modifierState.shift.isShifted -> secondaryLetterLayer.value.layout.shiftLayer
-                        else -> secondaryLetterLayer.value.layout.mainLayer.mergeShift(
-                            secondaryLetterLayer.value.layout.shiftLayer
-                        )
+                        else -> secondaryLetterLayer.value.layout.mainLayer
+                            .setShift(secondaryLetterLayer.value.layout.shiftLayer)
                     }.mergeFallback(mergedNumericLayer.value)
 
                     else -> null
                 },
-                layout.controlLayer?.let { it.mergeShift(it.autoShift()) },
+                layout.controlLayer?.let { it.setShift(it.autoShift()) },
                 when (enabledLayers.value) {
                     EnabledLayers.AllMiniNumbersMiddle -> MINI_NUMBERS_LAYER
                     else -> null
                 },
                 when (enabledLayers.value) {
                     EnabledLayers.Numbers -> mergedNumericLayer.value
-
                     EnabledLayers.Letters, EnabledLayers.DoubleLetters, EnabledLayers.All,
                     EnabledLayers.AllMiniNumbers, EnabledLayers.AllMiniNumbersMiddle -> activeLayer
                 },

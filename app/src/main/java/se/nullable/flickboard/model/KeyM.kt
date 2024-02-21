@@ -26,20 +26,25 @@ data class Layer(val keyRows: List<List<KeyM>>) {
             this
         }
 
-    fun mergeShift(shift: Layer): Layer =
-        zipKeys(shift) { thisKey, shiftKey ->
-            thisKey.copy(
-                shift = thisKey.shift?.mergeFallback(shiftKey) ?: shiftKey
-            )
-        }
+    fun setShift(shift: Layer): Layer =
+        zipKeys(shift) { thisKey, shiftKey -> thisKey.copy(shift = shiftKey) }
 
     fun chain(other: Layer): Layer =
-        copy(keyRows = keyRows.zip(other.keyRows) { thisRow, otherRow ->
-            thisRow + otherRow
-        })
+        copy(keyRows = keyRows.zip(other.keyRows) { thisRow, otherRow -> thisRow + otherRow })
+
+    private inline fun mapKeys(f: (KeyM) -> KeyM): Layer =
+        copy(keyRows = keyRows.map { row -> row.map { key -> f(key) } })
 
     fun autoShift(): Layer =
-        copy(keyRows = keyRows.map { row -> row.map { key -> key.autoShift() } })
+        mapKeys { it.autoShift() }
+
+    fun filterActions(shownActionClasses: Set<ActionClass>, enableHiddenActions: Boolean) =
+        mapKeys {
+            it.filterActions(
+                shownActionClasses = shownActionClasses,
+                enableHiddenActions = enableHiddenActions
+            )
+        }
 
     companion object {
         val empty = Layer(
@@ -70,12 +75,23 @@ data class KeyM(
     fun autoShift(): KeyM = (shift ?: this).copy(
         actions = actions.mapValues { it.value.shift() } + (shift?.actions ?: emptyMap()),
     )
+
+    fun filterActions(shownActionClasses: Set<ActionClass>, enableHiddenActions: Boolean) =
+        copy(actions = actions.mapNotNull { (direction, action) ->
+            val isShown = shownActionClasses.contains(action.actionClass)
+            when {
+                isShown -> direction to action
+                enableHiddenActions -> direction to action.hide()
+                else -> null
+            }
+        }.toMap())
 }
 
 sealed class Action {
     abstract fun visual(modifier: ModifierState?): ActionVisual
     open val actionClass = ActionClass.Other
     open fun shift(): Action = this
+    open fun hide(): Action = this
 
     open val isModifier = false
 
@@ -93,9 +109,8 @@ sealed class Action {
             else -> ActionClass.Symbol
         }
 
-        override fun shift(): Action {
-            return copy(character = character.uppercase())
-        }
+        override fun shift(): Action = copy(character = character.uppercase())
+        override fun hide(): Action = copy(visualOverride = ActionVisual.None)
     }
 
     data class Delete(

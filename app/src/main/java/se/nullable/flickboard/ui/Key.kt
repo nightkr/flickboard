@@ -210,7 +210,6 @@ fun KeyActionTakenIndicator(
     shape: Shape,
     modifier: Modifier = Modifier
 ) {
-//    Surface(modifier.background(MaterialTheme.colorScheme.tertiary)) {
     Surface(color = MaterialTheme.colorScheme.tertiary, shape = shape, modifier = modifier) {
         Box(Modifier.fillMaxSize()) {
             KeyActionIndicator(
@@ -218,7 +217,6 @@ fun KeyActionTakenIndicator(
                 enterKeyLabel = enterKeyLabel,
                 modifiers = null,
                 modifier = Modifier.align(Alignment.Center),
-                alwaysShowAction = true,
                 colorOverride = MaterialTheme.colorScheme.onTertiary,
             )
         }
@@ -231,56 +229,46 @@ fun KeyActionIndicator(
     enterKeyLabel: String?,
     modifiers: ModifierState?,
     modifier: Modifier = Modifier,
-    alwaysShowAction: Boolean = false,
     colorOverride: Color? = null,
 ) {
     val overrideActionVisual =
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
-    val settings = LocalAppSettings.current
-    val showAction = alwaysShowAction || when (action.actionClass) {
-        ActionClass.Letter -> settings.showLetters.state.value
-        ActionClass.Symbol -> settings.showSymbols.state.value
-        ActionClass.Number -> settings.showNumbers.state.value
-        else -> true
+    val color = colorOverride ?: when (action.actionClass) {
+        ActionClass.Symbol -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4F)
+        else -> MaterialTheme.colorScheme.primary
     }
-    if (showAction) {
-        val color = colorOverride ?: when (action.actionClass) {
-            ActionClass.Symbol -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4F)
-            else -> MaterialTheme.colorScheme.primary
-        }
-        when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
-            is ActionVisual.Label -> {
-                BoxWithConstraints(modifier.padding(horizontal = 2.dp)) {
-                    val density = LocalDensity.current
-                    Text(
-                        text = actionVisual.label,
-                        color = color,
-                        fontSize = with(density) {
-                            min(
-                                maxWidth,
-                                // Make room for descenders
-                                maxHeight * 0.8F,
-                            ).toSp()
-                        },
-                        style = LocalTextStyle.current.merge(
-                            lineHeightStyle = LineHeightStyle(
-                                alignment = LineHeightStyle.Alignment.Center,
-                                trim = LineHeightStyle.Trim.Both
-                            ),
+    when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
+        is ActionVisual.Label -> {
+            BoxWithConstraints(modifier.padding(horizontal = 2.dp)) {
+                val density = LocalDensity.current
+                Text(
+                    text = actionVisual.label,
+                    color = color,
+                    fontSize = with(density) {
+                        min(
+                            maxWidth,
+                            // Make room for descenders
+                            maxHeight * 0.8F,
+                        ).toSp()
+                    },
+                    style = LocalTextStyle.current.merge(
+                        lineHeightStyle = LineHeightStyle(
+                            alignment = LineHeightStyle.Alignment.Center,
+                            trim = LineHeightStyle.Trim.Both
                         ),
-                    )
-                }
+                    ),
+                )
             }
-
-            is ActionVisual.Icon -> Icon(
-                painter = painterResource(id = actionVisual.resource),
-                contentDescription = null,
-                tint = color,
-                modifier = modifier
-            )
-
-            ActionVisual.None -> {}
         }
+
+        is ActionVisual.Icon -> Icon(
+            painter = painterResource(id = actionVisual.resource),
+            contentDescription = null,
+            tint = color,
+            modifier = modifier
+        )
+
+        ActionVisual.None -> {}
     }
 }
 

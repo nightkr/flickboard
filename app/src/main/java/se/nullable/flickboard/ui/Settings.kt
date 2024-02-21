@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,6 +66,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import se.nullable.flickboard.PiF
 import se.nullable.flickboard.R
+import se.nullable.flickboard.model.ActionClass
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
@@ -550,6 +552,30 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val shownActionClasses: State<Set<ActionClass>>
+        @Composable get() {
+            val showLetters = showLetters.state
+            val showSymbols = showSymbols.state
+            val showNumbers = showNumbers.state
+            return remember {
+                derivedStateOf {
+                    setOfNotNull(
+                        ActionClass.Other,
+                        ActionClass.Letter.takeIf { showLetters.value },
+                        ActionClass.Symbol.takeIf { showSymbols.value },
+                        ActionClass.Number.takeIf { showNumbers.value },
+                    )
+                }
+            }
+        }
+
+    val enableHiddenActions = Setting.Bool(
+        key = "enableHiddenActions",
+        label = "Enable hidden actions",
+        defaultValue = true,
+        ctx = ctx
+    )
+
     val keyRoundness = Setting.FloatSlider(
         key = "keyRoundness",
         label = "Key roundness",
@@ -709,6 +735,7 @@ class AppSettings(val ctx: SettingsContext) {
                     showLetters,
                     showSymbols,
                     showNumbers,
+                    enableHiddenActions,
                     keyRoundness,
                     actionVisualBiasCenter,
                     actionVisualScale,
