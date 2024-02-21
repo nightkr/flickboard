@@ -422,6 +422,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                 Action.ToggleEmojiMode ->
                                     emojiMode = !emojiMode
+
+                                Action.ToggleShowSymbols ->
+                                    appSettings.showSymbols.currentValue =
+                                        !appSettings.showSymbols.currentValue
                             }
                         }
                         Box {

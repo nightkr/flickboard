@@ -20,6 +20,7 @@ val SPACE = KeyM(
     actions = mapOf(
         Direction.CENTER to Action.Text(" "),
         Direction.TOP_LEFT to Action.ToggleCtrl,
+        Direction.TOP to Action.ToggleShowSymbols,
         Direction.TOP_RIGHT to Action.ToggleAlt,
         Direction.LEFT to Action.Jump(direction = SearchDirection.Backwards),
         Direction.RIGHT to Action.Jump(direction = SearchDirection.Forwards),
