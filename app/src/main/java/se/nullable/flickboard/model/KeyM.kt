@@ -143,11 +143,14 @@ sealed class Action {
         override fun shift(): Action = copy(boundary = TextBoundary.Word)
     }
 
-    data class JumpLineKeepPos(val direction: SearchDirection) : Action() {
+    data class JumpLineKeepPos(val direction: SearchDirection, val rawEvent: Boolean = false) :
+        Action() {
         override fun visual(modifier: ModifierState?): ActionVisual = when (direction) {
             SearchDirection.Backwards -> ActionVisual.Icon(R.drawable.baseline_keyboard_arrow_up_24)
             SearchDirection.Forwards -> ActionVisual.Icon(R.drawable.baseline_keyboard_arrow_down_24)
         }
+
+        override fun shift(): Action = copy(rawEvent = true)
     }
 
     data class ToggleShift(val state: ShiftState) : Action() {

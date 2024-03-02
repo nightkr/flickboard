@@ -322,8 +322,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     // Yes, this should really be the editor's responsibility...
                                     // How is this different from Action.Jump? Action.Jump jumps to *the boundary*,
                                     // for TextBoundary.Line this is equivalent to Home/End.
-                                    when (val currentPos =
-                                        currentCursorPosition(action.direction)) {
+                                    val currentPos = when {
+                                        action.rawEvent -> null
+                                        else -> currentCursorPosition(action.direction)
+                                    }
+                                    when (currentPos) {
                                         null -> sendKeyPressEvents(
                                             keyCode = when (action.direction) {
                                                 SearchDirection.Backwards -> KeyEvent.KEYCODE_DPAD_UP
