@@ -49,6 +49,7 @@ import se.nullable.flickboard.ui.voice.getVoiceInputId
 import se.nullable.flickboard.util.LastTypedData
 import se.nullable.flickboard.util.asCombiningMarkOrNull
 import se.nullable.flickboard.util.singleCodePointOrNull
+import sharePointerInput
 import java.text.BreakIterator
 import kotlin.math.max
 import kotlin.math.min
@@ -536,7 +537,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     )
                                     SnackbarHost(
                                         warningSnackbarHostState,
-                                        modifier = Modifier.align(Alignment.BottomCenter)
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .sharePointerInput()
                                     )
                                 }
                             }
