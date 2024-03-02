@@ -245,6 +245,11 @@ sealed class Action {
         override fun visual(modifier: ModifierState?): ActionVisual =
             ActionVisual.None
     }
+
+    data object EnableVoiceMode : Action() {
+        override fun visual(modifier: ModifierState?): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_mic_24)
+    }
 }
 
 enum class ActionClass {

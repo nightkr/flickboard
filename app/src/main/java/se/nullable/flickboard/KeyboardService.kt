@@ -11,14 +11,20 @@ import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
+import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -27,6 +33,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import kotlinx.coroutines.launch
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.SearchDirection
@@ -38,6 +45,7 @@ import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
+import se.nullable.flickboard.ui.voice.getVoiceInputId
 import se.nullable.flickboard.util.LastTypedData
 import se.nullable.flickboard.util.asCombiningMarkOrNull
 import se.nullable.flickboard.util.singleCodePointOrNull
@@ -164,8 +172,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                 FlickBoardParent {
                     ProvideDisplayLimits {
                         var emojiMode by remember { mutableStateOf(false) }
+                        val warningMessageScope = rememberCoroutineScope()
+                        val warningSnackbarHostState = remember { SnackbarHostState() }
                         val appSettings = LocalAppSettings.current
                         val onAction: (Action) -> Unit = { action ->
+                            warningMessageScope.launch {
+                                warningSnackbarHostState.currentSnackbarData?.dismiss()
+                            }
                             when (action) {
                                 is Action.Text -> {
                                     var char = action.character
@@ -426,6 +439,23 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 Action.ToggleShowSymbols ->
                                     appSettings.showSymbols.currentValue =
                                         !appSettings.showSymbols.currentValue
+
+                                Action.EnableVoiceMode -> {
+                                    val inputManager = getSystemService<InputMethodManager>()
+                                    if(null != inputManager) {
+                                        val voiceMethodId = getVoiceInputId(inputManager)
+
+                                        if(voiceMethodId != null) {
+                                            // Only works on Android 9+
+                                            switchInputMethod((voiceMethodId))
+                                        } else {
+                                            warningMessageScope.launch {
+                                                warningSnackbarHostState
+                                                    .showSnackbar("No voice input method found")
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                         Box {
@@ -505,6 +535,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             }
                                         },
                                         enterKeyLabel = currentInputEditorInfo.actionLabel?.toString(),
+                                    )
+                                    SnackbarHost(
+                                        warningSnackbarHostState,
+                                        modifier = Modifier.align(Alignment.BottomCenter)
                                     )
                                 }
                             }
