@@ -442,17 +442,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                 Action.EnableVoiceMode -> {
                                     val inputManager = getSystemService<InputMethodManager>()
-                                    if(null != inputManager) {
-                                        val voiceMethodId = getVoiceInputId(inputManager)
-
-                                        if(voiceMethodId != null) {
-                                            // Only works on Android 9+
-                                            switchInputMethod((voiceMethodId))
-                                        } else {
-                                            warningMessageScope.launch {
-                                                warningSnackbarHostState
-                                                    .showSnackbar("No voice input method found")
-                                            }
+                                    val voiceMethodId = inputManager?.let(::getVoiceInputId)
+                                    if (voiceMethodId != null) {
+                                        // Only works on Android 9+ and when a compatible
+                                        // voice keyboard is installed
+                                        switchInputMethod(voiceMethodId)
+                                    } else {
+                                        warningMessageScope.launch {
+                                            warningSnackbarHostState
+                                                .showSnackbar("No voice input method found")
                                         }
                                     }
                                 }
