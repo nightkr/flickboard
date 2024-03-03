@@ -11,6 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FlickBoard"
         android:enableOnBackInvokedCallback="true"
+        android:name=".FlickboardApplication"
         tools:targetApi="tiramisu">
         <activity
             android:name=".MainActivity"

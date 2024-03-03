@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
@@ -34,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.res.getResourceIdOrThrow
@@ -102,7 +104,10 @@ fun EmojiKeyboard(onAction: (Action) -> Unit) {
                     Text(
                         primaryVariant,
                         fontSize = emojiSizeSp,
-                        modifier = Modifier.padding(emojiPadding)
+                        style = LocalTextStyle.current.merge(
+                            textAlign = TextAlign.Center,
+                        ),
+                        modifier = Modifier.padding(emojiPadding),
                     )
                 }
             }
