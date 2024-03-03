@@ -2,6 +2,10 @@ package se.nullable.flickboard.ui
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeGesturesPadding
@@ -20,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -78,7 +84,10 @@ import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_PHONE_LAYER
 import se.nullable.flickboard.model.layouts.RU_MESSAGEASE
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_MESSAGEASE
+import se.nullable.flickboard.util.Boxed
+import java.io.FileOutputStream
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 @Composable
 fun SettingsHomePage(
@@ -129,6 +138,7 @@ fun SettingsSectionPage(section: SettingsSection, modifier: Modifier = Modifier)
                     is Setting.FloatSlider -> FloatSliderSetting(setting)
                     is Setting.EnumList<*> -> EnumListSetting(setting)
                     is Setting.Enum -> EnumSetting(setting)
+                    is Setting.Image -> ImageSetting(setting)
                 }
             }
         }
@@ -242,6 +252,53 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
             setting.writeTo(prefs, option)
         },
     )
+}
+
+@Composable
+fun ImageSetting(setting: Setting.Image) {
+    val context = LocalContext.current
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) {
+        var uri = it
+        if (uri != null) {
+            val cachedFile = context.filesDir.resolve("background-image")
+            // Copy image to ensure that that it'll stay present,
+            // and that we will keep permission to access it.
+            // takePersistableUriPermission is not always granted
+            // by all implementations.
+            context.contentResolver.openInputStream(uri).use { input ->
+                FileOutputStream(cachedFile).use { output ->
+                    input?.copyTo(output)
+                }
+            }
+            uri = Uri.fromFile(cachedFile).buildUpon()
+                // Bust caches and make sure clients load it
+                .fragment(Random.Default.nextLong().toString())
+                .build()
+        }
+        setting.currentValue = uri
+    }
+    SettingRow {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            SettingLabel(setting)
+            Row {
+                Button(onClick = {
+                    imagePicker.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                }) {
+                    Icon(painterResource(R.drawable.baseline_image_search_24), "Set image")
+                }
+                Spacer(Modifier.width(8.dp))
+                Button(onClick = { setting.currentValue = null }) {
+                    Icon(painterResource(R.drawable.baseline_clear_24), "Clear")
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -606,7 +663,7 @@ class AppSettings(val ctx: SettingsContext) {
     val keyOpacity = Setting.FloatSlider(
         key = "keyOpacity",
         label = "Key opacity",
-        defaultValue = 1F,
+        defaultValue = 0.7F,
         range = 0F..1F,
         ctx = ctx,
         render = Setting.FloatSlider::percentage
@@ -619,6 +676,12 @@ class AppSettings(val ctx: SettingsContext) {
         range = 0F..1F,
         ctx = ctx,
         render = Setting.FloatSlider::percentage
+    )
+
+    val backgroundImage = Setting.Image(
+        key = "backgroundImage",
+        label = "Background image",
+        ctx = ctx
     )
 
     val enablePointerTrail = Setting.Bool(
@@ -741,6 +804,7 @@ class AppSettings(val ctx: SettingsContext) {
                     actionVisualScale,
                     keyOpacity,
                     backgroundOpacity,
+                    backgroundImage,
                     enablePointerTrail,
                 )
             ),
@@ -816,7 +880,7 @@ enum class NumericLayerOption(override val label: String, val layer: Layer) : La
 
 class SettingsContext(val prefs: SharedPreferences, val coroutineScope: CoroutineScope)
 
-sealed class Setting<T : Any>(private val ctx: SettingsContext) {
+sealed class Setting<T>(private val ctx: SettingsContext) {
     abstract val key: String
     abstract val label: String
     abstract val description: String?
@@ -828,15 +892,15 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
     abstract fun readFrom(prefs: SharedPreferences): T
     abstract fun writeTo(prefs: SharedPreferences, value: T)
 
-    private var lastCachedValue: T? = null
+    private var lastCachedValue: Boxed<T>? = null
     private val cachedValue: T
         get() {
             var v = lastCachedValue
             if (v == null) {
-                v = currentValue
+                v = Boxed(currentValue)
                 lastCachedValue = v
             }
-            return v
+            return v.value
         }
 
     val watch: Flow<T> = callbackFlow {
@@ -847,7 +911,7 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == this@Setting.key) {
                 val v = currentValue
-                lastCachedValue = v
+                lastCachedValue = Boxed(v)
                 trySendBlocking(v)
             }
         }
@@ -946,6 +1010,19 @@ sealed class Setting<T : Any>(private val ctx: SettingsContext) {
 
         override fun writeTo(prefs: SharedPreferences, value: T) =
             prefs.edit { putString(key, value.toString()) }
+    }
+
+    class Image(
+        override val key: String,
+        override val label: String,
+        ctx: SettingsContext,
+        override val description: String? = null,
+    ) : Setting<Uri?>(ctx) {
+        override fun readFrom(prefs: SharedPreferences): Uri? =
+            prefs.getString(key, null)?.let(Uri::parse)
+
+        override fun writeTo(prefs: SharedPreferences, value: Uri?) =
+            prefs.edit { putString(key, value?.toString()) }
     }
 }
 

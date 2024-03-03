@@ -1,7 +1,9 @@
 package se.nullable.flickboard.ui
 
 import android.content.res.Configuration
-import androidx.compose.foundation.background
+import android.graphics.ImageDecoder
+import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,9 +24,14 @@ import androidx.compose.ui.BiasAbsoluteAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,6 +47,7 @@ import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.MINI_NUMBERS_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 import se.nullable.flickboard.ui.layout.Grid
+import java.io.IOException
 
 @Composable
 fun Keyboard(
@@ -50,6 +58,7 @@ fun Keyboard(
     onModifierStateUpdated: (ModifierState) -> Unit = {},
     showAllModifiers: Boolean = false,
 ) {
+    val context = LocalContext.current
     val appSettings = LocalAppSettings.current
     val enabledLayers = appSettings.enabledLayers.state
     val numericLayer = appSettings.numericLayer.state
@@ -59,6 +68,7 @@ fun Keyboard(
     val enablePointerTrail = appSettings.enablePointerTrail.state
     val shownActionClasses = appSettings.shownActionClasses
     val enableHiddenActions = appSettings.enableHiddenActions.state
+    val backgroundImage = appSettings.backgroundImage.state
     var modifierState: ModifierState by remember { mutableStateOf(ModifierState()) }
     LaunchedEffect(modifierState) {
         onModifierStateUpdated(modifierState)
@@ -143,7 +153,6 @@ fun Keyboard(
     val pointerTrailColor = MaterialTheme.colorScheme.onSurface
     BoxWithConstraints(
         modifier
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = backgroundOpacity.value))
             .onGloballyPositioned { globalPosition = it.positionInRoot() }
             .drawWithCache {
                 onDrawWithContent {
@@ -173,6 +182,30 @@ fun Keyboard(
             thisWidth = min(thisWidth, limits.portraitWidth)
         }
         thisWidth *= appSettings.currentScale
+        val backgroundColor = MaterialTheme.colorScheme.surface
+        val backgroundImagePainter = remember {
+            derivedStateOf {
+                try {
+                    backgroundImage.value?.let {
+                        BitmapPainter(
+                            ImageDecoder.decodeBitmap(
+                                ImageDecoder.createSource(context.contentResolver, it)
+                            ).asImageBitmap()
+                        )
+                    }
+                } catch (e: IOException) {
+                    Log.w("Keyboard", "Failed to load background image", e)
+                    null
+                } ?: ColorPainter(backgroundColor)
+            }
+        }
+        Image(
+            backgroundImagePainter.value,
+            null,
+            contentScale = ContentScale.Crop,
+            alpha = backgroundOpacity.value,
+            modifier = Modifier.matchParentSize()
+        )
         Grid(
             modifier = Modifier
                 .width(thisWidth)
