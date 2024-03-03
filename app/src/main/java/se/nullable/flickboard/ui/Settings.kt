@@ -699,6 +699,14 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val periodOnDoubleSpace = Setting.Bool(
+        key = "periodOnDoubleSpace",
+        label = "Period on double space",
+        description = "Convert \"  \" into \". \"",
+        defaultValue = false,
+        ctx = ctx
+    )
+
     val longHoldOnClockwiseCircle = Setting.Bool(
         key = "digitOnClockwiseCircle",
         label = "Type digit on clockwise circle",
@@ -814,6 +822,7 @@ class AppSettings(val ctx: SettingsContext) {
                 icon = R.drawable.baseline_app_settings_alt_24,
                 settings = listOf(
                     enableFastActions,
+                    periodOnDoubleSpace,
                     longHoldOnClockwiseCircle,
                     keyHeight,
                     swipeThreshold,

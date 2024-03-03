@@ -176,6 +176,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                         val warningMessageScope = rememberCoroutineScope()
                         val warningSnackbarHostState = remember { SnackbarHostState() }
                         val appSettings = LocalAppSettings.current
+                        val periodOnDoubleSpace = appSettings.periodOnDoubleSpace.state
                         val onAction: (Action) -> Unit = { action ->
                             warningMessageScope.launch {
                                 warningSnackbarHostState.currentSnackbarData?.dismiss()
@@ -192,7 +193,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             )
                                         }
 
-                                        else -> lastTyped?.tryCombineWith(char)
+                                        else -> lastTyped?.tryCombineWith(
+                                            char,
+                                            periodOnDoubleSpace = periodOnDoubleSpace.value,
+                                        )
                                     }
                                     if (combiner != null) {
                                         char = combiner.combinedReplacement
@@ -203,12 +207,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             ?.plus(char.length)
                                             ?.minus(combiner?.baseCharLength ?: 0)
                                     lastTyped = when {
-                                        codePoint != null && positionOfChar != null ->
-                                            LastTypedData(
-                                                codePoint = codePoint,
-                                                position = positionOfChar,
-                                                combiner = combiner
-                                            )
+                                        positionOfChar != null -> LastTypedData(
+                                            codePoint = codePoint,
+                                            position = positionOfChar,
+                                            combiner = combiner
+                                        )
 
                                         else -> null
                                     }
