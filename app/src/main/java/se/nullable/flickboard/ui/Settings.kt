@@ -30,6 +30,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
@@ -198,11 +199,17 @@ fun FloatSliderSetting(setting: Setting.FloatSlider) {
                 SettingLabel(setting)
                 Text(text = setting.render(state.value))
             }
-            Slider(
-                value = state.value,
-                onValueChange = { setting.currentValue = it },
-                valueRange = setting.range
-            )
+            Row {
+                Slider(
+                    value = state.value,
+                    onValueChange = { setting.currentValue = it },
+                    valueRange = setting.range,
+                    modifier = Modifier.weight(1F)
+                )
+                IconButton(onClick = { setting.resetToDefault() }) {
+                    Icon(painterResource(R.drawable.baseline_clear_24), "Reset to default")
+                }
+            }
         }
     }
 }
@@ -900,8 +907,15 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         get() = readFrom(ctx.prefs)
         set(value) = writeTo(ctx.prefs, value)
 
+    fun resetToDefault() {
+        resetIn(ctx.prefs)
+    }
+
     abstract fun readFrom(prefs: SharedPreferences): T
     abstract fun writeTo(prefs: SharedPreferences, value: T)
+    fun resetIn(prefs: SharedPreferences) {
+        prefs.edit { remove(key) }
+    }
 
     private var lastCachedValue: Boxed<T>? = null
     private val cachedValue: T
