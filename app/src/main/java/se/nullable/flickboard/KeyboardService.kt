@@ -383,10 +383,16 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     // handled internally in Keyboard
                                 }
 
-                                Action.Copy ->
+                                Action.Copy -> {
+                                    if (selectionSize() == SelectionSize.Empty) {
+                                        currentInputConnection.performContextMenuAction(
+                                            android.R.id.selectAll
+                                        )
+                                    }
                                     currentInputConnection.performContextMenuAction(
                                         android.R.id.copy
                                     )
+                                }
 
                                 Action.Cut ->
                                     currentInputConnection.performContextMenuAction(
