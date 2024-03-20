@@ -40,7 +40,7 @@ val RU_PHONETIC_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("в"),
                     Direction.TOP to Action.Text("ъ"),
                     Direction.RIGHT to Action.Text("к"),
-                    Direction.BOTTOM to Action.Text("ь")
+                    Direction.BOTTOM to Action.Text("ь"),
                     Direction.BOTTOM_RIGHT to Action.Text("ы")
                 )
             ),
