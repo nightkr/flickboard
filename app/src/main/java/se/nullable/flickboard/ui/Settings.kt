@@ -84,6 +84,7 @@ import se.nullable.flickboard.model.layouts.FR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_CALCULATOR_LAYER
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_PHONE_LAYER
 import se.nullable.flickboard.model.layouts.RU_MESSAGEASE
+import se.nullable.flickboard.model.layouts.RU_PHONETIC_MESSAGEASE
 import se.nullable.flickboard.model.layouts.SV_DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_MESSAGEASE
@@ -886,6 +887,7 @@ enum class LetterLayerOption(override val label: String, val layout: Layout) : L
     German("German (MessagEase)", DE_MESSAGEASE),
     GermanEnglish("German/English (MessagEase)", EN_DE_MESSAGEASE),
     Russian("Russian (MessagEase)", RU_MESSAGEASE),
+    Russian("Russian phonetic (MessagEase)", RU_PHONETIC_MESSAGEASE),
     Spanish("Spanish (MessagEase)", ES_MESSAGEASE),
     Swedish("Swedish (MessagEase)", SV_MESSAGEASE),
     SwedishDE("Swedish (MessagEase, German-style)", SV_DE_MESSAGEASE),
