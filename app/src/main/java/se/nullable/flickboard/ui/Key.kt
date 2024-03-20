@@ -234,8 +234,8 @@ fun KeyActionIndicator(
     val overrideActionVisual =
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
     val color = colorOverride ?: when (action.actionClass) {
-        ActionClass.Symbol -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4F)
-        else -> MaterialTheme.colorScheme.primary
+        ActionClass.Symbol -> MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4F)
+        else -> MaterialTheme.colorScheme.onPrimaryContainer
     }
     when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
         is ActionVisual.Label -> {
