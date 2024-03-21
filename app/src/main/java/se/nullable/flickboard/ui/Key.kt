@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +40,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.changedToUp
@@ -52,6 +55,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.delay
 import se.nullable.flickboard.angle
 import se.nullable.flickboard.averageOf
@@ -98,6 +102,31 @@ fun Key(
     val circleAngleThreshold = settings.circleAngleThreshold.state
     val enableHapticFeedback = settings.enableHapticFeedback.state
     val enableVisualFeedback = settings.enableVisualFeedback.state
+    val keyColour = settings.keyColour.state
+    val isDark = isSystemInDarkTheme()
+    val keyColourRole = remember {
+        derivedStateOf {
+            keyColour.value?.let { colour ->
+                val hsv = FloatArray(3)
+                android.graphics.Color.colorToHSV(colour.toArgb(), hsv)
+                val muted = Color.hsv(hsv[0], 0.2F, 1F)
+                MaterialColors.getColorRoles(muted.toArgb(), !isDark)
+            }
+        }
+    }
+    val materialColourScheme = MaterialTheme.colorScheme
+    val keySurfaceColour = remember {
+        derivedStateOf {
+            keyColourRole.value?.accentContainer?.let(::Color)
+                ?: materialColourScheme.primaryContainer
+        }
+    }
+    val keyIndicatorColour = remember {
+        derivedStateOf {
+            keyColourRole.value?.onAccentContainer?.let(::Color)
+                ?: materialColourScheme.onPrimaryContainer
+        }
+    }
     var lastActionTaken: TakenAction? by remember { mutableStateOf(null, neverEqualPolicy()) }
     var lastActionIsVisible by remember { mutableStateOf(false) }
     val lastActionAlpha = animateFloatAsState(1F * lastActionIsVisible, label = "lastActionAlpha") {
@@ -159,7 +188,7 @@ fun Key(
     Box(
         modifier
             .background(
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = keyOpacity.value),
+                keySurfaceColour.value.copy(alpha = keyOpacity.value),
                 shape = shape
             )
             .height(keyHeight.dp)
@@ -184,7 +213,8 @@ fun Key(
                         action,
                         enterKeyLabel = enterKeyLabel,
                         modifiers = modifierState,
-                        modifier = actionModifier
+                        colour = keyIndicatorColour.value,
+                        modifier = actionModifier,
                     )
                 }
             }
@@ -217,7 +247,8 @@ fun KeyActionTakenIndicator(
                 enterKeyLabel = enterKeyLabel,
                 modifiers = null,
                 modifier = Modifier.align(Alignment.Center),
-                colorOverride = MaterialTheme.colorScheme.onTertiary,
+                colour = MaterialTheme.colorScheme.onTertiary,
+                allowFade = false,
             )
         }
     }
@@ -228,14 +259,15 @@ fun KeyActionIndicator(
     action: Action,
     enterKeyLabel: String?,
     modifiers: ModifierState?,
+    colour: Color,
     modifier: Modifier = Modifier,
-    colorOverride: Color? = null,
+    allowFade: Boolean = true,
 ) {
     val overrideActionVisual =
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
-    val color = colorOverride ?: when (action.actionClass) {
-        ActionClass.Symbol -> MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.4F)
-        else -> MaterialTheme.colorScheme.onPrimaryContainer
+    val usedColour = when {
+        action.actionClass == ActionClass.Symbol && allowFade -> colour.copy(alpha = 0.4F)
+        else -> colour
     }
     when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
         is ActionVisual.Label -> {
@@ -243,7 +275,7 @@ fun KeyActionIndicator(
                 val density = LocalDensity.current
                 Text(
                     text = actionVisual.label,
-                    color = color,
+                    color = usedColour,
                     fontSize = with(density) {
                         min(
                             maxWidth,
@@ -264,7 +296,7 @@ fun KeyActionIndicator(
         is ActionVisual.Icon -> Icon(
             painter = painterResource(id = actionVisual.resource),
             contentDescription = null,
-            tint = color,
+            tint = usedColour,
             modifier = modifier
         )
 

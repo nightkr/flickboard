@@ -6,26 +6,29 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeGesturesPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,7 +55,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -143,6 +150,7 @@ fun SettingsSectionPage(section: SettingsSection, modifier: Modifier = Modifier)
                     is Setting.EnumList<*> -> EnumListSetting(setting)
                     is Setting.Enum -> EnumSetting(setting)
                     is Setting.Image -> ImageSetting(setting)
+                    is Setting.Colour -> ColourSetting(setting)
                 }
             }
         }
@@ -295,17 +303,63 @@ fun ImageSetting(setting: Setting.Image) {
         ) {
             SettingLabel(setting)
             Row {
-                Button(onClick = {
+                IconButton(onClick = {
                     imagePicker.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
                 }) {
                     Icon(painterResource(R.drawable.baseline_image_search_24), "Set image")
                 }
-                Spacer(Modifier.width(8.dp))
-                Button(onClick = { setting.currentValue = null }) {
+                IconButton(onClick = { setting.currentValue = null }) {
                     Icon(painterResource(R.drawable.baseline_clear_24), "Clear")
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ColourSetting(setting: Setting.Colour) {
+    val state = setting.state
+    val expanded = remember { mutableStateOf(false) }
+    SettingRow {
+        Column {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SettingLabel(setting)
+                Row {
+                    state.value?.let {
+                        // Not actually a button, but we want to share the same sizing...
+                        IconButton(onClick = {}, enabled = false) {
+                            Image(
+                                ColorPainter(it), "Selected colour",
+                                Modifier
+                                    .size(24.dp)
+                                    .clip(CircleShape)
+                                    .align(Alignment.CenterVertically)
+                            )
+                        }
+                    }
+                    IconButton(onClick = {
+                        expanded.value = !expanded.value
+                    }) {
+                        Icon(painterResource(R.drawable.baseline_color_lens_24), "Set colour")
+                    }
+                    IconButton(onClick = { setting.currentValue = null }) {
+                        Icon(painterResource(R.drawable.baseline_clear_24), "Clear")
+                    }
+                }
+            }
+            AnimatedVisibility(expanded.value, Modifier.align(Alignment.CenterHorizontally)) {
+                ColourPicker(
+                    onColourSelected = { setting.currentValue = it },
+                    Modifier
+                        .sizeIn(maxHeight = 200.dp)
+                        .padding(horizontal = 16.dp)
+                )
             }
         }
     }
@@ -670,6 +724,12 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::percentage
     )
 
+    val keyColour = Setting.Colour(
+        key = "keyColour",
+        label = "Key colour",
+        ctx = ctx
+    )
+
     val keyOpacity = Setting.FloatSlider(
         key = "keyOpacity",
         label = "Key opacity",
@@ -820,6 +880,7 @@ class AppSettings(val ctx: SettingsContext) {
                     keyRoundness,
                     actionVisualBiasCenter,
                     actionVisualScale,
+                    keyColour,
                     keyOpacity,
                     backgroundOpacity,
                     backgroundImage,
@@ -1052,6 +1113,19 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
 
         override fun writeTo(prefs: SharedPreferences, value: Uri?) =
             prefs.edit { putString(key, value?.toString()) }
+    }
+
+    class Colour(
+        override val key: String,
+        override val label: String,
+        ctx: SettingsContext,
+        override val description: String? = null,
+    ) : Setting<Color?>(ctx) {
+        override fun readFrom(prefs: SharedPreferences): Color? =
+            prefs.getInt(key, 0).takeUnless { it == 0 }?.let { Color(it) }
+
+        override fun writeTo(prefs: SharedPreferences, value: Color?) =
+            prefs.edit { putInt(key, value?.toArgb() ?: 0) }
     }
 }
 
