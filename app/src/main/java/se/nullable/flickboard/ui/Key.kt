@@ -152,7 +152,13 @@ fun Key(
     val context = LocalContext.current
     val gestureLibrary = remember(context) {
         GestureLibraries.fromRawResource(context, R.raw.gestures)
-            .also { it.load() }
+            .also {
+                // GestureLibrary.ORIENTATION_STYLE_8
+                // required for recognizing 8 orientations
+                // of otherwise equivalent gestures
+                it.orientationStyle = 8
+                it.load()
+            }
     }
     val onActionModifier = if (onAction != null) {
         val handleAction = { action: Action ->
