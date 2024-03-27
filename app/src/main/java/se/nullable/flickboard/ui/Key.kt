@@ -63,6 +63,7 @@ import se.nullable.flickboard.direction
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.ActionClass
 import se.nullable.flickboard.model.ActionVisual
+import se.nullable.flickboard.model.CircleDirection
 import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
@@ -158,7 +159,6 @@ fun Key(
                 awaitGesture(
                     swipeThreshold = { swipeThreshold.value.dp },
                     fastSwipeThreshold = { fastSwipeThreshold.value.dp },
-                    longHoldOnClockwiseCircle = { key.holdAction != null && longHoldOnClockwiseCircle.value },
                     circleJaggednessThreshold = { circleJaggednessThreshold.value },
                     circleDiscontinuityThreshold = { circleDiscontinuityThreshold.value },
                     circleAngleThreshold = { circleAngleThreshold.value },
@@ -167,13 +167,15 @@ fun Key(
                     onFastAction = handleAction,
                     trailListenerState = keyPointerTrailListener,
                 )?.let { gesture ->
+                    val flick =
+                        gesture.toFlick(longHoldOnClockwiseCircle = key.holdAction != null && longHoldOnClockwiseCircle.value)
                     val action = when {
-                        gesture.longHold -> key.holdAction
+                        flick.longHold -> key.holdAction
                         else -> {
                             when {
-                                gesture.shift -> key.shift
+                                flick.shift -> key.shift
                                 else -> key
-                            }?.actions?.get(gesture.direction)
+                            }?.actions?.get(flick.direction)
                         }
                     }
                     action?.let(handleAction)
@@ -316,7 +318,6 @@ data class KeyPointerTrailListener(
 private suspend inline fun AwaitPointerEventScope.awaitGesture(
     swipeThreshold: () -> Dp,
     fastSwipeThreshold: () -> Dp,
-    longHoldOnClockwiseCircle: () -> Boolean,
     circleJaggednessThreshold: () -> Float,
     circleDiscontinuityThreshold: () -> Float,
     circleAngleThreshold: () -> Float,
@@ -344,7 +345,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
             withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { awaitPointerEvent() }
         if (event == null && !isDragging) {
             trailListener?.onUp?.invoke()
-            return Gesture(Direction.CENTER, longHold = true, shift = false)
+            return Gesture.Flick(Direction.CENTER, longHold = true, shift = false)
         }
         for (change in event?.changes ?: emptyList()) {
             if (change.isConsumed || change.changedToUp()) {
@@ -374,36 +375,35 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                     return null
                 }
                 change.position - down.position
-                var isRound = false
-                var isLongHold = false
+                var circleDirection: CircleDirection? = null
                 val direction = if (!isDragging) {
-                    return Gesture(direction = Direction.CENTER, longHold = false, shift = false)
+                    return Gesture.Flick(
+                        direction = Direction.CENTER,
+                        longHold = false,
+                        shift = false
+                    )
                 } else {
-                    val circleDirection = shapeLooksLikeCircle(
+                    circleDirection = shapeLooksLikeCircle(
                         positions,
                         jaggednessThreshold = circleJaggednessThreshold(),
                         discontinuityThreshold = circleDiscontinuityThreshold(),
                         angleThreshold = circleAngleThreshold(),
                     )
                     if (circleDirection != null) {
-                        if (circleDirection == CircleDirection.Clockwise && longHoldOnClockwiseCircle()) {
-                            isLongHold = true
-                        } else {
-                            isRound = true
-                        }
                         Direction.CENTER
                     } else {
                         mostExtremePosFromDown.direction()
                     }
                 }
-                return Gesture(
-                    direction = direction,
-                    longHold = isLongHold,
-                    // shift if swipe is more than halfway to returned from the starting position (U shape),
-                    // or a circle
-                    shift = isRound ||
-                            (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremeDistanceFromDownSquared / 4,
-                )
+                return when {
+                    circleDirection != null -> Gesture.Circle(circleDirection)
+                    else -> Gesture.Flick(
+                        direction = direction,
+                        longHold = false,
+                        // shift if swipe is more than halfway to returned from the starting position (U shape)
+                        shift = (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremeDistanceFromDownSquared / 4,
+                    )
+                }
             } else if (canBeFastAction) {
                 val posChange = change.positionChange()
                 fastActionTraveled += posChange
@@ -426,10 +426,6 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     }
 }
 
-enum class CircleDirection {
-    Clockwise,
-    CounterClockwise,
-}
 
 private fun shapeLooksLikeCircle(
     points: List<Offset>,

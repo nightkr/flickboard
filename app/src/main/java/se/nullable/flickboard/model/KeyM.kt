@@ -293,4 +293,47 @@ enum class Direction {
     }
 }
 
-data class Gesture(val direction: Direction, val longHold: Boolean, val shift: Boolean)
+interface Gesture {
+    data class Flick(val direction: Direction, val longHold: Boolean, val shift: Boolean) :
+        Gesture {
+        override fun toFlick(longHoldOnClockwiseCircle: Boolean): Flick = this
+    }
+
+    data class Circle(val direction: CircleDirection) : Gesture {
+        override fun toFlick(longHoldOnClockwiseCircle: Boolean): Flick {
+            return when {
+                direction == CircleDirection.Clockwise && longHoldOnClockwiseCircle ->
+                    Flick(Direction.CENTER, longHold = true, shift = false)
+
+                else -> Flick(Direction.CENTER, longHold = false, shift = true)
+            }
+        }
+    }
+
+    fun toFlick(longHoldOnClockwiseCircle: Boolean): Flick
+
+    companion object {
+        val names = Direction.entries
+            .flatMap {
+                listOf(
+                    "flick.${it.name}" to Flick(
+                        direction = it,
+                        longHold = false,
+                        shift = false
+                    ),
+                    "flick.${it.name}.shift" to Flick(
+                        direction = it,
+                        longHold = false,
+                        shift = true
+                    ),
+                )
+            }
+            .toMap() +
+                CircleDirection.entries.associate { "circle.${it.name}" to Circle(it) }
+    }
+}
+
+enum class CircleDirection {
+    Clockwise,
+    CounterClockwise,
+}
