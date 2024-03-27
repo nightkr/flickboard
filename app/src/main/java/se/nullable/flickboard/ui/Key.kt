@@ -1,5 +1,9 @@
 package se.nullable.flickboard.ui
 
+import android.gesture.GestureLibraries
+import android.gesture.GestureLibrary
+import android.gesture.GesturePoint
+import android.gesture.GestureStroke
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -47,6 +51,7 @@ import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -57,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.delay
+import se.nullable.flickboard.R
 import se.nullable.flickboard.angle
 import se.nullable.flickboard.averageOf
 import se.nullable.flickboard.direction
@@ -98,6 +104,7 @@ fun Key(
     val longHoldOnClockwiseCircle = settings.longHoldOnClockwiseCircle.state
     val swipeThreshold = settings.swipeThreshold.state
     val fastSwipeThreshold = settings.fastSwipeThreshold.state
+    val gestureRecognizer = settings.gestureRecognizer.state
     val circleJaggednessThreshold = settings.circleJaggednessThreshold.state
     val circleDiscontinuityThreshold = settings.circleDiscontinuityThreshold.state
     val circleAngleThreshold = settings.circleAngleThreshold.state
@@ -142,6 +149,11 @@ fun Key(
             lastActionIsVisible = false
         }
     }
+    val context = LocalContext.current
+    val gestureLibrary = remember(context) {
+        GestureLibraries.fromRawResource(context, R.raw.gestures)
+            .also { it.load() }
+    }
     val onActionModifier = if (onAction != null) {
         val handleAction = { action: Action ->
             if (enableHapticFeedback.value) {
@@ -162,10 +174,12 @@ fun Key(
                     circleJaggednessThreshold = { circleJaggednessThreshold.value },
                     circleDiscontinuityThreshold = { circleDiscontinuityThreshold.value },
                     circleAngleThreshold = { circleAngleThreshold.value },
+                    gestureRecognizer = { gestureRecognizer.value },
                     fastActions = key.fastActions.takeIf { enableFastActions.value }
                         ?: emptyMap(),
                     onFastAction = handleAction,
                     trailListenerState = keyPointerTrailListener,
+                    gestureLibrary = gestureLibrary,
                 )?.let { gesture ->
                     val flick =
                         gesture.toFlick(longHoldOnClockwiseCircle = key.holdAction != null && longHoldOnClockwiseCircle.value)
@@ -321,10 +335,12 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     circleJaggednessThreshold: () -> Float,
     circleDiscontinuityThreshold: () -> Float,
     circleAngleThreshold: () -> Float,
+    gestureRecognizer: () -> GestureRecognizer,
     fastActions: Map<Direction, Action>,
     onFastAction: (Action) -> Unit,
     // Passed as state to ensure that it's only grabbed once we have a down event
     trailListenerState: State<KeyPointerTrailListener?>,
+    gestureLibrary: GestureLibrary,
 ): Gesture? {
     val down = awaitFirstDown()
     down.consume()
@@ -374,35 +390,49 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                 if (fastActionPerformed) {
                     return null
                 }
-                change.position - down.position
-                var circleDirection: CircleDirection? = null
-                val direction = if (!isDragging) {
+                if (!isDragging) {
                     return Gesture.Flick(
                         direction = Direction.CENTER,
                         longHold = false,
                         shift = false
                     )
-                } else {
-                    circleDirection = shapeLooksLikeCircle(
-                        positions,
-                        jaggednessThreshold = circleJaggednessThreshold(),
-                        discontinuityThreshold = circleDiscontinuityThreshold(),
-                        angleThreshold = circleAngleThreshold(),
-                    )
-                    if (circleDirection != null) {
-                        Direction.CENTER
-                    } else {
-                        mostExtremePosFromDown.direction()
-                    }
                 }
-                return when {
-                    circleDirection != null -> Gesture.Circle(circleDirection)
-                    else -> Gesture.Flick(
-                        direction = direction,
-                        longHold = false,
-                        // shift if swipe is more than halfway to returned from the starting position (U shape)
-                        shift = (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremeDistanceFromDownSquared / 4,
-                    )
+                when (gestureRecognizer()) {
+                    GestureRecognizer.Dollar1 -> {
+                        val gesture = android.gesture.Gesture()
+                            .also { g ->
+                                g.addStroke(
+                                    GestureStroke(positions.mapIndexedTo(ArrayList()) { i, pos ->
+                                        GesturePoint(pos.x, pos.y, i.toLong())
+                                    })
+                                )
+                            }
+                        val predictions = gestureLibrary.recognize(gesture)
+                        return Gesture.names[predictions.firstOrNull()?.name]
+                    }
+
+                    GestureRecognizer.Default -> {
+                        val circleDirection: CircleDirection? = shapeLooksLikeCircle(
+                            positions,
+                            jaggednessThreshold = circleJaggednessThreshold(),
+                            discontinuityThreshold = circleDiscontinuityThreshold(),
+                            angleThreshold = circleAngleThreshold(),
+                        )
+                        val direction = when {
+                            circleDirection != null -> Direction.CENTER
+                            else -> mostExtremePosFromDown.direction()
+                        }
+
+                        return when {
+                            circleDirection != null -> Gesture.Circle(circleDirection)
+                            else -> Gesture.Flick(
+                                direction = direction,
+                                longHold = false,
+                                // shift if swipe is more than halfway to returned from the starting position (U shape)
+                                shift = (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremeDistanceFromDownSquared / 4,
+                            )
+                        }
+                    }
                 }
             } else if (canBeFastAction) {
                 val posChange = change.positionChange()

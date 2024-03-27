@@ -250,6 +250,7 @@ fun <T : Labeled> EnumListSetting(setting: Setting.EnumList<T>) {
             setting.writePreviewSettings(prefs)
             setting.writeTo(prefs, listOf(option))
         },
+        previewOverride = null,
     )
 }
 
@@ -269,6 +270,7 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
             setting.writePreviewSettings(prefs)
             setting.writeTo(prefs, option)
         },
+        previewOverride = setting.previewOverride,
     )
 }
 
@@ -376,6 +378,7 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
     onOptionSelected: (T) -> Unit,
     collapseOnOptionSelected: Boolean,
     writePreviewSettings: (SharedPreferences, T) -> Unit,
+    previewOverride: (@Composable (T) -> Unit)?,
 ) {
     val sheetState = rememberModalBottomSheetState()
     var expanded by remember { mutableStateOf(false) }
@@ -447,7 +450,10 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
                                         .also { writePreviewSettings(it, option) }
                                 }
                                 AppSettingsProvider(prefs) {
-                                    ConfiguredKeyboard(onAction = null)
+                                    when {
+                                        previewOverride != null -> previewOverride(option)
+                                        else -> ConfiguredKeyboard(onAction = null)
+                                    }
                                 }
                             }
                         }
@@ -810,6 +816,16 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx,
     )
 
+    val gestureRecognizer = Setting.Enum(
+        key = "gestureRecognizer",
+        "Gesture recognizer",
+        defaultValue = GestureRecognizer.Default,
+        options = GestureRecognizer.entries,
+        fromString = GestureRecognizer::valueOf,
+        ctx = ctx,
+        previewOverride = { Text(it.description) },
+    )
+
     val circleJaggednessThreshold = Setting.FloatSlider(
         key = "circleJaggednessThreshold",
         label = "Circle jaggedness threshold",
@@ -898,6 +914,7 @@ class AppSettings(val ctx: SettingsContext) {
                     keyHeight,
                     swipeThreshold,
                     fastSwipeThreshold,
+                    gestureRecognizer,
                     circleJaggednessThreshold,
                     circleDiscontinuityThreshold,
                     circleAngleThreshold,
@@ -1094,6 +1111,7 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         ctx: SettingsContext,
         override val description: String? = null,
         val writePreviewSettings: (SharedPreferences) -> Unit = {},
+        val previewOverride: (@Composable (T) -> Unit)? = null,
     ) : Setting<T>(ctx) {
         override fun readFrom(prefs: SharedPreferences): T =
             prefs.getString(key, null)?.let(fromString) ?: defaultValue
@@ -1127,6 +1145,14 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         override fun writeTo(prefs: SharedPreferences, value: Color?) =
             prefs.edit { putInt(key, value?.toArgb() ?: 0) }
     }
+}
+
+enum class GestureRecognizer(override val label: String, val description: String) : Labeled {
+    Default("Default", description = "The default FlickBoard gesture recognizer"),
+    Dollar1(
+        "$1 (EXPERIMENTAL)",
+        description = "Experimental next-generation gesture recognizer (many recognition settings do not apply)"
+    ),
 }
 
 /**
