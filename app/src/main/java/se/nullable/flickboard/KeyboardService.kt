@@ -379,6 +379,84 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     }
                                 }
 
+                                is Action.ChangeWordCase -> {
+                                    currentCursorPosition(SearchDirection.Backwards)?.let { currentPos ->
+                                        val wordLength = findBoundary(
+                                            TextBoundary.Word,
+                                            SearchDirection.Backwards,
+                                        )
+
+                                        currentInputConnection.setSelection(
+                                            currentPos + wordLength * SearchDirection.Backwards.factor,
+                                            currentPos + wordLength * SearchDirection.Backwards.factor
+                                        )
+
+                                        val letter = currentInputConnection.getTextAfterCursor(1, 0)
+                                            ?.toString() ?: ""
+                                        val word =
+                                            currentInputConnection.getTextAfterCursor(wordLength, 0)
+                                                ?.toString()
+                                                ?: ""
+
+                                        currentInputConnection.beginBatchEdit()
+                                        if (action.state == ShiftState.Normal) {
+                                            if (word.lowercase() == word) { // All lower case
+                                                currentInputConnection.deleteSurroundingText(0, 1)
+                                                // Capitalize word
+                                                currentInputConnection.commitText(
+                                                    letter.uppercase(),
+                                                    1
+                                                )
+                                            } else {
+                                                currentInputConnection.deleteSurroundingText(
+                                                    0,
+                                                    wordLength
+                                                )
+                                                // Lower-case word
+                                                currentInputConnection.commitText(
+                                                    word.lowercase(),
+                                                    1
+                                                )
+                                            }
+                                        } else {
+                                            if (word.uppercase() == word) { // All caps
+                                                currentInputConnection.deleteSurroundingText(
+                                                    0,
+                                                    wordLength
+                                                )
+                                                // Lower-case word
+                                                currentInputConnection.commitText(
+                                                    word.lowercase(),
+                                                    1
+                                                )
+                                            } else if (letter.uppercase() == letter) { // Capitalized word
+                                                currentInputConnection.deleteSurroundingText(
+                                                    0,
+                                                    wordLength
+                                                )
+                                                // Upper-case word
+                                                currentInputConnection.commitText(
+                                                    word.uppercase(),
+                                                    1
+                                                )
+                                            } else {
+                                                currentInputConnection.deleteSurroundingText(0, 1)
+                                                // Capitalize word
+                                                currentInputConnection.commitText(
+                                                    letter.uppercase(),
+                                                    1
+                                                )
+                                            }
+                                        }
+                                        currentInputConnection.endBatchEdit()
+
+                                        currentInputConnection.setSelection(
+                                            currentPos,
+                                            currentPos
+                                        )
+                                    }
+                                }
+
                                 is Action.ToggleShift, Action.ToggleCtrl, Action.ToggleAlt, Action.ToggleZalgo -> {
                                     // handled internally in Keyboard
                                 }
