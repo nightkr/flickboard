@@ -95,6 +95,7 @@ import se.nullable.flickboard.model.layouts.RU_PHONETIC_MESSAGEASE
 import se.nullable.flickboard.model.layouts.SV_DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_MESSAGEASE
+import se.nullable.flickboard.model.layouts.UK_RU_MESSAGEASE
 import se.nullable.flickboard.util.Boxed
 import java.io.FileOutputStream
 import kotlin.math.roundToInt
@@ -970,6 +971,7 @@ enum class LetterLayerOption(override val label: String, val layout: Layout) : L
     Swedish("Swedish (MessagEase)", SV_MESSAGEASE),
     SwedishDE("Swedish (MessagEase, German-style)", SV_DE_MESSAGEASE),
     Ukrainian("Ukrainian (MessagEase)", UK_MESSAGEASE),
+    UkrainianRussian("Ukrainian Russian (MessagEase)", UK_RU_MESSAGEASE),
     French("French (MessagEase)", FR_MESSAGEASE),
 }
 
