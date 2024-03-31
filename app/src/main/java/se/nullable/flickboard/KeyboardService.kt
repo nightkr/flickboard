@@ -24,6 +24,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.intl.Locale
 import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -39,6 +41,7 @@ import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.TextBoundary
+import se.nullable.flickboard.model.WordCaseChange
 import se.nullable.flickboard.ui.ConfiguredKeyboard
 import se.nullable.flickboard.ui.EnabledLayers
 import se.nullable.flickboard.ui.FlickBoardParent
@@ -379,75 +382,47 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     }
                                 }
 
-                                is Action.ChangeWordCase -> {
+                                is Action.ToggleWordCase -> {
                                     currentCursorPosition(SearchDirection.Backwards)?.let { currentPos ->
                                         val wordLength = findBoundary(
                                             TextBoundary.Word,
                                             SearchDirection.Backwards,
                                         )
+                                        val newPos = currentPos + wordLength * SearchDirection.Backwards.factor
 
                                         currentInputConnection.setSelection(
-                                            currentPos + wordLength * SearchDirection.Backwards.factor,
-                                            currentPos + wordLength * SearchDirection.Backwards.factor
+                                            newPos,
+                                            newPos
                                         )
 
-                                        val letter = currentInputConnection.getTextAfterCursor(1, 0)
-                                            ?.toString() ?: ""
                                         val word =
-                                            currentInputConnection.getTextAfterCursor(wordLength, 0)
-                                                ?.toString()
-                                                ?: ""
+                                            currentInputConnection.getTextAfterCursor(wordLength, 0)?.toString() ?: ""
 
                                         currentInputConnection.beginBatchEdit()
-                                        if (action.state == ShiftState.Normal) {
-                                            if (word.lowercase() == word) { // All lower case
-                                                currentInputConnection.deleteSurroundingText(0, 1)
-                                                // Capitalize word
-                                                currentInputConnection.commitText(
-                                                    letter.uppercase(),
-                                                    1
-                                                )
+                                        currentInputConnection.deleteSurroundingText(0, wordLength)
+
+                                        if (word.uppercase() == word) {
+                                            if (action.state == WordCaseChange.UP) {
+                                                currentInputConnection.commitText(word.uppercase(), 1)
                                             } else {
-                                                currentInputConnection.deleteSurroundingText(
-                                                    0,
-                                                    wordLength
-                                                )
-                                                // Lower-case word
-                                                currentInputConnection.commitText(
-                                                    word.lowercase(),
-                                                    1
-                                                )
+                                                currentInputConnection.commitText(word.capitalize(Locale.current), 1)
+                                            }
+                                        } else if (word.lowercase() == word) {
+                                            if (action.state == WordCaseChange.UP) {
+                                                currentInputConnection.commitText(word.capitalize(Locale.current), 1)
+                                            } else {
+                                                currentInputConnection.commitText(word.lowercase(), 1)
+                                            }
+                                        } else if (word.capitalize(Locale.current) == word) {
+                                            if (action.state == WordCaseChange.UP) {
+                                                currentInputConnection.commitText(word.uppercase(), 1)
+                                            } else {
+                                                currentInputConnection.commitText(word.lowercase(), 1)
                                             }
                                         } else {
-                                            if (word.uppercase() == word) { // All caps
-                                                currentInputConnection.deleteSurroundingText(
-                                                    0,
-                                                    wordLength
-                                                )
-                                                // Lower-case word
-                                                currentInputConnection.commitText(
-                                                    word.lowercase(),
-                                                    1
-                                                )
-                                            } else if (letter.uppercase() == letter) { // Capitalized word
-                                                currentInputConnection.deleteSurroundingText(
-                                                    0,
-                                                    wordLength
-                                                )
-                                                // Upper-case word
-                                                currentInputConnection.commitText(
-                                                    word.uppercase(),
-                                                    1
-                                                )
-                                            } else {
-                                                currentInputConnection.deleteSurroundingText(0, 1)
-                                                // Capitalize word
-                                                currentInputConnection.commitText(
-                                                    letter.uppercase(),
-                                                    1
-                                                )
-                                            }
+                                            currentInputConnection.commitText(word.capitalize(Locale.current), 1)
                                         }
+
                                         currentInputConnection.endBatchEdit()
 
                                         currentInputConnection.setSelection(

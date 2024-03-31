@@ -27,3 +27,5 @@ enum class ShiftState {
         else -> this
     }
 }
+
+enum class WordCaseChange { UP, DOWN }

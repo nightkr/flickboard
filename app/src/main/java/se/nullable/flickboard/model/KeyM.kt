@@ -162,15 +162,17 @@ sealed class Action {
             ShiftState.CapsLock -> ActionVisual.Icon(R.drawable.baseline_keyboard_capslock_24)
         }
 
-        override fun shift(): Action = ChangeWordCase(state)
+        override fun shift(): Action {
+            return when (state) {
+                ShiftState.Shift -> copy(state = ShiftState.CapsLock)
+                ShiftState.Normal -> ToggleWordCase(WordCaseChange.UP)
+                else -> return this
+            }
+        }
     }
 
-    data class ChangeWordCase(val state: ShiftState) : Action() {
-        override val isModifier: Boolean = false
-
+    data class ToggleWordCase(val state: WordCaseChange) : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual = ActionVisual.None
-
-        override fun shift(): Action = this
     }
 
     data object ToggleCtrl : Action() {
