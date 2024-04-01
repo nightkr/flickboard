@@ -30,12 +30,12 @@ val UK_RU_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("т"),
-                    Direction.BOTTOM_LEFT to Action.Text("ь")
+                    Direction.BOTTOM_LEFT to Action.Text("ь"),
                     Direction.BOTTOM_RIGHT to Action.Text("э")
                 )
             ),
         ),
-        LISTOf(
+        listOf(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("в"),
@@ -84,7 +84,7 @@ val UK_RU_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("н"),
-                    Direction.TOP_LEFT to Action.Text("ф")
+                    Direction.TOP_LEFT to Action.Text("ф"),
                     Direction.TOP_RIGHT to Action.Text("ё")
                 )
             ),
