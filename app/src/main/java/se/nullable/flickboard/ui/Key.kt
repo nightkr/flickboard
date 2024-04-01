@@ -54,6 +54,7 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -150,15 +151,20 @@ fun Key(
         }
     }
     val context = LocalContext.current
-    val gestureLibrary = remember(context) {
-        GestureLibraries.fromRawResource(context, R.raw.gestures)
-            .also {
-                // GestureLibrary.ORIENTATION_STYLE_8
-                // required for recognizing 8 orientations
-                // of otherwise equivalent gestures
-                it.orientationStyle = 8
-                it.load()
-            }
+    val view = LocalView.current
+    val gestureLibrary = remember(context, view) {
+        when {
+            // android.gesture is not available in preview mode
+            view.isInEditMode -> null
+            else -> GestureLibraries.fromRawResource(context, R.raw.gestures)
+                .also {
+                    // GestureLibrary.ORIENTATION_STYLE_8
+                    // required for recognizing 8 orientations
+                    // of otherwise equivalent gestures
+                    it.orientationStyle = 8
+                    it.load()
+                }
+        }
     }
     val onActionModifier = if (onAction != null) {
         val handleAction = { action: Action ->
@@ -346,7 +352,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     onFastAction: (Action) -> Unit,
     // Passed as state to ensure that it's only grabbed once we have a down event
     trailListenerState: State<KeyPointerTrailListener?>,
-    gestureLibrary: GestureLibrary,
+    gestureLibrary: GestureLibrary?,
 ): Gesture? {
     val down = awaitFirstDown()
     down.consume()
@@ -413,8 +419,8 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                                     })
                                 )
                             }
-                        val predictions = gestureLibrary.recognize(gesture)
-                        return Gesture.names[predictions.firstOrNull()?.name]
+                        val predictions = gestureLibrary?.recognize(gesture)
+                        return Gesture.names[predictions?.firstOrNull()?.name]
                     }
 
                     GestureRecognizer.Default -> {
