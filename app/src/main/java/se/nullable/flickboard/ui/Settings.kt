@@ -88,6 +88,7 @@ import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.EN_DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.ES_MESSAGEASE
+import se.nullable.flickboard.model.layouts.FR_EXT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.FR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_CALCULATOR_LAYER
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_PHONE_LAYER
@@ -975,6 +976,7 @@ enum class LetterLayerOption(override val label: String, val layout: Layout) : L
     Ukrainian("Ukrainian (MessagEase)", UK_MESSAGEASE),
     UkrainianRussian("Ukrainian Russian (MessagEase)", UK_RU_MESSAGEASE),
     French("French (MessagEase)", FR_MESSAGEASE),
+    FrenchExt("French (Extended MessagEase)", FR_EXT_MESSAGEASE),
 }
 
 enum class NumericLayerOption(override val label: String, val layer: Layer) : Labeled {
