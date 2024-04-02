@@ -384,51 +384,42 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                 is Action.ToggleWordCase -> {
                                     currentCursorPosition(SearchDirection.Backwards)?.let { currentPos ->
-                                        val wordLength = findBoundary(
-                                            TextBoundary.Word,
-                                            SearchDirection.Backwards,
-                                        )
+                                        val wordLength = findBoundary(TextBoundary.Word, SearchDirection.Backwards)
                                         val newPos = currentPos + wordLength * SearchDirection.Backwards.factor
 
-                                        currentInputConnection.setSelection(
-                                            newPos,
-                                            newPos
-                                        )
+                                        currentInputConnection.setSelection(newPos, newPos)
 
                                         val word =
                                             currentInputConnection.getTextAfterCursor(wordLength, 0)?.toString() ?: ""
 
                                         currentInputConnection.beginBatchEdit()
-                                        currentInputConnection.deleteSurroundingText(0, wordLength)
+
+                                        fun changeWord(op: String.() -> String) {
+                                            currentInputConnection.deleteSurroundingText(0, wordLength)
+                                            currentInputConnection.commitText(word.op(), 1)
+                                        }
 
                                         if (word.uppercase() == word) {
-                                            if (action.state == WordCaseChange.UP) {
-                                                currentInputConnection.commitText(word.uppercase(), 1)
-                                            } else {
-                                                currentInputConnection.commitText(word.capitalize(Locale.current), 1)
+                                            if (action.state == WordCaseChange.DOWN) {
+                                                changeWord { lowercase().capitalize(Locale.current) }
                                             }
                                         } else if (word.lowercase() == word) {
                                             if (action.state == WordCaseChange.UP) {
-                                                currentInputConnection.commitText(word.capitalize(Locale.current), 1)
-                                            } else {
-                                                currentInputConnection.commitText(word.lowercase(), 1)
+                                                changeWord { capitalize(Locale.current) }
                                             }
-                                        } else if (word.capitalize(Locale.current) == word) {
+                                        } else if (word.lowercase().capitalize(Locale.current) == word) {
                                             if (action.state == WordCaseChange.UP) {
-                                                currentInputConnection.commitText(word.uppercase(), 1)
+                                                changeWord { uppercase() }
                                             } else {
-                                                currentInputConnection.commitText(word.lowercase(), 1)
+                                                changeWord { lowercase() }
                                             }
                                         } else {
-                                            currentInputConnection.commitText(word.capitalize(Locale.current), 1)
+                                            changeWord { lowercase().capitalize(Locale.current) }
                                         }
 
                                         currentInputConnection.endBatchEdit()
 
-                                        currentInputConnection.setSelection(
-                                            currentPos,
-                                            currentPos
-                                        )
+                                        currentInputConnection.setSelection(currentPos, currentPos)
                                     }
                                 }
 

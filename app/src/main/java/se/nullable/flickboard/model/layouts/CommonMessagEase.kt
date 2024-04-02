@@ -13,6 +13,7 @@ import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.ShiftState
+import se.nullable.flickboard.model.WordCaseChange
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.Keyboard
 
@@ -106,6 +107,12 @@ val OVERLAY_MESSAGEASE_LAYER = Layer(
                 actions = mapOf(
                     Direction.TOP to Action.ToggleShift(ShiftState.Shift),
                     Direction.BOTTOM to Action.ToggleShift(ShiftState.Normal),
+                ),
+                transientShift = KeyM(
+                    actions = mapOf(
+                        Direction.TOP to Action.ToggleWordCase(WordCaseChange.UP),
+                        Direction.BOTTOM to Action.ToggleWordCase(WordCaseChange.DOWN),
+                    )
                 )
             ),
         ),

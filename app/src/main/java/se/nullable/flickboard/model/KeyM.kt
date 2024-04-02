@@ -60,7 +60,8 @@ data class KeyM(
     val fastActions: Map<Direction, Action> = mapOf(),
     val holdAction: Action? = null,
     val colspan: Int = 1,
-    val shift: KeyM? = null
+    val shift: KeyM? = null,
+    val transientShift: KeyM? = null
 ) {
     fun mergeFallback(fallback: KeyM): KeyM = copy(
         actions = fallback.actions + actions,
@@ -69,7 +70,8 @@ data class KeyM(
             fallback.shift == null -> shift
             else -> shift.mergeFallback(fallback.shift)
         },
-        holdAction = this.holdAction ?: fallback.holdAction ?: fallback.actions[Direction.CENTER]
+        holdAction = this.holdAction ?: fallback.holdAction ?: fallback.actions[Direction.CENTER],
+        transientShift = this.transientShift ?: fallback.transientShift
     )
 
     fun autoShift(): KeyM = (shift ?: this).copy(
@@ -165,7 +167,6 @@ sealed class Action {
         override fun shift(): Action {
             return when (state) {
                 ShiftState.Shift -> copy(state = ShiftState.CapsLock)
-                ShiftState.Normal -> ToggleWordCase(WordCaseChange.UP)
                 else -> return this
             }
         }

@@ -193,7 +193,7 @@ fun Key(
                         flick.longHold -> key.holdAction
                         else -> {
                             when {
-                                flick.shift -> key.shift
+                                flick.shift -> key.transientShift ?: key.shift
                                 else -> key
                             }?.actions?.get(flick.direction)
                         }
