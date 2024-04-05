@@ -1,3 +1,5 @@
+// HU DT refers to: Hungarian MessagEase community layout, made by Dániel Tenke
+
 package se.nullable.flickboard.model.layouts
 
 import androidx.compose.runtime.Composable
