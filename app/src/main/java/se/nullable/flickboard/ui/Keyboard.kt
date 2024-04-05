@@ -42,6 +42,7 @@ import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ModifierState
+import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.MINI_NUMBERS_LAYER
@@ -75,34 +76,36 @@ fun Keyboard(
     }
     val mergedNumericLayer =
         remember { derivedStateOf { numericLayer.value.layer.mergeFallback(MESSAGEASE_SYMBOLS_LAYER) } }
-    val mainLayerOverlay =
-        remember { derivedStateOf { OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value) } }
-    val shiftLayer =
-        remember(layout) {
-            derivedStateOf {
-                layout.shiftLayer.mergeFallback(mainLayerOverlay.value.autoShift())
-                    .filterActions(
-                        shownActionClasses = shownActionClasses.value,
-                        enableHiddenActions = enableHiddenActions.value,
-                    )
+    val layersByShiftState = remember(layout) {
+        derivedStateOf {
+            mapOf(
+                ShiftState.Normal to layout.mainLayer
+                    .mergeFallback(OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value)),
+
+                ShiftState.Shift to layout.shiftLayer
+                    .mergeFallback(
+                        OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value)
+                            .autoShift()
+                    ),
+
+                // Don't shift numeric layer in caps lock
+                ShiftState.CapsLock to layout.shiftLayer
+                    .mergeFallback(
+                        OVERLAY_MESSAGEASE_LAYER
+                            .autoShift()
+                            .mergeFallback(mergedNumericLayer.value)
+                    ),
+            ).mapValues {
+                it.value.filterActions(
+                    shownActionClasses = shownActionClasses.value,
+                    enableHiddenActions = enableHiddenActions.value,
+                )
             }
         }
-    val mainLayer =
-        remember(layout) {
-            derivedStateOf {
-                layout.mainLayer.mergeFallback(mainLayerOverlay.value).setShift(shiftLayer.value)
-                    .filterActions(
-                        shownActionClasses = shownActionClasses.value,
-                        enableHiddenActions = enableHiddenActions.value,
-                    )
-            }
-        }
+    }
     val layer by remember(layout) {
         derivedStateOf {
-            val activeLayer = when {
-                modifierState.shift.isShifted -> shiftLayer.value
-                else -> mainLayer.value
-            }
+            val activeLayer = layersByShiftState.value[modifierState.shift]!!
             listOfNotNull(
                 when (enabledLayers.value) {
                     EnabledLayers.All -> mergedNumericLayer.value
