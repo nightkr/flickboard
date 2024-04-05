@@ -52,7 +52,6 @@ import se.nullable.flickboard.util.singleCodePointOrNull
 import sharePointerInput
 import java.text.BreakIterator
 import kotlin.math.max
-import kotlin.math.min
 
 class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistryOwner {
     private val lifecycleRegistry = LifecycleRegistry(this)
@@ -596,8 +595,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         }
         if (coalesce && boundary != TextBoundary.Character) {
             val next = breakIterator.next(direction.factor)
-            if (next != BreakIterator.DONE &&
-                searchBuffer.subSequence(min(pos, next), max(pos, next)).isBlank()
+            if (next != BreakIterator.DONE
+                && searchBuffer.getOrNull(max(pos, next))?.isWhitespace() != false
             ) {
                 pos = next
             }
