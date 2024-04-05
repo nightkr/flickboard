@@ -90,15 +90,15 @@ import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.ES_MESSAGEASE
 import se.nullable.flickboard.model.layouts.FR_EXT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.FR_MESSAGEASE
-import se.nullable.flickboard.model.layouts.HU_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_DT_MESSAGEASE
+import se.nullable.flickboard.model.layouts.HU_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_MF_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_UUP_MESSAGEASE
 import se.nullable.flickboard.model.layouts.IT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_CALCULATOR_LAYER
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_PHONE_LAYER
-import se.nullable.flickboard.model.layouts.PT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.PT_IOS_MESSAGEASE
+import se.nullable.flickboard.model.layouts.PT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.RU_MESSAGEASE
 import se.nullable.flickboard.model.layouts.RU_PHONETIC_MESSAGEASE
 import se.nullable.flickboard.model.layouts.SV_DE_MESSAGEASE
@@ -176,7 +176,7 @@ fun SettingsKeyboardPreview() {
             Column {
                 Text(
                     text = "Preview keyboard",
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.padding(8.dp)
                 )
                 ProvideDisplayLimits {
