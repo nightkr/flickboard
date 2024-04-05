@@ -89,6 +89,7 @@ data class KeyM(
 
 sealed class Action {
     abstract fun visual(modifier: ModifierState?): ActionVisual
+    open fun isActive(modifier: ModifierState?): Boolean = false
     open val actionClass = ActionClass.Other
     open fun shift(): Action = this
     open fun hide(): Action = this
@@ -161,6 +162,8 @@ sealed class Action {
             ShiftState.Shift -> ActionVisual.Icon(R.drawable.baseline_arrow_drop_up_24)
             ShiftState.CapsLock -> ActionVisual.Icon(R.drawable.baseline_keyboard_capslock_24)
         }
+
+        override fun isActive(modifier: ModifierState?): Boolean = state == modifier?.shift
 
         override fun shift(): Action {
             return when (state) {

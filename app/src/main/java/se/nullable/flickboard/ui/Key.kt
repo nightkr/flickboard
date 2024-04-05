@@ -136,6 +136,12 @@ fun Key(
                 ?: materialColourScheme.onPrimaryContainer
         }
     }
+    val activeKeyIndicatorColour = remember {
+        derivedStateOf {
+            keyColourRole.value?.accent?.let(::Color)
+                ?: materialColourScheme.primary
+        }
+    }
     var lastActionTaken: TakenAction? by remember { mutableStateOf(null, neverEqualPolicy()) }
     var lastActionIsVisible by remember { mutableStateOf(false) }
     val lastActionAlpha = animateFloatAsState(1F * lastActionIsVisible, label = "lastActionAlpha") {
@@ -242,6 +248,7 @@ fun Key(
                         enterKeyLabel = enterKeyLabel,
                         modifiers = modifierState,
                         colour = keyIndicatorColour.value,
+                        activeColour = activeKeyIndicatorColour.value,
                         modifier = actionModifier,
                     )
                 }
@@ -276,6 +283,7 @@ fun KeyActionTakenIndicator(
                 modifiers = null,
                 modifier = Modifier.align(Alignment.Center),
                 colour = MaterialTheme.colorScheme.onTertiary,
+                activeColour = MaterialTheme.colorScheme.onTertiary,
                 allowFade = false,
             )
         }
@@ -288,6 +296,7 @@ fun KeyActionIndicator(
     enterKeyLabel: String?,
     modifiers: ModifierState?,
     colour: Color,
+    activeColour: Color,
     modifier: Modifier = Modifier,
     allowFade: Boolean = true,
 ) {
@@ -295,6 +304,7 @@ fun KeyActionIndicator(
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
     val usedColour = when {
         action.actionClass == ActionClass.Symbol && allowFade -> colour.copy(alpha = 0.4F)
+        action.isActive(modifiers) -> activeColour
         else -> colour
     }
     when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
