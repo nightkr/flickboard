@@ -1,3 +1,5 @@
+// HU MF refers to: Hungarian MessagEase community layout, made by Máté Farkas
+
 package se.nullable.flickboard.model.layouts
 
 import androidx.compose.runtime.Composable
