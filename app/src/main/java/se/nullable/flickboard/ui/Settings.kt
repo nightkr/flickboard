@@ -91,10 +91,14 @@ import se.nullable.flickboard.model.layouts.ES_MESSAGEASE
 import se.nullable.flickboard.model.layouts.FR_EXT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.FR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_MESSAGEASE
+import se.nullable.flickboard.model.layouts.HU_DT_MESSAGEASE
+import se.nullable.flickboard.model.layouts.HU_MF_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_UUP_MESSAGEASE
 import se.nullable.flickboard.model.layouts.IT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_CALCULATOR_LAYER
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_PHONE_LAYER
+import se.nullable.flickboard.model.layouts.PT_AND_MESSAGEASE
+import se.nullable.flickboard.model.layouts.PT_IOS_MESSAGEASE
 import se.nullable.flickboard.model.layouts.RU_MESSAGEASE
 import se.nullable.flickboard.model.layouts.RU_PHONETIC_MESSAGEASE
 import se.nullable.flickboard.model.layouts.SV_DE_MESSAGEASE
@@ -973,8 +977,12 @@ enum class LetterLayerOption(override val label: String, val layout: Layout) : L
     German("German (MessagEase)", DE_MESSAGEASE),
     GermanEnglish("German/English (MessagEase)", EN_DE_MESSAGEASE),
     Hungarian("Hungarian (MessagEase)", HU_MESSAGEASE),
+    HungarianDT("Hungarian (MessagEase, by Dániel Tenke)", HU_DT_MESSAGEASE),
+    HungarianMF("Hungarian (MessagEase, by Máté Farkas)", HU_MF_MESSAGEASE),
     HungarianUUp("Hungarian (MessagEase, U always up)", HU_UUP_MESSAGEASE),
     Italian("Italian (MessagEase)", IT_MESSAGEASE),
+    PortugueseAnd("Portuguese (MessagEase, Android)", PT_AND_MESSAGEASE),
+    PortugueseIos("Portuguese (MessagEase, iOS)", PT_IOS_MESSAGEASE),
     Russian("Russian (MessagEase)", RU_MESSAGEASE),
     RussianPhonetic("Russian phonetic (MessagEase)", RU_PHONETIC_MESSAGEASE),
     Spanish("Spanish (MessagEase)", ES_MESSAGEASE),
