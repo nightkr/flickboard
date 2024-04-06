@@ -89,15 +89,17 @@ fun Keyboard(
         remember { derivedStateOf { numericLayer.value.layer.mergeFallback(MESSAGEASE_SYMBOLS_LAYER) } }
     val layersByShiftState = remember(layout) {
         derivedStateOf {
+            val shift = layout.shiftLayer
+                .mergeFallback(
+                    OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value)
+                        .autoShift()
+                )
             mapOf(
                 ShiftState.Normal to layout.mainLayer
-                    .mergeFallback(OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value)),
+                    .mergeFallback(OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value))
+                    .setShift(shift),
 
-                ShiftState.Shift to layout.shiftLayer
-                    .mergeFallback(
-                        OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value)
-                            .autoShift()
-                    ),
+                ShiftState.Shift to shift,
 
                 // Don't shift numeric layer in caps lock
                 ShiftState.CapsLock to layout.shiftLayer
