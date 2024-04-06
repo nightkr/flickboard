@@ -61,7 +61,7 @@ fun Keyboard(
 ) {
     val context = LocalContext.current
     val appSettings = LocalAppSettings.current
-    val enabledLayers = appSettings.enabledLayers.state
+    val enabledLayers = appSettings.enabledLayersForCurrentOrientation
     val numericLayer = appSettings.numericLayer.state
     val secondaryLetterLayer = appSettings.secondaryLetterLayer.state
     val handedness = appSettings.handedness.state

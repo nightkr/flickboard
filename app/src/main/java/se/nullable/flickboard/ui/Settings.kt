@@ -262,6 +262,7 @@ fun <T : Labeled> EnumListSetting(setting: Setting.EnumList<T>) {
             setting.writeTo(prefs, listOf(option))
         },
         previewOverride = null,
+        previewForceLandscape = false,
     )
 }
 
@@ -282,6 +283,7 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
             setting.writeTo(prefs, option)
         },
         previewOverride = setting.previewOverride,
+        previewForceLandscape = setting.previewForceLandscape,
     )
 }
 
@@ -390,6 +392,7 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
     collapseOnOptionSelected: Boolean,
     writePreviewSettings: (SharedPreferences, T) -> Unit,
     previewOverride: (@Composable (T) -> Unit)?,
+    previewForceLandscape: Boolean,
 ) {
     val sheetState = rememberModalBottomSheetState()
     var expanded by remember { mutableStateOf(false) }
@@ -461,9 +464,13 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
                                         .also { writePreviewSettings(it, option) }
                                 }
                                 AppSettingsProvider(prefs) {
-                                    when {
-                                        previewOverride != null -> previewOverride(option)
-                                        else -> ConfiguredKeyboard(onAction = null)
+                                    ProvideDisplayLimits(DisplayLimits.calculateCurrent().let {
+                                        it.copy(isLandscape = previewForceLandscape || it.isLandscape)
+                                    }) {
+                                        when {
+                                            previewOverride != null -> previewOverride(option)
+                                            else -> ConfiguredKeyboard(onAction = null)
+                                        }
                                     }
                                 }
                             }
@@ -611,6 +618,34 @@ class AppSettings(val ctx: SettingsContext) {
         fromString = EnabledLayers::valueOf,
         ctx = ctx
     )
+
+    val enabledLayersLandscape = Setting.Enum(
+        key = "enabledLayersLandscape",
+        label = "Enabled layers (landscape)",
+        defaultValue = EnabledLayersLandscape.Inherit,
+        options = EnabledLayersLandscape.entries,
+        fromString = EnabledLayersLandscape::valueOf,
+        ctx = ctx,
+        previewForceLandscape = true,
+    )
+
+    val enabledLayersForCurrentOrientation: State<EnabledLayers>
+        @Composable get() = when {
+            LocalDisplayLimits.current?.isLandscape == true -> {
+                val landscape = enabledLayersLandscape.state
+                val portrait = enabledLayers.state
+                remember {
+                    derivedStateOf {
+                        when (val landscapeValue = landscape.value) {
+                            is EnabledLayersLandscape.Set -> landscapeValue.setting
+                            EnabledLayersLandscape.Inherit -> portrait.value
+                        }
+                    }
+                }
+            }
+
+            else -> enabledLayers.state
+        }
 
     val handedness = Setting.Enum(
         key = "handedness",
@@ -890,6 +925,7 @@ class AppSettings(val ctx: SettingsContext) {
                     secondaryLetterLayer,
                     numericLayer,
                     enabledLayers,
+                    enabledLayersLandscape,
                     handedness,
                     landscapeLocation,
                     landscapeScale,
@@ -958,7 +994,33 @@ enum class EnabledLayers(override val label: String) : Labeled {
     Numbers("Numbers only"),
     DoubleLetters("Double letters"),
     AllMiniNumbers("All (mini numbers)"),
-    AllMiniNumbersMiddle("All (mini numbers in middle)"),
+    AllMiniNumbersMiddle("All (mini numbers in middle)");
+
+    val toggle: EnabledLayers?
+        get() = when (this) {
+            Letters -> Numbers
+            Numbers -> Letters
+            else -> null
+        }
+}
+
+sealed interface EnabledLayersLandscape : Labeled {
+    data class Set(val setting: EnabledLayers) : EnabledLayersLandscape {
+        override val label: String = setting.label
+        override fun toString(): String = setting.toString()
+    }
+
+    data object Inherit : EnabledLayersLandscape {
+        override val label: String = "Same as portrait"
+    }
+
+    companion object {
+        val entries = listOf(Inherit) + EnabledLayers.entries.map(::Set)
+        fun valueOf(str: String): EnabledLayersLandscape = when (str) {
+            "Inherit" -> Inherit
+            else -> Set(EnabledLayers.valueOf(str))
+        }
+    }
 }
 
 enum class Handedness(override val label: String) : Labeled {
@@ -1134,6 +1196,7 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         override val description: String? = null,
         val writePreviewSettings: (SharedPreferences) -> Unit = {},
         val previewOverride: (@Composable (T) -> Unit)? = null,
+        val previewForceLandscape: Boolean = false,
     ) : Setting<T>(ctx) {
         override fun readFrom(prefs: SharedPreferences): T =
             prefs.getString(key, null)?.let(fromString) ?: defaultValue

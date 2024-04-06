@@ -12,19 +12,24 @@ val LocalDisplayLimits = staticCompositionLocalOf<DisplayLimits?> { null }
 
 @Composable
 fun ProvideDisplayLimits(limits: DisplayLimits? = null, content: @Composable () -> Unit) {
-    val actualLimits = limits ?: run {
-        val displayMetrics = LocalContext.current.resources.displayMetrics
-        DisplayLimits(
-            portraitWidth = (min(
-                displayMetrics.widthPixels,
-                displayMetrics.heightPixels
-            ) / displayMetrics.density).dp,
-            isLandscape = displayMetrics.widthPixels > displayMetrics.heightPixels
-        )
-    }
+    val actualLimits = limits ?: DisplayLimits.calculateCurrent()
     CompositionLocalProvider(LocalDisplayLimits provides actualLimits) {
         content()
     }
 }
 
-data class DisplayLimits(val portraitWidth: Dp, val isLandscape: Boolean)
+data class DisplayLimits(val portraitWidth: Dp, val isLandscape: Boolean) {
+    companion object {
+        @Composable
+        fun calculateCurrent(): DisplayLimits {
+            val displayMetrics = LocalContext.current.resources.displayMetrics
+            return DisplayLimits(
+                portraitWidth = (min(
+                    displayMetrics.widthPixels,
+                    displayMetrics.heightPixels
+                ) / displayMetrics.density).dp,
+                isLandscape = displayMetrics.widthPixels > displayMetrics.heightPixels
+            )
+        }
+    }
+}

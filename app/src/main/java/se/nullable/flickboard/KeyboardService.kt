@@ -40,9 +40,10 @@ import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.ui.ConfiguredKeyboard
-import se.nullable.flickboard.ui.EnabledLayers
+import se.nullable.flickboard.ui.EnabledLayersLandscape
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
+import se.nullable.flickboard.ui.LocalDisplayLimits
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
 import se.nullable.flickboard.ui.voice.getVoiceInputId
@@ -176,6 +177,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                         val warningSnackbarHostState = remember { SnackbarHostState() }
                         val appSettings = LocalAppSettings.current
                         val periodOnDoubleSpace = appSettings.periodOnDoubleSpace.state
+                        val displayLimits = LocalDisplayLimits.current
                         val onAction: (Action) -> Unit = { action ->
                             warningMessageScope.launch {
                                 warningSnackbarHostState.currentSnackbarData?.dismiss()
@@ -425,20 +427,29 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 }
 
                                 Action.ToggleLayerOrder -> {
-                                    when (appSettings.enabledLayers.currentValue) {
-                                        EnabledLayers.Letters ->
-                                            appSettings.enabledLayers.currentValue =
-                                                EnabledLayers.Numbers
+                                    var hasToggled = false
+                                    val enabledLayersLandscape =
+                                        appSettings.enabledLayersLandscape.currentValue
+                                    when {
+                                        displayLimits?.isLandscape == true &&
+                                                enabledLayersLandscape is EnabledLayersLandscape.Set -> {
+                                            enabledLayersLandscape.setting.toggle?.let {
+                                                hasToggled = true
+                                                appSettings.enabledLayersLandscape.currentValue =
+                                                    EnabledLayersLandscape.Set(it)
+                                            }
+                                        }
 
-                                        EnabledLayers.Numbers ->
-                                            appSettings.enabledLayers.currentValue =
-                                                EnabledLayers.Letters
-
-                                        // Both layers are enabled, so switch their sides by toggling handedness
-                                        EnabledLayers.All, EnabledLayers.DoubleLetters,
-                                        EnabledLayers.AllMiniNumbers, EnabledLayers.AllMiniNumbersMiddle ->
-                                            appSettings.handedness.currentValue =
-                                                !appSettings.handedness.currentValue
+                                        else -> {
+                                            appSettings.enabledLayers.currentValue.toggle?.let {
+                                                hasToggled = true
+                                                appSettings.enabledLayers.currentValue = it
+                                            }
+                                        }
+                                    }
+                                    if (!hasToggled) {
+                                        appSettings.handedness.currentValue =
+                                            !appSettings.handedness.currentValue
                                     }
                                 }
 
