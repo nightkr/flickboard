@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.inputmethodservice.InputMethodService
 import android.os.Build
+import android.text.InputType
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
 import android.view.View
@@ -40,6 +41,7 @@ import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.ui.ConfiguredKeyboard
+import se.nullable.flickboard.ui.EnabledLayers
 import se.nullable.flickboard.ui.EnabledLayersLandscape
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
@@ -144,8 +146,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         // as a fallback.
         get() = field?.takeIf { currentCursorPosition(SearchDirection.Backwards) == it.position }
 
+    // Tracked variant of currentInputEditorInfo
+    private val editorInfo = mutableStateOf<EditorInfo?>(null)
+
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
+        editorInfo.value = attribute
         cursor = null
         var cursorUpdatesRequested = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 currentInputConnection.requestCursorUpdates(
@@ -278,15 +284,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 }
 
                                 is Action.Enter -> {
-                                    if (currentInputEditorInfo.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
+                                    val editorInfo = editorInfo.value
+                                    val imeOptions = editorInfo?.imeOptions ?: 0
+                                    if (imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
                                         currentInputConnection.commitText("\n", 1)
                                     } else {
                                         currentInputConnection.performEditorAction(
                                             when {
-                                                currentInputEditorInfo.actionLabel != null ->
-                                                    currentInputEditorInfo.actionId
-
-                                                else -> currentInputEditorInfo.imeOptions and
+                                                editorInfo?.actionLabel != null -> editorInfo.actionId
+                                                else -> imeOptions and
                                                         (EditorInfo.IME_ACTION_DONE or
                                                                 EditorInfo.IME_ACTION_GO or
                                                                 EditorInfo.IME_ACTION_NEXT or
@@ -555,7 +561,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 activeModifiers = newModifiers
                                             }
                                         },
-                                        enterKeyLabel = currentInputEditorInfo.actionLabel?.toString(),
+                                        enterKeyLabel = editorInfo.value?.actionLabel?.toString(),
+                                        overrideEnabledLayers = when (editorInfo.value?.let { it.inputType and InputType.TYPE_MASK_CLASS }) {
+                                            InputType.TYPE_CLASS_NUMBER, InputType.TYPE_CLASS_PHONE -> EnabledLayers.Numbers
+                                            else -> null
+                                        }
                                     )
                                     SnackbarHost(
                                         warningSnackbarHostState,

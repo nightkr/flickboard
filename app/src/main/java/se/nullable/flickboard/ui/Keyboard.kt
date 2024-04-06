@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.BiasAbsoluteAlignment
 import androidx.compose.ui.Modifier
@@ -58,10 +59,20 @@ fun Keyboard(
     enterKeyLabel: String? = null,
     onModifierStateUpdated: (ModifierState) -> Unit = {},
     showAllModifiers: Boolean = false,
+    overrideEnabledLayers: EnabledLayers? = null,
 ) {
     val context = LocalContext.current
     val appSettings = LocalAppSettings.current
-    val enabledLayers = appSettings.enabledLayersForCurrentOrientation
+    val enabledLayersForCurrentOrientation = appSettings.enabledLayersForCurrentOrientation
+    val overrideEnabledLayersState = rememberUpdatedState(overrideEnabledLayers)
+    val enabledLayers = remember {
+        derivedStateOf {
+            when (val override = overrideEnabledLayersState.value) {
+                null -> enabledLayersForCurrentOrientation.value
+                else -> override
+            }
+        }
+    }
     val numericLayer = appSettings.numericLayer.state
     val secondaryLetterLayer = appSettings.secondaryLetterLayer.state
     val handedness = appSettings.handedness.state
@@ -279,6 +290,7 @@ fun ConfiguredKeyboard(
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
     onModifierStateUpdated: (ModifierState) -> Unit = {},
+    overrideEnabledLayers: EnabledLayers? = null,
 ) {
     val appSettings = LocalAppSettings.current
     val enabledLetterLayers = appSettings.letterLayers.state.value
@@ -290,6 +302,7 @@ fun ConfiguredKeyboard(
         modifier = modifier,
         enterKeyLabel = enterKeyLabel,
         onModifierStateUpdated = onModifierStateUpdated,
+        overrideEnabledLayers = overrideEnabledLayers,
     )
 }
 
