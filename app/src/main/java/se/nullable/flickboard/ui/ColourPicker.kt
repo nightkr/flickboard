@@ -23,12 +23,14 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import se.nullable.flickboard.util.colourOfHctHue
 
 @Composable
 fun ColourPicker(onColourSelected: (Color) -> Unit, modifier: Modifier = Modifier) {
     val brush = remember {
-        Brush.sweepGradient((0..360 step 60).reversed()
-            .map { Color.hsv(it.toFloat(), 1F, 1F) }
+        Brush.sweepGradient(
+            (0..360 step 30).reversed()
+                .map { colourOfHctHue(it) }
         )
     }
     val selectedColourPixel = remember { IntArray(1) }
