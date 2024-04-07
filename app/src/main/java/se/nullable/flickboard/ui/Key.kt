@@ -8,7 +8,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -44,7 +43,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.changedToUp
@@ -61,7 +59,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
-import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.delay
 import se.nullable.flickboard.R
 import se.nullable.flickboard.angle
@@ -77,6 +74,10 @@ import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.times
 import se.nullable.flickboard.ui.layout.KeyLabelGrid
+import se.nullable.flickboard.util.MaterialToneConfig
+import se.nullable.flickboard.util.toAccent
+import se.nullable.flickboard.util.toAccentContainer
+import se.nullable.flickboard.util.toOnAccentContainer
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.pow
@@ -112,33 +113,23 @@ fun Key(
     val enableHapticFeedback = settings.enableHapticFeedback.state
     val enableVisualFeedback = settings.enableVisualFeedback.state
     val keyColour = settings.keyColour.state
-    val isDark = isSystemInDarkTheme()
-    val keyColourRole = remember {
-        derivedStateOf {
-            keyColour.value?.let { colour ->
-                val hsv = FloatArray(3)
-                android.graphics.Color.colorToHSV(colour.toArgb(), hsv)
-                val muted = Color.hsv(hsv[0], 0.2F, 1F)
-                MaterialColors.getColorRoles(muted.toArgb(), !isDark)
-            }
-        }
-    }
+    val toneConfig = MaterialToneConfig.current
     val materialColourScheme = MaterialTheme.colorScheme
     val keySurfaceColour = remember {
         derivedStateOf {
-            keyColourRole.value?.accentContainer?.let(::Color)
+            keyColour.value?.toAccentContainer(toneConfig)
                 ?: materialColourScheme.primaryContainer
         }
     }
     val keyIndicatorColour = remember {
         derivedStateOf {
-            keyColourRole.value?.onAccentContainer?.let(::Color)
+            keyColour.value?.toOnAccentContainer(toneConfig)
                 ?: materialColourScheme.onPrimaryContainer
         }
     }
     val activeKeyIndicatorColour = remember {
         derivedStateOf {
-            keyColourRole.value?.accent?.let(::Color)
+            keyColour.value?.toAccent(toneConfig)
                 ?: materialColourScheme.primary
         }
     }
