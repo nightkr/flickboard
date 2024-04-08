@@ -38,7 +38,6 @@ import kotlinx.coroutines.launch
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.SearchDirection
-import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.ui.ConfiguredKeyboard
 import se.nullable.flickboard.ui.EnabledLayers
@@ -131,7 +130,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                     keyAction,
                     keyCode,
                     0,
-                    0,
+                    activeModifiers.androidMetaState,
                     KeyCharacterMap.VIRTUAL_KEYBOARD,
                     0,
                     KeyEvent.FLAG_SOFT_KEYBOARD,
@@ -191,49 +190,64 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                             when (action) {
                                 is Action.Text -> {
                                     var char = action.character
-                                    val combiner = when {
-                                        activeModifiers.zalgo -> char.asCombiningMarkOrNull()?.let {
-                                            LastTypedData.Combiner(
-                                                original = char,
-                                                combinedReplacement = it,
-                                                baseCharLength = 0
+                                    val rawKeyCode = when {
+                                        activeModifiers.useRawKeyEvent -> KeyEvent.keyCodeFromString(
+                                            "KEYCODE_${char.uppercase()}"
+                                        )
+
+                                        else -> KeyEvent.KEYCODE_UNKNOWN
+                                    }
+                                    when {
+                                        rawKeyCode != KeyEvent.KEYCODE_UNKNOWN ->
+                                            sendKeyPressEvents(rawKeyCode)
+
+                                        else -> {
+                                            val combiner = when {
+                                                activeModifiers.zalgo -> char.asCombiningMarkOrNull()
+                                                    ?.let {
+                                                        LastTypedData.Combiner(
+                                                            original = char,
+                                                            combinedReplacement = it,
+                                                            baseCharLength = 0
+                                                        )
+                                                    }
+
+                                                else -> lastTyped?.tryCombineWith(
+                                                    char,
+                                                    periodOnDoubleSpace = periodOnDoubleSpace.value,
+                                                )
+                                            }
+                                            if (combiner != null) {
+                                                char = combiner.combinedReplacement
+                                            }
+                                            val codePoint = char.singleCodePointOrNull()
+                                            val positionOfChar =
+                                                currentCursorPosition(SearchDirection.Backwards)
+                                                    ?.plus(char.length)
+                                                    ?.minus(combiner?.baseCharLength ?: 0)
+                                            lastTyped = when {
+                                                positionOfChar != null -> LastTypedData(
+                                                    codePoint = codePoint,
+                                                    position = positionOfChar,
+                                                    combiner = combiner
+                                                )
+
+                                                else -> null
+                                            }
+                                            currentInputConnection.beginBatchEdit()
+                                            if (combiner != null) {
+                                                currentInputConnection.deleteSurroundingText(
+                                                    combiner.baseCharLength,
+                                                    0
+                                                )
+                                            }
+                                            currentInputConnection.commitText(
+                                                char,
+                                                1
                                             )
+                                            currentInputConnection.endBatchEdit()
                                         }
-
-                                        else -> lastTyped?.tryCombineWith(
-                                            char,
-                                            periodOnDoubleSpace = periodOnDoubleSpace.value,
-                                        )
                                     }
-                                    if (combiner != null) {
-                                        char = combiner.combinedReplacement
-                                    }
-                                    val codePoint = char.singleCodePointOrNull()
-                                    val positionOfChar =
-                                        currentCursorPosition(SearchDirection.Backwards)
-                                            ?.plus(char.length)
-                                            ?.minus(combiner?.baseCharLength ?: 0)
-                                    lastTyped = when {
-                                        positionOfChar != null -> LastTypedData(
-                                            codePoint = codePoint,
-                                            position = positionOfChar,
-                                            combiner = combiner
-                                        )
-
-                                        else -> null
-                                    }
-                                    currentInputConnection.beginBatchEdit()
-                                    if (combiner != null) {
-                                        currentInputConnection.deleteSurroundingText(
-                                            combiner.baseCharLength,
-                                            0
-                                        )
-                                    }
-                                    currentInputConnection.commitText(
-                                        char,
-                                        1
-                                    )
-                                    currentInputConnection.endBatchEdit()
                                 }
 
                                 is Action.Delete -> {
@@ -494,19 +508,6 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         onAction = onAction,
                                         onModifierStateUpdated = { newModifiers ->
                                             if (newModifiers != activeModifiers) {
-                                                var modifierMask = when (newModifiers.shift) {
-                                                    ShiftState.Normal -> 0
-                                                    ShiftState.Shift -> KeyEvent.META_SHIFT_LEFT_ON
-                                                    ShiftState.CapsLock -> KeyEvent.META_CAPS_LOCK_ON
-                                                }
-                                                if (newModifiers.ctrl) {
-                                                    modifierMask =
-                                                        modifierMask or KeyEvent.META_CTRL_LEFT_ON
-                                                }
-                                                if (newModifiers.alt) {
-                                                    modifierMask =
-                                                        modifierMask or KeyEvent.META_ALT_LEFT_ON
-                                                }
                                                 fun newKeyEvent(
                                                     isDown: Boolean,
                                                     code: Int
@@ -520,8 +521,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                         },
                                                         code,
                                                         0,
-//                                                0,
-                                                        KeyEvent.normalizeMetaState(modifierMask),
+                                                        newModifiers.androidMetaState,
                                                         KeyCharacterMap.VIRTUAL_KEYBOARD,
                                                         0,
                                                         KeyEvent.FLAG_SOFT_KEYBOARD,
