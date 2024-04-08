@@ -27,7 +27,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -41,6 +40,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -117,27 +117,30 @@ fun SettingsHomePage(
     modifier: Modifier = Modifier
 ) {
     val appSettings = LocalAppSettings.current
+    val tryText = remember {
+        mutableStateOf("")
+    }
     Column {
         LazyColumn(modifier.weight(1F)) {
             item {
                 OnboardingPrompt()
             }
             items(appSettings.all, key = { it.key }) { section ->
-                Box(Modifier.clickable { onNavigateToSection(section) }) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(8.dp)
-                    ) {
-                        Icon(painterResource(section.icon), null)
-                        Text(
-                            section.label,
-                            Modifier
-                                .weight(1F)
-                                .padding(horizontal = 8.dp)
-                        )
-                        Icon(Icons.AutoMirrored.Default.ArrowForward, null)
-                    }
-                }
+                MenuPageLink(
+                    onClick = { onNavigateToSection(section) },
+                    icon = painterResource(section.icon),
+                    label = section.label
+                )
+            }
+            item {
+                TextField(
+                    value = tryText.value,
+                    onValueChange = { tryText.value = it },
+                    label = { Text("Type here to try") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                )
             }
         }
         SettingsKeyboardPreview()
@@ -522,7 +525,7 @@ fun SettingsHomePreview() {
         Surface {
             SettingsHomePage(
                 onNavigateToSection = {},
-//                modifier = Modifier.width(1000.dp)
+                //                modifier = Modifier.width(1000.dp)
             )
         }
     }
