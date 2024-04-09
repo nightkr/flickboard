@@ -1,6 +1,7 @@
 package se.nullable.flickboard.ui
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -78,6 +79,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import se.nullable.flickboard.BuildConfig
 import se.nullable.flickboard.PiF
 import se.nullable.flickboard.R
 import se.nullable.flickboard.model.ActionClass
@@ -120,6 +122,10 @@ fun SettingsHomePage(
     val tryText = remember {
         mutableStateOf("")
     }
+    val context = LocalContext.current
+    fun openUri(uri: Uri) {
+        context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+    }
     Column {
         LazyColumn(modifier.weight(1F)) {
             item {
@@ -136,10 +142,44 @@ fun SettingsHomePage(
                 TextField(
                     value = tryText.value,
                     onValueChange = { tryText.value = it },
-                    label = { Text("Type here to try") },
+                    label = { Text("Type here to try FlickBoard") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp)
+                )
+            }
+            item {
+                Text(
+                    "About",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .padding(top = 16.dp)
+                )
+                val variant = when {
+                    BuildConfig.BUILD_TYPE == "release" -> ""
+                    BuildConfig.FLAVOR == "screengrab" -> ""
+                    else -> " (${BuildConfig.BUILD_TYPE})"
+                }
+                Text(
+                    "FlickBoard v${BuildConfig.VERSION_NAME}$variant",
+                    modifier = Modifier.padding(8.dp)
+                )
+                MenuPageLink(
+                    onClick = { openUri(Uri.parse("https://discord.gg/tVp8MGaeUr")) },
+                    icon = painterResource(R.drawable.baseline_chat_24),
+                    label = "Discuss on Discord",
+                )
+                MenuPageLink(
+                    onClick = { openUri(Uri.parse("https://github.com/nightkr/flickboard")) },
+                    icon = painterResource(id = R.drawable.baseline_code_24),
+                    label = "View Source on GitHub"
+                )
+                MenuPageLink(
+                    onClick = { openUri(Uri.parse("https://github.com/nightkr/flickboard/issues")) },
+                    icon = painterResource(id = R.drawable.baseline_bug_report_24),
+                    label = "Report Bugs on GitHub"
                 )
             }
         }
