@@ -39,7 +39,7 @@ val CONTROL_MESSAGEASE_LAYER =
             listOf(
                 KeyM(
                     actions = mapOf(
-                        Direction.CENTER to Action.ToggleLayerOrder,
+                        Direction.CENTER to Action.ToggleActiveLayer,
                         Direction.TOP to Action.AdjustCellHeight(amount = 1F),
                         Direction.RIGHT to Action.Settings,
                         Direction.BOTTOM_LEFT to Action.SwitchLetterLayer(SearchDirection.Backwards),

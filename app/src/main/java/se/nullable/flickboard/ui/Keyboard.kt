@@ -236,49 +236,51 @@ fun Keyboard(
             rows = layer.keyRows.map { row ->
                 {
                     row.forEach { key ->
-                        val keyPosition = remember { mutableStateOf(Offset.Zero) }
-                        val keyPointerTrailListener = remember {
-                            derivedStateOf {
-                                when {
-                                    enablePointerTrail.value -> KeyPointerTrailListener(
-                                        onDown = {
-                                            activeKeyPosition = keyPosition
-                                            pointerTrailActive = true
-                                            pointerTrailRelativeToActiveKey = emptyList()
-                                        },
-                                        onUp = { pointerTrailActive = false },
-                                        onTrailUpdate = {
-                                            pointerTrailRelativeToActiveKey = it
-                                        },
-                                    )
+                        androidx.compose.runtime.key(key) {
+                            val keyPosition = remember { mutableStateOf(Offset.Zero) }
+                            val keyPointerTrailListener = remember {
+                                derivedStateOf {
+                                    when {
+                                        enablePointerTrail.value -> KeyPointerTrailListener(
+                                            onDown = {
+                                                activeKeyPosition = keyPosition
+                                                pointerTrailActive = true
+                                                pointerTrailRelativeToActiveKey = emptyList()
+                                            },
+                                            onUp = { pointerTrailActive = false },
+                                            onTrailUpdate = {
+                                                pointerTrailRelativeToActiveKey = it
+                                            },
+                                        )
 
-                                    else -> null
+                                        else -> null
+                                    }
                                 }
                             }
-                        }
-                        Key(
-                            key,
-                            onAction = onAction?.let { onAction ->
-                                { action ->
-                                    modifierState = when (action) {
-                                        is Action.ToggleShift -> modifierState.copy(shift = action.state)
-                                        Action.ToggleCtrl -> modifierState.copy(ctrl = !modifierState.ctrl)
-                                        Action.ToggleAlt -> modifierState.copy(alt = !modifierState.alt)
-                                        Action.ToggleZalgo -> modifierState.copy(zalgo = !modifierState.zalgo)
-                                        else -> modifierState.next()
+                            Key(
+                                key,
+                                onAction = onAction?.let { onAction ->
+                                    { action ->
+                                        modifierState = when (action) {
+                                            is Action.ToggleShift -> modifierState.copy(shift = action.state)
+                                            Action.ToggleCtrl -> modifierState.copy(ctrl = !modifierState.ctrl)
+                                            Action.ToggleAlt -> modifierState.copy(alt = !modifierState.alt)
+                                            Action.ToggleZalgo -> modifierState.copy(zalgo = !modifierState.zalgo)
+                                            else -> modifierState.next()
+                                        }
+                                        onAction(action)
                                     }
-                                    onAction(action)
-                                }
-                            },
-                            modifierState = modifierState.takeUnless { showAllModifiers },
-                            modifier = Modifier
-                                .colspan(key.colspan)
-                                .onGloballyPositioned {
-                                    keyPosition.value = it.positionInRoot() - globalPosition
                                 },
-                            enterKeyLabel = enterKeyLabel,
-                            keyPointerTrailListener = keyPointerTrailListener
-                        )
+                                modifierState = modifierState.takeUnless { showAllModifiers },
+                                modifier = Modifier
+                                    .colspan(key.colspan)
+                                    .onGloballyPositioned {
+                                        keyPosition.value = it.positionInRoot() - globalPosition
+                                    },
+                                enterKeyLabel = enterKeyLabel,
+                                keyPointerTrailListener = keyPointerTrailListener
+                            )
+                        }
                     }
                 }
             }

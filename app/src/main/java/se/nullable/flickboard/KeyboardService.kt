@@ -446,7 +446,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             .mod(appSettings.letterLayers.currentValue.size)
                                 }
 
-                                Action.ToggleLayerOrder -> {
+                                Action.ToggleActiveLayer -> {
                                     var hasToggled = false
                                     val enabledLayersLandscape =
                                         appSettings.enabledLayersLandscape.currentValue
@@ -471,6 +471,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         appSettings.handedness.currentValue =
                                             !appSettings.handedness.currentValue
                                     }
+                                }
+
+                                Action.ToggleHandedness -> {
+                                    appSettings.handedness.currentValue =
+                                        !appSettings.handedness.currentValue
+                                    appSettings.portraitLocation.currentValue =
+                                        -appSettings.portraitLocation.currentValue
+                                    appSettings.landscapeLocation.currentValue =
+                                        -appSettings.landscapeLocation.currentValue
                                 }
 
                                 is Action.AdjustCellHeight ->

@@ -225,7 +225,24 @@ sealed class Action {
             ActionVisual.Icon(R.drawable.baseline_keyboard_24)
     }
 
-    data object ToggleLayerOrder : Action() {
+    /**
+     * Toggles which layer is "active"
+     *
+     * Intent: "I want easy access to the opposite layer with my current hand"
+     */
+    data object ToggleActiveLayer : Action() {
+        override fun visual(modifier: ModifierState?): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_flip_camera_android_24)
+
+        override fun shift(): Action = ToggleHandedness
+    }
+
+    /**
+     * Toggles between left- and right-handed mode
+     *
+     * Intent: "I want to switch the active hand comfortably"
+     */
+    data object ToggleHandedness : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_flip_camera_android_24)
     }
