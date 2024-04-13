@@ -108,6 +108,7 @@ import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import se.nullable.flickboard.model.layouts.TR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_RU_MESSAGEASE
+import se.nullable.flickboard.ui.theme.Typography
 import se.nullable.flickboard.util.Boxed
 import java.io.FileOutputStream
 import kotlin.math.roundToInt
@@ -116,6 +117,7 @@ import kotlin.random.Random
 @Composable
 fun SettingsHomePage(
     onNavigateToSection: (SettingsSection) -> Unit,
+    onNavigateToTutorial: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val appSettings = LocalAppSettings.current
@@ -130,6 +132,16 @@ fun SettingsHomePage(
         LazyColumn(modifier.weight(1F)) {
             item {
                 OnboardingPrompt()
+            }
+            item {
+                MenuPageLink(
+                    onClick = onNavigateToTutorial,
+                    icon = painterResource(R.drawable.baseline_checklist_24),
+                    label = "Tutorial"
+                )
+            }
+            item {
+                SettingsTitle("Settings")
             }
             items(appSettings.all, key = { it.key }) { section ->
                 MenuPageLink(
@@ -149,14 +161,7 @@ fun SettingsHomePage(
                 )
             }
             item {
-                Text(
-                    "About",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .padding(top = 16.dp)
-                )
+                SettingsTitle("About")
                 val variant = when {
                     BuildConfig.BUILD_TYPE == "release" -> ""
                     BuildConfig.FLAVOR == "screengrab" -> ""
@@ -185,6 +190,17 @@ fun SettingsHomePage(
         }
         SettingsKeyboardPreview()
     }
+}
+
+@Composable
+fun SettingsTitle(text: String) {
+    Text(
+        text,
+        style = Typography.titleLarge,
+        modifier = Modifier
+            .padding(8.dp)
+            .padding(top = 16.dp)
+    )
 }
 
 @Composable
@@ -565,7 +581,7 @@ fun SettingsHomePreview() {
         Surface {
             SettingsHomePage(
                 onNavigateToSection = {},
-                //                modifier = Modifier.width(1000.dp)
+                onNavigateToTutorial = {},
             )
         }
     }
@@ -603,6 +619,14 @@ fun AppSettingsProvider(prefs: SharedPreferences? = null, content: @Composable (
 }
 
 class AppSettings(val ctx: SettingsContext) {
+    // Intentionally not rendered
+    val hasCompletedTutorial = Setting.Bool(
+        key = "hasCompletedTutorial",
+        label = "Has completed tutorial",
+        defaultValue = false,
+        ctx = ctx
+    )
+
     val letterLayers = Setting.EnumList(
         // Renaming this would reset the people's selected layer..
         key = "layout",

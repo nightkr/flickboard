@@ -192,16 +192,7 @@ fun Key(
                 )?.let { gesture ->
                     val flick =
                         gesture.toFlick(longHoldOnClockwiseCircle = key.holdAction != null && longHoldOnClockwiseCircle.value)
-                    val action = when {
-                        flick.longHold -> key.holdAction
-                        else -> {
-                            when {
-                                flick.shift -> key.shift
-                                else -> key
-                            }?.actions?.get(flick.direction)
-                        }
-                    }
-                    action?.let(handleAction)
+                    flick.resolveAction(key)?.let(handleAction)
                 }
             }
         }

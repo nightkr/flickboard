@@ -300,6 +300,16 @@ interface Gesture {
     data class Flick(val direction: Direction, val longHold: Boolean, val shift: Boolean) :
         Gesture {
         override fun toFlick(longHoldOnClockwiseCircle: Boolean): Flick = this
+
+        fun resolveAction(key: KeyM): Action? = when {
+            longHold -> key.holdAction
+            else -> {
+                when {
+                    shift -> key.shift
+                    else -> key
+                }?.actions?.get(direction)
+            }
+        }
     }
 
     data class Circle(val direction: CircleDirection) : Gesture {
