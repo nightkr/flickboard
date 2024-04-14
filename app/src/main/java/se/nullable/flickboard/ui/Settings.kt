@@ -108,6 +108,7 @@ import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import se.nullable.flickboard.model.layouts.TR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_RU_MESSAGEASE
+import se.nullable.flickboard.model.layouts.HEB_MESSAGEASE
 import se.nullable.flickboard.ui.theme.Typography
 import se.nullable.flickboard.util.Boxed
 import java.io.FileOutputStream
@@ -1105,6 +1106,7 @@ enum class LetterLayerOption(override val label: String, val layout: Layout) : L
     English("English (MessagEase)", EN_MESSAGEASE),
     German("German (MessagEase)", DE_MESSAGEASE),
     GermanEnglish("German/English (MessagEase)", EN_DE_MESSAGEASE),
+    Hebrew("Hebrew (MessagEase)", HEB_MESSAGEASE),
     Hungarian("Hungarian (MessagEase)", HU_MESSAGEASE),
     HungarianDT("Hungarian (MessagEase, by Dániel Tenke)", HU_DT_MESSAGEASE),
     HungarianMF("Hungarian (MessagEase, by Máté Farkas)", HU_MF_MESSAGEASE),
