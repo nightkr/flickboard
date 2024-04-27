@@ -390,27 +390,25 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             TextBoundary.Word,
                                             SearchDirection.Backwards
                                         )
-                                        val startPosOfWord =
-                                            currentPos + posInWord * SearchDirection.Backwards.factor
-
-                                        currentInputConnection.setSelection(
-                                            startPosOfWord,
-                                            startPosOfWord
-                                        )
-                                        val wordLength = findBoundary(
+                                        val textAfterInWord = findBoundary(
                                             TextBoundary.Word,
                                             SearchDirection.Forwards
                                         )
 
-                                        val word =
-                                            currentInputConnection.getTextAfterCursor(wordLength, 0)
-                                                ?.toString() ?: ""
-
+                                        val prefix = currentInputConnection.getTextBeforeCursor(
+                                            posInWord,
+                                            0
+                                        )?.takeUnless { it.isBlank() }?.toString() ?: ""
+                                        val suffix = currentInputConnection.getTextAfterCursor(
+                                            textAfterInWord,
+                                            0
+                                        )?.takeUnless { it.isBlank() }?.toString() ?: ""
+                                        val word = prefix + suffix
 
                                         fun replaceWord(newWord: String) {
                                             currentInputConnection.deleteSurroundingText(
-                                                0,
-                                                wordLength
+                                                prefix.length,
+                                                suffix.length
                                             )
                                             currentInputConnection.commitText(newWord, 1)
                                         }
