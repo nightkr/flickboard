@@ -1104,6 +1104,9 @@ enum class Handedness(override val label: String) : Labeled {
 enum class LetterLayerOption(override val label: String, val layout: Layout) : Labeled {
     Danish("Danish (MessagEase)", DA_MESSAGEASE),
     English("English (MessagEase)", EN_MESSAGEASE),
+    French("French (MessagEase)", FR_MESSAGEASE),
+    FrenchExt("French (Extended MessagEase)", FR_EXT_MESSAGEASE),
+    FrenchPunc("French (Punctuation MessagEase)", FR_PUNC_MESSAGEASE),
     German("German (MessagEase)", DE_MESSAGEASE),
     GermanEnglish("German/English (MessagEase)", EN_DE_MESSAGEASE),
     Hungarian("Hungarian (MessagEase)", HU_MESSAGEASE),
@@ -1121,9 +1124,6 @@ enum class LetterLayerOption(override val label: String, val layout: Layout) : L
     Turkish("Turkish (MessagEase)", TR_MESSAGEASE),
     Ukrainian("Ukrainian (MessagEase)", UK_MESSAGEASE),
     UkrainianRussian("Ukrainian Russian (MessagEase)", UK_RU_MESSAGEASE),
-    French("French (MessagEase)", FR_MESSAGEASE),
-    FrenchExt("French (Extended MessagEase)", FR_EXT_MESSAGEASE),
-    FrenchPunc("French (Punctuation MessagEase)", FR_PUNC_MESSAGEASE),
 }
 
 enum class NumericLayerOption(override val label: String, val layer: Layer) : Labeled {
