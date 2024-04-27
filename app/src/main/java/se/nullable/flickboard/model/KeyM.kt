@@ -172,7 +172,7 @@ sealed class Action {
         }
     }
 
-    data class ToggleWordCase(val state: WordCaseChange) : Action() {
+    data class ToggleWordCase(val state: CaseChangeDirection) : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual = ActionVisual.None
     }
 
@@ -287,6 +287,8 @@ enum class SearchDirection(val factor: Int) {
     Backwards(factor = -1),
     Forwards(factor = 1),
 }
+
+enum class CaseChangeDirection { Up, Down }
 
 enum class Direction {
     TOP_LEFT, TOP, TOP_RIGHT,

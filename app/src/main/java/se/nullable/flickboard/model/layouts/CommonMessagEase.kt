@@ -7,13 +7,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.model.CaseChangeDirection
 import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.ShiftState
-import se.nullable.flickboard.model.WordCaseChange
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.Keyboard
 
@@ -110,8 +110,8 @@ val OVERLAY_MESSAGEASE_LAYER = Layer(
                 ),
                 transientShift = KeyM(
                     actions = mapOf(
-                        Direction.TOP to Action.ToggleWordCase(WordCaseChange.UP),
-                        Direction.BOTTOM to Action.ToggleWordCase(WordCaseChange.DOWN),
+                        Direction.TOP to Action.ToggleWordCase(CaseChangeDirection.Up),
+                        Direction.BOTTOM to Action.ToggleWordCase(CaseChangeDirection.Down),
                     )
                 )
             ),

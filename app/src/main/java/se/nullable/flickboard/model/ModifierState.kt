@@ -28,4 +28,3 @@ enum class ShiftState {
     }
 }
 
-enum class WordCaseChange { UP, DOWN }

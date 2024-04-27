@@ -37,11 +37,11 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import kotlinx.coroutines.launch
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.model.CaseChangeDirection
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.TextBoundary
-import se.nullable.flickboard.model.WordCaseChange
 import se.nullable.flickboard.ui.ConfiguredKeyboard
 import se.nullable.flickboard.ui.EnabledLayers
 import se.nullable.flickboard.ui.FlickBoardParent
@@ -400,15 +400,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         }
 
                                         if (word.uppercase() == word) {
-                                            if (action.state == WordCaseChange.DOWN) {
+                                            if (action.state == CaseChangeDirection.Down) {
                                                 changeWord { lowercase().capitalize(Locale.current) }
                                             }
                                         } else if (word.lowercase() == word) {
-                                            if (action.state == WordCaseChange.UP) {
+                                            if (action.state == CaseChangeDirection.Up) {
                                                 changeWord { capitalize(Locale.current) }
                                             }
                                         } else if (word.lowercase().capitalize(Locale.current) == word) {
-                                            if (action.state == WordCaseChange.UP) {
+                                            if (action.state == CaseChangeDirection.Up) {
                                                 changeWord { uppercase() }
                                             } else {
                                                 changeWord { lowercase() }
