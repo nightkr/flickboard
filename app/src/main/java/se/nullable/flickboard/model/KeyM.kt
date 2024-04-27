@@ -172,7 +172,10 @@ sealed class Action {
         }
     }
 
-    data class ToggleWordCase(val state: CaseChangeDirection) : Action() {
+    /**
+     * Shift the case for the current word up/down one step (lower <-> Title <-> UPPER )
+     */
+    data class ToggleWordCase(val direction: CaseChangeDirection) : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual = ActionVisual.None
     }
 

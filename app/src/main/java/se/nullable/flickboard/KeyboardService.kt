@@ -384,42 +384,57 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                 is Action.ToggleWordCase -> {
                                     currentCursorPosition(SearchDirection.Backwards)?.let { currentPos ->
-                                        val wordLength = findBoundary(TextBoundary.Word, SearchDirection.Backwards)
-                                        val newPos = currentPos + wordLength * SearchDirection.Backwards.factor
-
-                                        currentInputConnection.setSelection(newPos, newPos)
-
-                                        val word =
-                                            currentInputConnection.getTextAfterCursor(wordLength, 0)?.toString() ?: ""
-
                                         currentInputConnection.beginBatchEdit()
 
-                                        fun changeWord(op: String.() -> String) {
-                                            currentInputConnection.deleteSurroundingText(0, wordLength)
-                                            currentInputConnection.commitText(word.op(), 1)
+                                        val posInWord = findBoundary(
+                                            TextBoundary.Word,
+                                            SearchDirection.Backwards
+                                        )
+                                        val startPosOfWord =
+                                            currentPos + posInWord * SearchDirection.Backwards.factor
+
+                                        currentInputConnection.setSelection(
+                                            startPosOfWord,
+                                            startPosOfWord
+                                        )
+                                        val wordLength = findBoundary(
+                                            TextBoundary.Word,
+                                            SearchDirection.Forwards
+                                        )
+
+                                        val word =
+                                            currentInputConnection.getTextAfterCursor(wordLength, 0)
+                                                ?.toString() ?: ""
+
+
+                                        fun replaceWord(newWord: String) {
+                                            currentInputConnection.deleteSurroundingText(
+                                                0,
+                                                wordLength
+                                            )
+                                            currentInputConnection.commitText(newWord, 1)
                                         }
 
-                                        if (word.uppercase() == word) {
-                                            if (action.state == CaseChangeDirection.Down) {
-                                                changeWord { lowercase().capitalize(Locale.current) }
+                                        val lowercase = word.lowercase()
+                                        val titlecase = lowercase.capitalize(Locale.current)
+                                        val uppercase = word.uppercase()
+                                        when (action.direction) {
+                                            CaseChangeDirection.Up -> when (word) {
+                                                uppercase -> {}
+                                                lowercase -> replaceWord(titlecase)
+                                                else -> replaceWord(uppercase)
                                             }
-                                        } else if (word.lowercase() == word) {
-                                            if (action.state == CaseChangeDirection.Up) {
-                                                changeWord { capitalize(Locale.current) }
-                                            }
-                                        } else if (word.lowercase().capitalize(Locale.current) == word) {
-                                            if (action.state == CaseChangeDirection.Up) {
-                                                changeWord { uppercase() }
-                                            } else {
-                                                changeWord { lowercase() }
-                                            }
-                                        } else {
-                                            changeWord { lowercase().capitalize(Locale.current) }
-                                        }
 
-                                        currentInputConnection.endBatchEdit()
+                                            CaseChangeDirection.Down -> when (word) {
+                                                lowercase -> {}
+                                                titlecase -> replaceWord(lowercase)
+                                                else -> replaceWord(titlecase)
+                                            }
+                                        }
 
                                         currentInputConnection.setSelection(currentPos, currentPos)
+                                        currentInputConnection.endBatchEdit()
+
                                     }
                                 }
 
