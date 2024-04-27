@@ -162,6 +162,7 @@ val MESSAGEASE_SYMBOLS_LAYER = Layer(
                         Direction.TOP_RIGHT to Action.Text("º"),
                         Direction.LEFT to Action.Text("£"),
                         Direction.RIGHT to Action.Text("›"),
+                        Direction.BOTTOM_LEFT to Action.Text("¸"),
                         Direction.BOTTOM_RIGHT to Action.Text("»")
                     )
                 )
