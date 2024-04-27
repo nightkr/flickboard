@@ -65,8 +65,24 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
     override val savedStateRegistry: SavedStateRegistry =
         savedStateRegistryController.savedStateRegistry
 
-    // Not available in all apps, use the helpers instead of accessing directly
+    // Not available in all apps, use selection (or, preferably, the helpers)
+    // instead of accessing directly
     private var cursor: CursorAnchorInfo? = null
+
+    private fun selection(): IntRange? = when (val currentCursor = cursor) {
+        null -> {
+            // Some apps (such as Firefox) don't always support requestCursorUpdates,
+            // in those cases, fall back to making a synchronous getExtractedText request instead.
+            // getExtractedText can still fail for non-standard text editors that don't use a typical
+            // "selection" at all (like terminals).
+            currentInputConnection.getExtractedText(ExtractedTextRequest().also {
+                it.hintMaxChars = 1
+                it.hintMaxLines = 1
+            }, 0)?.let { it.selectionStart..it.selectionEnd }
+        }
+
+        else -> currentCursor.selectionStart..currentCursor.selectionEnd
+    }
 
     private var activeModifiers = ModifierState()
 
@@ -76,50 +92,21 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         BufferUnavailable,
     }
 
-    private fun selectionSize(): SelectionSize {
-        fun fromIsNonEmpty(isNonEmpty: Boolean) = when {
-            isNonEmpty -> SelectionSize.NonEmpty
-            else -> SelectionSize.Empty
-        }
-        return when (val currentCursor = cursor) {
-            null -> {
-                // Some apps (such as Firefox) don't always support requestCursorUpdates,
-                // in those cases, fall back to making a synchronous getExtractedText request instead.
-                val extractedText =
-                    currentInputConnection.getExtractedText(ExtractedTextRequest().also {
-                        it.hintMaxChars = 1
-                        it.hintMaxLines = 1
-                    }, 0)
-                extractedText?.let { fromIsNonEmpty(it.selectionStart != it.selectionEnd) }
-                    ?: SelectionSize.BufferUnavailable
+    private fun selectionSize(): SelectionSize =
+        selection().let { selection ->
+            when {
+                selection == null -> SelectionSize.BufferUnavailable
+                selection.first == selection.last -> SelectionSize.Empty
+                else -> SelectionSize.NonEmpty
             }
-
-            else -> fromIsNonEmpty(currentCursor.selectionStart != currentCursor.selectionEnd)
         }
-    }
 
     // Returns null if the input buffer is unavailable
     private fun currentCursorPosition(direction: SearchDirection): Int? =
-        when (val currentCursor = cursor) {
-            null -> {
-                // Some apps (such as Firefox) don't always support requestCursorUpdates,
-                // in those cases, fall back to making a synchronous getExtractedText request instead.
-                val extractedText =
-                    currentInputConnection.getExtractedText(ExtractedTextRequest().also {
-                        it.hintMaxChars = 1
-                        it.hintMaxLines = 1
-                    }, 0)
-                extractedText?.let {
-                    it.startOffset + when (direction) {
-                        SearchDirection.Backwards -> it.selectionStart
-                        SearchDirection.Forwards -> it.selectionEnd
-                    }
-                }
-            }
-
-            else -> when (direction) {
-                SearchDirection.Backwards -> currentCursor.selectionStart
-                SearchDirection.Forwards -> currentCursor.selectionEnd
+        selection().let { selection ->
+            when (direction) {
+                SearchDirection.Backwards -> selection?.first
+                SearchDirection.Forwards -> selection?.last
             }
         }
 
@@ -383,32 +370,45 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 }
 
                                 is Action.ToggleWordCase -> {
-                                    currentCursorPosition(SearchDirection.Backwards)?.let { currentPos ->
+                                    selection()?.let { currentSelection ->
                                         currentInputConnection.beginBatchEdit()
 
-                                        val posInWord = findBoundary(
-                                            TextBoundary.Word,
-                                            SearchDirection.Backwards
-                                        )
-                                        val textAfterInWord = findBoundary(
-                                            TextBoundary.Word,
-                                            SearchDirection.Forwards
-                                        )
+                                        var prefixLength = 0
+                                        var suffixLength = 0
+                                        val word = when {
+                                            currentSelection.first == currentSelection.last -> {
+                                                val posInWord = findBoundary(
+                                                    TextBoundary.Word,
+                                                    SearchDirection.Backwards
+                                                )
+                                                val textAfterInWord = findBoundary(
+                                                    TextBoundary.Word,
+                                                    SearchDirection.Forwards
+                                                )
 
-                                        val prefix = currentInputConnection.getTextBeforeCursor(
-                                            posInWord,
-                                            0
-                                        )?.takeUnless { it.isBlank() }?.toString() ?: ""
-                                        val suffix = currentInputConnection.getTextAfterCursor(
-                                            textAfterInWord,
-                                            0
-                                        )?.takeUnless { it.isBlank() }?.toString() ?: ""
-                                        val word = prefix + suffix
+                                                val prefix =
+                                                    currentInputConnection.getTextBeforeCursor(
+                                                        posInWord,
+                                                        0
+                                                    )?.takeUnless { it.isBlank() }?.toString() ?: ""
+                                                val suffix =
+                                                    currentInputConnection.getTextAfterCursor(
+                                                        textAfterInWord,
+                                                        0
+                                                    )?.takeUnless { it.isBlank() }?.toString() ?: ""
+                                                prefixLength = prefix.length
+                                                suffixLength = suffix.length
+                                                prefix + suffix
+                                            }
+
+                                            else -> currentInputConnection.getSelectedText(0)
+                                                .toString()
+                                        }
 
                                         fun replaceWord(newWord: String) {
                                             currentInputConnection.deleteSurroundingText(
-                                                prefix.length,
-                                                suffix.length
+                                                prefixLength,
+                                                suffixLength
                                             )
                                             currentInputConnection.commitText(newWord, 1)
                                         }
@@ -430,7 +430,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             }
                                         }
 
-                                        currentInputConnection.setSelection(currentPos, currentPos)
+                                        currentInputConnection.setSelection(
+                                            currentSelection.first,
+                                            currentSelection.last
+                                        )
                                         currentInputConnection.endBatchEdit()
 
                                     }
