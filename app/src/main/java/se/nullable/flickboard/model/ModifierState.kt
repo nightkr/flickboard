@@ -42,3 +42,4 @@ enum class ShiftState {
         else -> this
     }
 }
+

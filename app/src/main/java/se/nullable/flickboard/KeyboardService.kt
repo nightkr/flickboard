@@ -25,6 +25,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.intl.Locale
 import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -36,6 +38,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import kotlinx.coroutines.launch
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.model.CaseChangeDirection
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.TextBoundary
@@ -63,8 +66,24 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
     override val savedStateRegistry: SavedStateRegistry =
         savedStateRegistryController.savedStateRegistry
 
-    // Not available in all apps, use the helpers instead of accessing directly
+    // Not available in all apps, use selection (or, preferably, the helpers)
+    // instead of accessing directly
     private var cursor: CursorAnchorInfo? = null
+
+    private fun selection(): IntRange? = when (val currentCursor = cursor) {
+        null -> {
+            // Some apps (such as Firefox) don't always support requestCursorUpdates,
+            // in those cases, fall back to making a synchronous getExtractedText request instead.
+            // getExtractedText can still fail for non-standard text editors that don't use a typical
+            // "selection" at all (like terminals).
+            currentInputConnection.getExtractedText(ExtractedTextRequest().also {
+                it.hintMaxChars = 1
+                it.hintMaxLines = 1
+            }, 0)?.let { it.selectionStart..it.selectionEnd }
+        }
+
+        else -> currentCursor.selectionStart..currentCursor.selectionEnd
+    }
 
     private var activeModifiers = ModifierState()
 
@@ -74,50 +93,21 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         BufferUnavailable,
     }
 
-    private fun selectionSize(): SelectionSize {
-        fun fromIsNonEmpty(isNonEmpty: Boolean) = when {
-            isNonEmpty -> SelectionSize.NonEmpty
-            else -> SelectionSize.Empty
-        }
-        return when (val currentCursor = cursor) {
-            null -> {
-                // Some apps (such as Firefox) don't always support requestCursorUpdates,
-                // in those cases, fall back to making a synchronous getExtractedText request instead.
-                val extractedText =
-                    currentInputConnection.getExtractedText(ExtractedTextRequest().also {
-                        it.hintMaxChars = 1
-                        it.hintMaxLines = 1
-                    }, 0)
-                extractedText?.let { fromIsNonEmpty(it.selectionStart != it.selectionEnd) }
-                    ?: SelectionSize.BufferUnavailable
+    private fun selectionSize(): SelectionSize =
+        selection().let { selection ->
+            when {
+                selection == null -> SelectionSize.BufferUnavailable
+                selection.first == selection.last -> SelectionSize.Empty
+                else -> SelectionSize.NonEmpty
             }
-
-            else -> fromIsNonEmpty(currentCursor.selectionStart != currentCursor.selectionEnd)
         }
-    }
 
     // Returns null if the input buffer is unavailable
     private fun currentCursorPosition(direction: SearchDirection): Int? =
-        when (val currentCursor = cursor) {
-            null -> {
-                // Some apps (such as Firefox) don't always support requestCursorUpdates,
-                // in those cases, fall back to making a synchronous getExtractedText request instead.
-                val extractedText =
-                    currentInputConnection.getExtractedText(ExtractedTextRequest().also {
-                        it.hintMaxChars = 1
-                        it.hintMaxLines = 1
-                    }, 0)
-                extractedText?.let {
-                    it.startOffset + when (direction) {
-                        SearchDirection.Backwards -> it.selectionStart
-                        SearchDirection.Forwards -> it.selectionEnd
-                    }
-                }
-            }
-
-            else -> when (direction) {
-                SearchDirection.Backwards -> currentCursor.selectionStart
-                SearchDirection.Forwards -> currentCursor.selectionEnd
+        selection().let { selection ->
+            when (direction) {
+                SearchDirection.Backwards -> selection?.first
+                SearchDirection.Forwards -> selection?.last
             }
         }
 
@@ -397,6 +387,76 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 newPos
                                             )
                                         }
+                                    }
+                                }
+
+                                is Action.ToggleWordCase -> {
+                                    selection()?.let { currentSelection ->
+                                        currentInputConnection.beginBatchEdit()
+
+                                        var prefixLength = 0
+                                        var suffixLength = 0
+                                        val word = when {
+                                            currentSelection.first == currentSelection.last -> {
+                                                val posInWord = findBoundary(
+                                                    TextBoundary.Word,
+                                                    SearchDirection.Backwards
+                                                )
+                                                val textAfterInWord = findBoundary(
+                                                    TextBoundary.Word,
+                                                    SearchDirection.Forwards
+                                                )
+
+                                                val prefix =
+                                                    currentInputConnection.getTextBeforeCursor(
+                                                        posInWord,
+                                                        0
+                                                    )?.takeUnless { it.isBlank() }?.toString() ?: ""
+                                                val suffix =
+                                                    currentInputConnection.getTextAfterCursor(
+                                                        textAfterInWord,
+                                                        0
+                                                    )?.takeUnless { it.isBlank() }?.toString() ?: ""
+                                                prefixLength = prefix.length
+                                                suffixLength = suffix.length
+                                                prefix + suffix
+                                            }
+
+                                            else -> currentInputConnection.getSelectedText(0)
+                                                .toString()
+                                        }
+
+                                        fun replaceWord(newWord: String) {
+                                            currentInputConnection.deleteSurroundingText(
+                                                prefixLength,
+                                                suffixLength
+                                            )
+                                            currentInputConnection.commitText(newWord, 1)
+                                        }
+
+                                        val lowercase = word.lowercase()
+                                        val titlecase = lowercase.capitalize(Locale.current)
+                                        val uppercase = word.uppercase()
+                                        when (action.direction) {
+                                            CaseChangeDirection.Up -> when (word) {
+                                                uppercase -> {}
+                                                lowercase -> replaceWord(titlecase)
+                                                else -> replaceWord(uppercase)
+                                            }
+
+                                            CaseChangeDirection.Down -> when (word) {
+                                                lowercase -> {}
+                                                titlecase -> replaceWord(lowercase)
+                                                else -> replaceWord(titlecase)
+                                            }
+                                        }
+
+                                        currentInputConnection.setSelection(
+                                            currentSelection.first,
+                                            currentSelection.last
+                                        )
+                                        currentInputConnection.endBatchEdit()
+
                                     }
                                 }
 

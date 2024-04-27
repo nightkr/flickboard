@@ -60,7 +60,8 @@ data class KeyM(
     val fastActions: Map<Direction, Action> = mapOf(),
     val holdAction: Action? = null,
     val colspan: Int = 1,
-    val shift: KeyM? = null
+    val shift: KeyM? = null,
+    val transientShift: KeyM? = null
 ) {
     fun mergeFallback(fallback: KeyM): KeyM = copy(
         actions = fallback.actions + actions,
@@ -69,7 +70,8 @@ data class KeyM(
             fallback.shift == null -> shift
             else -> shift.mergeFallback(fallback.shift)
         },
-        holdAction = this.holdAction ?: fallback.holdAction ?: fallback.actions[Direction.CENTER]
+        holdAction = this.holdAction ?: fallback.holdAction ?: fallback.actions[Direction.CENTER],
+        transientShift = this.transientShift ?: fallback.transientShift
     )
 
     fun autoShift(): KeyM = (shift ?: this).copy(
@@ -171,6 +173,13 @@ sealed class Action {
                 else -> return this
             }
         }
+    }
+
+    /**
+     * Shift the case for the current word up/down one step (lower <-> Title <-> UPPER )
+     */
+    data class ToggleWordCase(val direction: CaseChangeDirection) : Action() {
+        override fun visual(modifier: ModifierState?): ActionVisual = ActionVisual.None
     }
 
     data object ToggleCtrl : Action() {
@@ -302,6 +311,8 @@ enum class SearchDirection(val factor: Int) {
     Forwards(factor = 1),
 }
 
+enum class CaseChangeDirection { Up, Down }
+
 enum class Direction {
     TOP_LEFT, TOP, TOP_RIGHT,
     LEFT, CENTER, RIGHT,
@@ -320,12 +331,12 @@ interface Gesture {
 
         fun resolveAction(key: KeyM): Action? = when {
             longHold -> key.holdAction
-            else -> {
-                when {
-                    shift -> key.shift
-                    else -> key
-                }?.actions?.get(direction)
-            }
+            else -> when {
+                shift -> key.transientShift?.actions?.get(direction)
+                    ?: key.shift?.actions?.get(direction)
+
+                else -> null
+            } ?: key.actions[direction]
         }
     }
 
