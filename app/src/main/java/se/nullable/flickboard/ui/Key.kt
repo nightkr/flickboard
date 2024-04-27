@@ -188,7 +188,7 @@ fun Key(
                         ?: emptyMap(),
                     onFastAction = handleAction,
                     trailListenerState = keyPointerTrailListener,
-                    gestureLibrary = gestureLibrary,
+                    gestureLibrary = { gestureLibrary },
                 )?.let { gesture ->
                     val flick =
                         gesture.toFlick(longHoldOnClockwiseCircle = key.holdAction != null && longHoldOnClockwiseCircle.value)
@@ -344,7 +344,9 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     onFastAction: (Action) -> Unit,
     // Passed as state to ensure that it's only grabbed once we have a down event
     trailListenerState: State<KeyPointerTrailListener?>,
-    gestureLibrary: GestureLibrary?,
+    // HACK: Taking it as a regular argument prevents the function from
+    // being loaded when the type is unavailable
+    gestureLibrary: () -> GestureLibrary?,
 ): Gesture? {
     val down = awaitFirstDown()
     down.consume()
@@ -411,7 +413,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                                     })
                                 )
                             }
-                        val predictions = gestureLibrary?.recognize(gesture)
+                        val predictions = gestureLibrary()?.recognize(gesture)
                         return Gesture.names[predictions?.firstOrNull()?.name]
                     }
 
