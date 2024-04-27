@@ -8,7 +8,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -44,7 +43,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.changedToUp
@@ -54,13 +52,13 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
-import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.delay
 import se.nullable.flickboard.R
 import se.nullable.flickboard.angle
@@ -76,6 +74,10 @@ import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.times
 import se.nullable.flickboard.ui.layout.KeyLabelGrid
+import se.nullable.flickboard.util.MaterialToneConfig
+import se.nullable.flickboard.util.toAccent
+import se.nullable.flickboard.util.toAccentContainer
+import se.nullable.flickboard.util.toOnAccentContainer
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.pow
@@ -111,28 +113,24 @@ fun Key(
     val enableHapticFeedback = settings.enableHapticFeedback.state
     val enableVisualFeedback = settings.enableVisualFeedback.state
     val keyColour = settings.keyColour.state
-    val isDark = isSystemInDarkTheme()
-    val keyColourRole = remember {
-        derivedStateOf {
-            keyColour.value?.let { colour ->
-                val hsv = FloatArray(3)
-                android.graphics.Color.colorToHSV(colour.toArgb(), hsv)
-                val muted = Color.hsv(hsv[0], 0.2F, 1F)
-                MaterialColors.getColorRoles(muted.toArgb(), !isDark)
-            }
-        }
-    }
+    val toneConfig = MaterialToneConfig.current
     val materialColourScheme = MaterialTheme.colorScheme
     val keySurfaceColour = remember {
         derivedStateOf {
-            keyColourRole.value?.accentContainer?.let(::Color)
+            keyColour.value?.toAccentContainer(toneConfig)
                 ?: materialColourScheme.primaryContainer
         }
     }
     val keyIndicatorColour = remember {
         derivedStateOf {
-            keyColourRole.value?.onAccentContainer?.let(::Color)
+            keyColour.value?.toOnAccentContainer(toneConfig)
                 ?: materialColourScheme.onPrimaryContainer
+        }
+    }
+    val activeKeyIndicatorColour = remember {
+        derivedStateOf {
+            keyColour.value?.toAccent(toneConfig)
+                ?: materialColourScheme.primary
         }
     }
     var lastActionTaken: TakenAction? by remember { mutableStateOf(null, neverEqualPolicy()) }
@@ -150,15 +148,20 @@ fun Key(
         }
     }
     val context = LocalContext.current
-    val gestureLibrary = remember(context) {
-        GestureLibraries.fromRawResource(context, R.raw.gestures)
-            .also {
-                // GestureLibrary.ORIENTATION_STYLE_8
-                // required for recognizing 8 orientations
-                // of otherwise equivalent gestures
-                it.orientationStyle = 8
-                it.load()
-            }
+    val view = LocalView.current
+    val gestureLibrary = remember(context, view) {
+        when {
+            // android.gesture is not available in preview mode
+            view.isInEditMode -> null
+            else -> GestureLibraries.fromRawResource(context, R.raw.gestures)
+                .also {
+                    // GestureLibrary.ORIENTATION_STYLE_8
+                    // required for recognizing 8 orientations
+                    // of otherwise equivalent gestures
+                    it.orientationStyle = 8
+                    it.load()
+                }
+        }
     }
     val onActionModifier = if (onAction != null) {
         val handleAction = { action: Action ->
@@ -189,18 +192,7 @@ fun Key(
                 )?.let { gesture ->
                     val flick =
                         gesture.toFlick(longHoldOnClockwiseCircle = key.holdAction != null && longHoldOnClockwiseCircle.value)
-                    val action = when {
-                        flick.longHold -> key.holdAction
-                        else -> {
-                            when {
-                                flick.shift -> key.transientShift?.actions?.get(flick.direction)
-                                    ?: key.shift?.actions?.get(flick.direction)
-
-                                else -> null
-                            } ?: key.actions[flick.direction]
-                        }
-                    }
-                    action?.let(handleAction)
+                    flick.resolveAction(key)?.let(handleAction)
                 }
             }
         }
@@ -238,6 +230,7 @@ fun Key(
                         enterKeyLabel = enterKeyLabel,
                         modifiers = modifierState,
                         colour = keyIndicatorColour.value,
+                        activeColour = activeKeyIndicatorColour.value,
                         modifier = actionModifier,
                     )
                 }
@@ -272,6 +265,7 @@ fun KeyActionTakenIndicator(
                 modifiers = null,
                 modifier = Modifier.align(Alignment.Center),
                 colour = MaterialTheme.colorScheme.onTertiary,
+                activeColour = MaterialTheme.colorScheme.onTertiary,
                 allowFade = false,
             )
         }
@@ -284,6 +278,7 @@ fun KeyActionIndicator(
     enterKeyLabel: String?,
     modifiers: ModifierState?,
     colour: Color,
+    activeColour: Color,
     modifier: Modifier = Modifier,
     allowFade: Boolean = true,
 ) {
@@ -291,6 +286,7 @@ fun KeyActionIndicator(
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
     val usedColour = when {
         action.actionClass == ActionClass.Symbol && allowFade -> colour.copy(alpha = 0.4F)
+        action.isActive(modifiers) -> activeColour
         else -> colour
     }
     when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
@@ -348,7 +344,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     onFastAction: (Action) -> Unit,
     // Passed as state to ensure that it's only grabbed once we have a down event
     trailListenerState: State<KeyPointerTrailListener?>,
-    gestureLibrary: GestureLibrary,
+    gestureLibrary: GestureLibrary?,
 ): Gesture? {
     val down = awaitFirstDown()
     down.consume()
@@ -415,8 +411,8 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                                     })
                                 )
                             }
-                        val predictions = gestureLibrary.recognize(gesture)
-                        return Gesture.names[predictions.firstOrNull()?.name]
+                        val predictions = gestureLibrary?.recognize(gesture)
+                        return Gesture.names[predictions?.firstOrNull()?.name]
                     }
 
                     GestureRecognizer.Default -> {

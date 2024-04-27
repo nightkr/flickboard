@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.inputmethodservice.InputMethodService
 import android.os.Build
+import android.text.InputType
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
 import android.view.View
@@ -40,12 +41,13 @@ import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.CaseChangeDirection
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.SearchDirection
-import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.ui.ConfiguredKeyboard
 import se.nullable.flickboard.ui.EnabledLayers
+import se.nullable.flickboard.ui.EnabledLayersLandscape
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
+import se.nullable.flickboard.ui.LocalDisplayLimits
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
 import se.nullable.flickboard.ui.voice.getVoiceInputId
@@ -55,7 +57,6 @@ import se.nullable.flickboard.util.singleCodePointOrNull
 import sharePointerInput
 import java.text.BreakIterator
 import kotlin.math.max
-import kotlin.math.min
 
 class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistryOwner {
     private val lifecycleRegistry = LifecycleRegistry(this)
@@ -119,7 +120,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                     keyAction,
                     keyCode,
                     0,
-                    0,
+                    activeModifiers.androidMetaState,
                     KeyCharacterMap.VIRTUAL_KEYBOARD,
                     0,
                     KeyEvent.FLAG_SOFT_KEYBOARD,
@@ -134,8 +135,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         // as a fallback.
         get() = field?.takeIf { currentCursorPosition(SearchDirection.Backwards) == it.position }
 
+    // Tracked variant of currentInputEditorInfo
+    private val editorInfo = mutableStateOf<EditorInfo?>(null)
+
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
+        editorInfo.value = attribute
         cursor = null
         var cursorUpdatesRequested = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 currentInputConnection.requestCursorUpdates(
@@ -167,6 +172,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                         val warningSnackbarHostState = remember { SnackbarHostState() }
                         val appSettings = LocalAppSettings.current
                         val periodOnDoubleSpace = appSettings.periodOnDoubleSpace.state
+                        val displayLimits = LocalDisplayLimits.current
                         val onAction: (Action) -> Unit = { action ->
                             warningMessageScope.launch {
                                 warningSnackbarHostState.currentSnackbarData?.dismiss()
@@ -174,49 +180,64 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                             when (action) {
                                 is Action.Text -> {
                                     var char = action.character
-                                    val combiner = when {
-                                        activeModifiers.zalgo -> char.asCombiningMarkOrNull()?.let {
-                                            LastTypedData.Combiner(
-                                                original = char,
-                                                combinedReplacement = it,
-                                                baseCharLength = 0
+                                    val rawKeyCode = when {
+                                        activeModifiers.useRawKeyEvent -> KeyEvent.keyCodeFromString(
+                                            "KEYCODE_${char.uppercase()}"
+                                        )
+
+                                        else -> KeyEvent.KEYCODE_UNKNOWN
+                                    }
+                                    when {
+                                        rawKeyCode != KeyEvent.KEYCODE_UNKNOWN ->
+                                            sendKeyPressEvents(rawKeyCode)
+
+                                        else -> {
+                                            val combiner = when {
+                                                activeModifiers.zalgo -> char.asCombiningMarkOrNull()
+                                                    ?.let {
+                                                        LastTypedData.Combiner(
+                                                            original = char,
+                                                            combinedReplacement = it,
+                                                            baseCharLength = 0
+                                                        )
+                                                    }
+
+                                                else -> lastTyped?.tryCombineWith(
+                                                    char,
+                                                    periodOnDoubleSpace = periodOnDoubleSpace.value,
+                                                )
+                                            }
+                                            if (combiner != null) {
+                                                char = combiner.combinedReplacement
+                                            }
+                                            val codePoint = char.singleCodePointOrNull()
+                                            val positionOfChar =
+                                                currentCursorPosition(SearchDirection.Backwards)
+                                                    ?.plus(char.length)
+                                                    ?.minus(combiner?.baseCharLength ?: 0)
+                                            lastTyped = when {
+                                                positionOfChar != null -> LastTypedData(
+                                                    codePoint = codePoint,
+                                                    position = positionOfChar,
+                                                    combiner = combiner
+                                                )
+
+                                                else -> null
+                                            }
+                                            currentInputConnection.beginBatchEdit()
+                                            if (combiner != null) {
+                                                currentInputConnection.deleteSurroundingText(
+                                                    combiner.baseCharLength,
+                                                    0
+                                                )
+                                            }
+                                            currentInputConnection.commitText(
+                                                char,
+                                                1
                                             )
+                                            currentInputConnection.endBatchEdit()
                                         }
-
-                                        else -> lastTyped?.tryCombineWith(
-                                            char,
-                                            periodOnDoubleSpace = periodOnDoubleSpace.value,
-                                        )
                                     }
-                                    if (combiner != null) {
-                                        char = combiner.combinedReplacement
-                                    }
-                                    val codePoint = char.singleCodePointOrNull()
-                                    val positionOfChar =
-                                        currentCursorPosition(SearchDirection.Backwards)
-                                            ?.plus(char.length)
-                                            ?.minus(combiner?.baseCharLength ?: 0)
-                                    lastTyped = when {
-                                        positionOfChar != null -> LastTypedData(
-                                            codePoint = codePoint,
-                                            position = positionOfChar,
-                                            combiner = combiner
-                                        )
-
-                                        else -> null
-                                    }
-                                    currentInputConnection.beginBatchEdit()
-                                    if (combiner != null) {
-                                        currentInputConnection.deleteSurroundingText(
-                                            combiner.baseCharLength,
-                                            0
-                                        )
-                                    }
-                                    currentInputConnection.commitText(
-                                        char,
-                                        1
-                                    )
-                                    currentInputConnection.endBatchEdit()
                                 }
 
                                 is Action.Delete -> {
@@ -267,15 +288,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 }
 
                                 is Action.Enter -> {
-                                    if (currentInputEditorInfo.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
+                                    val editorInfo = editorInfo.value
+                                    val imeOptions = editorInfo?.imeOptions ?: 0
+                                    if (imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
                                         currentInputConnection.commitText("\n", 1)
                                     } else {
                                         currentInputConnection.performEditorAction(
                                             when {
-                                                currentInputEditorInfo.actionLabel != null ->
-                                                    currentInputEditorInfo.actionId
-
-                                                else -> currentInputEditorInfo.imeOptions and
+                                                editorInfo?.actionLabel != null -> editorInfo.actionId
+                                                else -> imeOptions and
                                                         (EditorInfo.IME_ACTION_DONE or
                                                                 EditorInfo.IME_ACTION_GO or
                                                                 EditorInfo.IME_ACTION_NEXT or
@@ -485,22 +506,40 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             .mod(appSettings.letterLayers.currentValue.size)
                                 }
 
-                                Action.ToggleLayerOrder -> {
-                                    when (appSettings.enabledLayers.currentValue) {
-                                        EnabledLayers.Letters ->
-                                            appSettings.enabledLayers.currentValue =
-                                                EnabledLayers.Numbers
+                                Action.ToggleActiveLayer -> {
+                                    var hasToggled = false
+                                    val enabledLayersLandscape =
+                                        appSettings.enabledLayersLandscape.currentValue
+                                    when {
+                                        displayLimits?.isLandscape == true &&
+                                                enabledLayersLandscape is EnabledLayersLandscape.Set -> {
+                                            enabledLayersLandscape.setting.toggle?.let {
+                                                hasToggled = true
+                                                appSettings.enabledLayersLandscape.currentValue =
+                                                    EnabledLayersLandscape.Set(it)
+                                            }
+                                        }
 
-                                        EnabledLayers.Numbers ->
-                                            appSettings.enabledLayers.currentValue =
-                                                EnabledLayers.Letters
-
-                                        // Both layers are enabled, so switch their sides by toggling handedness
-                                        EnabledLayers.All, EnabledLayers.DoubleLetters,
-                                        EnabledLayers.AllMiniNumbers, EnabledLayers.AllMiniNumbersMiddle ->
-                                            appSettings.handedness.currentValue =
-                                                !appSettings.handedness.currentValue
+                                        else -> {
+                                            appSettings.enabledLayers.currentValue.toggle?.let {
+                                                hasToggled = true
+                                                appSettings.enabledLayers.currentValue = it
+                                            }
+                                        }
                                     }
+                                    if (!hasToggled) {
+                                        appSettings.handedness.currentValue =
+                                            !appSettings.handedness.currentValue
+                                    }
+                                }
+
+                                Action.ToggleHandedness -> {
+                                    appSettings.handedness.currentValue =
+                                        !appSettings.handedness.currentValue
+                                    appSettings.portraitLocation.currentValue =
+                                        -appSettings.portraitLocation.currentValue
+                                    appSettings.landscapeLocation.currentValue =
+                                        -appSettings.landscapeLocation.currentValue
                                 }
 
                                 is Action.AdjustCellHeight ->
@@ -538,19 +577,6 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         onAction = onAction,
                                         onModifierStateUpdated = { newModifiers ->
                                             if (newModifiers != activeModifiers) {
-                                                var modifierMask = when (newModifiers.shift) {
-                                                    ShiftState.Normal -> 0
-                                                    ShiftState.Shift -> KeyEvent.META_SHIFT_LEFT_ON
-                                                    ShiftState.CapsLock -> KeyEvent.META_CAPS_LOCK_ON
-                                                }
-                                                if (newModifiers.ctrl) {
-                                                    modifierMask =
-                                                        modifierMask or KeyEvent.META_CTRL_LEFT_ON
-                                                }
-                                                if (newModifiers.alt) {
-                                                    modifierMask =
-                                                        modifierMask or KeyEvent.META_ALT_LEFT_ON
-                                                }
                                                 fun newKeyEvent(
                                                     isDown: Boolean,
                                                     code: Int
@@ -564,8 +590,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                         },
                                                         code,
                                                         0,
-//                                                0,
-                                                        KeyEvent.normalizeMetaState(modifierMask),
+                                                        newModifiers.androidMetaState,
                                                         KeyCharacterMap.VIRTUAL_KEYBOARD,
                                                         0,
                                                         KeyEvent.FLAG_SOFT_KEYBOARD,
@@ -605,7 +630,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 activeModifiers = newModifiers
                                             }
                                         },
-                                        enterKeyLabel = currentInputEditorInfo.actionLabel?.toString(),
+                                        enterKeyLabel = editorInfo.value?.actionLabel?.toString(),
+                                        overrideEnabledLayers = when (editorInfo.value?.let { it.inputType and InputType.TYPE_MASK_CLASS }) {
+                                            InputType.TYPE_CLASS_NUMBER, InputType.TYPE_CLASS_PHONE -> EnabledLayers.Numbers
+                                            else -> null
+                                        }
                                     )
                                     SnackbarHost(
                                         warningSnackbarHostState,
@@ -656,8 +685,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         }
         if (coalesce && boundary != TextBoundary.Character) {
             val next = breakIterator.next(direction.factor)
-            if (next != BreakIterator.DONE &&
-                searchBuffer.subSequence(min(pos, next), max(pos, next)).isBlank()
+            if (next != BreakIterator.DONE
+                && searchBuffer.getOrNull(max(pos, next))?.isWhitespace() != false
             ) {
                 pos = next
             }

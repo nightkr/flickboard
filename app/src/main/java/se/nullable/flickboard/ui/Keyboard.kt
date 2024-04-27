@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.BiasAbsoluteAlignment
 import androidx.compose.ui.Modifier
@@ -42,6 +43,7 @@ import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ModifierState
+import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.MINI_NUMBERS_LAYER
@@ -57,10 +59,20 @@ fun Keyboard(
     enterKeyLabel: String? = null,
     onModifierStateUpdated: (ModifierState) -> Unit = {},
     showAllModifiers: Boolean = false,
+    overrideEnabledLayers: EnabledLayers? = null,
 ) {
     val context = LocalContext.current
     val appSettings = LocalAppSettings.current
-    val enabledLayers = appSettings.enabledLayers.state
+    val enabledLayersForCurrentOrientation = appSettings.enabledLayersForCurrentOrientation
+    val overrideEnabledLayersState = rememberUpdatedState(overrideEnabledLayers)
+    val enabledLayers = remember {
+        derivedStateOf {
+            when (val override = overrideEnabledLayersState.value) {
+                null -> enabledLayersForCurrentOrientation.value
+                else -> override
+            }
+        }
+    }
     val numericLayer = appSettings.numericLayer.state
     val secondaryLetterLayer = appSettings.secondaryLetterLayer.state
     val handedness = appSettings.handedness.state
@@ -75,34 +87,38 @@ fun Keyboard(
     }
     val mergedNumericLayer =
         remember { derivedStateOf { numericLayer.value.layer.mergeFallback(MESSAGEASE_SYMBOLS_LAYER) } }
-    val mainLayerOverlay =
-        remember { derivedStateOf { OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value) } }
-    val shiftLayer =
-        remember(layout) {
-            derivedStateOf {
-                layout.shiftLayer.mergeFallback(mainLayerOverlay.value.autoShift())
-                    .filterActions(
-                        shownActionClasses = shownActionClasses.value,
-                        enableHiddenActions = enableHiddenActions.value,
-                    )
+    val layersByShiftState = remember(layout) {
+        derivedStateOf {
+            val shift = layout.shiftLayer
+                .mergeFallback(
+                    OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value)
+                        .autoShift()
+                )
+            mapOf(
+                ShiftState.Normal to layout.mainLayer
+                    .mergeFallback(OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value))
+                    .setShift(shift),
+
+                ShiftState.Shift to shift,
+
+                // Don't shift numeric layer in caps lock
+                ShiftState.CapsLock to layout.shiftLayer
+                    .mergeFallback(
+                        OVERLAY_MESSAGEASE_LAYER
+                            .autoShift()
+                            .mergeFallback(mergedNumericLayer.value)
+                    ),
+            ).mapValues {
+                it.value.filterActions(
+                    shownActionClasses = shownActionClasses.value,
+                    enableHiddenActions = enableHiddenActions.value,
+                )
             }
         }
-    val mainLayer =
-        remember(layout) {
-            derivedStateOf {
-                layout.mainLayer.mergeFallback(mainLayerOverlay.value).setShift(shiftLayer.value)
-                    .filterActions(
-                        shownActionClasses = shownActionClasses.value,
-                        enableHiddenActions = enableHiddenActions.value,
-                    )
-            }
-        }
+    }
     val layer by remember(layout) {
         derivedStateOf {
-            val activeLayer = when {
-                modifierState.shift.isShifted -> shiftLayer.value
-                else -> mainLayer.value
-            }
+            val activeLayer = layersByShiftState.value[modifierState.shift]!!
             listOfNotNull(
                 when (enabledLayers.value) {
                     EnabledLayers.All -> mergedNumericLayer.value
@@ -220,49 +236,51 @@ fun Keyboard(
             rows = layer.keyRows.map { row ->
                 {
                     row.forEach { key ->
-                        val keyPosition = remember { mutableStateOf(Offset.Zero) }
-                        val keyPointerTrailListener = remember {
-                            derivedStateOf {
-                                when {
-                                    enablePointerTrail.value -> KeyPointerTrailListener(
-                                        onDown = {
-                                            activeKeyPosition = keyPosition
-                                            pointerTrailActive = true
-                                            pointerTrailRelativeToActiveKey = emptyList()
-                                        },
-                                        onUp = { pointerTrailActive = false },
-                                        onTrailUpdate = {
-                                            pointerTrailRelativeToActiveKey = it
-                                        },
-                                    )
+                        androidx.compose.runtime.key(key) {
+                            val keyPosition = remember { mutableStateOf(Offset.Zero) }
+                            val keyPointerTrailListener = remember {
+                                derivedStateOf {
+                                    when {
+                                        enablePointerTrail.value -> KeyPointerTrailListener(
+                                            onDown = {
+                                                activeKeyPosition = keyPosition
+                                                pointerTrailActive = true
+                                                pointerTrailRelativeToActiveKey = emptyList()
+                                            },
+                                            onUp = { pointerTrailActive = false },
+                                            onTrailUpdate = {
+                                                pointerTrailRelativeToActiveKey = it
+                                            },
+                                        )
 
-                                    else -> null
+                                        else -> null
+                                    }
                                 }
                             }
-                        }
-                        Key(
-                            key,
-                            onAction = onAction?.let { onAction ->
-                                { action ->
-                                    modifierState = when (action) {
-                                        is Action.ToggleShift -> modifierState.copy(shift = action.state)
-                                        Action.ToggleCtrl -> modifierState.copy(ctrl = !modifierState.ctrl)
-                                        Action.ToggleAlt -> modifierState.copy(alt = !modifierState.alt)
-                                        Action.ToggleZalgo -> modifierState.copy(zalgo = !modifierState.zalgo)
-                                        else -> modifierState.next()
+                            Key(
+                                key,
+                                onAction = onAction?.let { onAction ->
+                                    { action ->
+                                        modifierState = when (action) {
+                                            is Action.ToggleShift -> modifierState.copy(shift = action.state)
+                                            Action.ToggleCtrl -> modifierState.copy(ctrl = !modifierState.ctrl)
+                                            Action.ToggleAlt -> modifierState.copy(alt = !modifierState.alt)
+                                            Action.ToggleZalgo -> modifierState.copy(zalgo = !modifierState.zalgo)
+                                            else -> modifierState.next()
+                                        }
+                                        onAction(action)
                                     }
-                                    onAction(action)
-                                }
-                            },
-                            modifierState = modifierState.takeUnless { showAllModifiers },
-                            modifier = Modifier
-                                .colspan(key.colspan)
-                                .onGloballyPositioned {
-                                    keyPosition.value = it.positionInRoot() - globalPosition
                                 },
-                            enterKeyLabel = enterKeyLabel,
-                            keyPointerTrailListener = keyPointerTrailListener
-                        )
+                                modifierState = modifierState.takeUnless { showAllModifiers },
+                                modifier = Modifier
+                                    .colspan(key.colspan)
+                                    .onGloballyPositioned {
+                                        keyPosition.value = it.positionInRoot() - globalPosition
+                                    },
+                                enterKeyLabel = enterKeyLabel,
+                                keyPointerTrailListener = keyPointerTrailListener
+                            )
+                        }
                     }
                 }
             }
@@ -276,6 +294,7 @@ fun ConfiguredKeyboard(
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
     onModifierStateUpdated: (ModifierState) -> Unit = {},
+    overrideEnabledLayers: EnabledLayers? = null,
 ) {
     val appSettings = LocalAppSettings.current
     val enabledLetterLayers = appSettings.letterLayers.state.value
@@ -287,6 +306,7 @@ fun ConfiguredKeyboard(
         modifier = modifier,
         enterKeyLabel = enterKeyLabel,
         onModifierStateUpdated = onModifierStateUpdated,
+        overrideEnabledLayers = overrideEnabledLayers,
     )
 }
 

@@ -20,9 +20,9 @@ import se.nullable.flickboard.ui.Keyboard
 val SPACE = KeyM(
     actions = mapOf(
         Direction.CENTER to Action.Text(" "),
-        Direction.TOP_LEFT to Action.ToggleCtrl,
+        Direction.TOP_LEFT to Action.ToggleAlt,
         Direction.TOP to Action.ToggleShowSymbols,
-        Direction.TOP_RIGHT to Action.ToggleAlt,
+        Direction.TOP_RIGHT to Action.ToggleCtrl,
         Direction.LEFT to Action.Jump(direction = SearchDirection.Backwards),
         Direction.RIGHT to Action.Jump(direction = SearchDirection.Forwards),
     ),
@@ -40,7 +40,7 @@ val CONTROL_MESSAGEASE_LAYER =
             listOf(
                 KeyM(
                     actions = mapOf(
-                        Direction.CENTER to Action.ToggleLayerOrder,
+                        Direction.CENTER to Action.ToggleActiveLayer,
                         Direction.TOP to Action.AdjustCellHeight(amount = 1F),
                         Direction.RIGHT to Action.Settings,
                         Direction.BOTTOM_LEFT to Action.SwitchLetterLayer(SearchDirection.Backwards),

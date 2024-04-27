@@ -91,6 +91,7 @@ data class KeyM(
 
 sealed class Action {
     abstract fun visual(modifier: ModifierState?): ActionVisual
+    open fun isActive(modifier: ModifierState?): Boolean = false
     open val actionClass = ActionClass.Other
     open fun shift(): Action = this
     open fun hide(): Action = this
@@ -164,6 +165,8 @@ sealed class Action {
             ShiftState.CapsLock -> ActionVisual.Icon(R.drawable.baseline_keyboard_capslock_24)
         }
 
+        override fun isActive(modifier: ModifierState?): Boolean = state == modifier?.shift
+
         override fun shift(): Action {
             return when (state) {
                 ShiftState.Shift -> copy(state = ShiftState.CapsLock)
@@ -231,7 +234,24 @@ sealed class Action {
             ActionVisual.Icon(R.drawable.baseline_keyboard_24)
     }
 
-    data object ToggleLayerOrder : Action() {
+    /**
+     * Toggles which layer is "active"
+     *
+     * Intent: "I want easy access to the opposite layer with my current hand"
+     */
+    data object ToggleActiveLayer : Action() {
+        override fun visual(modifier: ModifierState?): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_flip_camera_android_24)
+
+        override fun shift(): Action = ToggleHandedness
+    }
+
+    /**
+     * Toggles between left- and right-handed mode
+     *
+     * Intent: "I want to switch the active hand comfortably"
+     */
+    data object ToggleHandedness : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_flip_camera_android_24)
     }
@@ -308,6 +328,16 @@ interface Gesture {
     data class Flick(val direction: Direction, val longHold: Boolean, val shift: Boolean) :
         Gesture {
         override fun toFlick(longHoldOnClockwiseCircle: Boolean): Flick = this
+
+        fun resolveAction(key: KeyM): Action? = when {
+            longHold -> key.holdAction
+            else -> when {
+                shift -> key.transientShift?.actions?.get(direction)
+                    ?: key.shift?.actions?.get(direction)
+
+                else -> null
+            } ?: key.actions[direction]
+        }
     }
 
     data class Circle(val direction: CircleDirection) : Gesture {

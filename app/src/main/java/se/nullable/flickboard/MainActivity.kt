@@ -3,6 +3,7 @@ package se.nullable.flickboard
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,8 +18,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -26,6 +29,7 @@ import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.SettingsHomePage
 import se.nullable.flickboard.ui.SettingsSectionPage
+import se.nullable.flickboard.ui.TutorialPage
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -46,12 +50,40 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 startDestination = "settings",
                             ) {
+                                composable("tutorial") {
+                                    Scaffold(topBar = {
+                                        TopAppBar(
+                                            title = {},
+                                            actions = {
+                                                Box(Modifier.clickable { navController.navigateUp() }) {
+                                                    Text("SKIP", Modifier.padding(8.dp))
+                                                }
+                                            })
+                                    }) { padding ->
+                                        TutorialPage(
+                                            onFinish = { navController.navigateUp() },
+                                            modifier = Modifier.padding(padding)
+                                        )
+                                    }
+                                }
                                 composable("settings") {
+                                    val hasCompletedTutorial = appSettings.hasCompletedTutorial
+                                    LaunchedEffect(hasCompletedTutorial.state.value) {
+                                        if (!hasCompletedTutorial.currentValue) {
+                                            hasCompletedTutorial.currentValue = true
+                                            navController.navigate("tutorial") {
+                                                anim {
+                                                    enter = 0
+                                                }
+                                            }
+                                        }
+                                    }
                                     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(id = R.string.app_name)) }) }) { padding ->
                                         SettingsHomePage(
                                             onNavigateToSection = { section ->
                                                 navController.navigate("settings/${section.key}")
                                             },
+                                            onNavigateToTutorial = { navController.navigate("tutorial") },
                                             modifier = Modifier.padding(padding)
                                         )
                                     }

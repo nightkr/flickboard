@@ -1,6 +1,7 @@
 package se.nullable.flickboard.ui
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -27,7 +28,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -41,6 +41,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -78,23 +79,36 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import se.nullable.flickboard.BuildConfig
 import se.nullable.flickboard.PiF
 import se.nullable.flickboard.R
 import se.nullable.flickboard.model.ActionClass
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
+import se.nullable.flickboard.model.layouts.DA_MESSAGEASE
 import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.EN_DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.ES_MESSAGEASE
+import se.nullable.flickboard.model.layouts.FR_EXT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.FR_MESSAGEASE
+import se.nullable.flickboard.model.layouts.HU_DT_MESSAGEASE
+import se.nullable.flickboard.model.layouts.HU_MESSAGEASE
+import se.nullable.flickboard.model.layouts.HU_MF_MESSAGEASE
+import se.nullable.flickboard.model.layouts.HU_UUP_MESSAGEASE
+import se.nullable.flickboard.model.layouts.IT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_CALCULATOR_LAYER
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_PHONE_LAYER
+import se.nullable.flickboard.model.layouts.PT_IOS_MESSAGEASE
+import se.nullable.flickboard.model.layouts.PT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.RU_MESSAGEASE
 import se.nullable.flickboard.model.layouts.RU_PHONETIC_MESSAGEASE
 import se.nullable.flickboard.model.layouts.SV_DE_MESSAGEASE
 import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
+import se.nullable.flickboard.model.layouts.TR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_MESSAGEASE
+import se.nullable.flickboard.model.layouts.UK_RU_MESSAGEASE
+import se.nullable.flickboard.ui.theme.Typography
 import se.nullable.flickboard.util.Boxed
 import java.io.FileOutputStream
 import kotlin.math.roundToInt
@@ -103,34 +117,90 @@ import kotlin.random.Random
 @Composable
 fun SettingsHomePage(
     onNavigateToSection: (SettingsSection) -> Unit,
+    onNavigateToTutorial: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val appSettings = LocalAppSettings.current
+    val tryText = remember {
+        mutableStateOf("")
+    }
+    val context = LocalContext.current
+    fun openUri(uri: Uri) {
+        context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+    }
     Column {
         LazyColumn(modifier.weight(1F)) {
             item {
                 OnboardingPrompt()
             }
+            item {
+                MenuPageLink(
+                    onClick = onNavigateToTutorial,
+                    icon = painterResource(R.drawable.baseline_checklist_24),
+                    label = "Tutorial"
+                )
+            }
+            item {
+                SettingsTitle("Settings")
+            }
             items(appSettings.all, key = { it.key }) { section ->
-                Box(Modifier.clickable { onNavigateToSection(section) }) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(8.dp)
-                    ) {
-                        Icon(painterResource(section.icon), null)
-                        Text(
-                            section.label,
-                            Modifier
-                                .weight(1F)
-                                .padding(horizontal = 8.dp)
-                        )
-                        Icon(Icons.AutoMirrored.Default.ArrowForward, null)
-                    }
+                MenuPageLink(
+                    onClick = { onNavigateToSection(section) },
+                    icon = painterResource(section.icon),
+                    label = section.label
+                )
+            }
+            item {
+                TextField(
+                    value = tryText.value,
+                    onValueChange = { tryText.value = it },
+                    label = { Text("Type here to try FlickBoard") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp)
+                )
+            }
+            item {
+                SettingsTitle("About")
+                val variant = when {
+                    BuildConfig.BUILD_TYPE == "release" -> ""
+                    BuildConfig.FLAVOR == "screengrab" -> ""
+                    else -> " (${BuildConfig.BUILD_TYPE})"
                 }
+                Text(
+                    "FlickBoard v${BuildConfig.VERSION_NAME}$variant",
+                    modifier = Modifier.padding(8.dp)
+                )
+                MenuPageLink(
+                    onClick = { openUri(Uri.parse("https://discord.gg/tVp8MGaeUr")) },
+                    icon = painterResource(R.drawable.baseline_chat_24),
+                    label = "Discuss on Discord",
+                )
+                MenuPageLink(
+                    onClick = { openUri(Uri.parse("https://github.com/nightkr/flickboard")) },
+                    icon = painterResource(id = R.drawable.baseline_code_24),
+                    label = "View Source on GitHub"
+                )
+                MenuPageLink(
+                    onClick = { openUri(Uri.parse("https://github.com/nightkr/flickboard/issues")) },
+                    icon = painterResource(id = R.drawable.baseline_bug_report_24),
+                    label = "Report Bugs on GitHub"
+                )
             }
         }
         SettingsKeyboardPreview()
     }
+}
+
+@Composable
+fun SettingsTitle(text: String) {
+    Text(
+        text,
+        style = Typography.titleLarge,
+        modifier = Modifier
+            .padding(8.dp)
+            .padding(top = 16.dp)
+    )
 }
 
 @Composable
@@ -165,7 +235,7 @@ fun SettingsKeyboardPreview() {
             Column {
                 Text(
                     text = "Preview keyboard",
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.padding(8.dp)
                 )
                 ProvideDisplayLimits {
@@ -251,6 +321,7 @@ fun <T : Labeled> EnumListSetting(setting: Setting.EnumList<T>) {
             setting.writeTo(prefs, listOf(option))
         },
         previewOverride = null,
+        previewForceLandscape = false,
     )
 }
 
@@ -271,6 +342,7 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
             setting.writeTo(prefs, option)
         },
         previewOverride = setting.previewOverride,
+        previewForceLandscape = setting.previewForceLandscape,
     )
 }
 
@@ -379,6 +451,7 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
     collapseOnOptionSelected: Boolean,
     writePreviewSettings: (SharedPreferences, T) -> Unit,
     previewOverride: (@Composable (T) -> Unit)?,
+    previewForceLandscape: Boolean,
 ) {
     val sheetState = rememberModalBottomSheetState()
     var expanded by remember { mutableStateOf(false) }
@@ -450,9 +523,13 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
                                         .also { writePreviewSettings(it, option) }
                                 }
                                 AppSettingsProvider(prefs) {
-                                    when {
-                                        previewOverride != null -> previewOverride(option)
-                                        else -> ConfiguredKeyboard(onAction = null)
+                                    ProvideDisplayLimits(DisplayLimits.calculateCurrent().let {
+                                        it.copy(isLandscape = previewForceLandscape || it.isLandscape)
+                                    }) {
+                                        when {
+                                            previewOverride != null -> previewOverride(option)
+                                            else -> ConfiguredKeyboard(onAction = null)
+                                        }
                                     }
                                 }
                             }
@@ -504,7 +581,7 @@ fun SettingsHomePreview() {
         Surface {
             SettingsHomePage(
                 onNavigateToSection = {},
-//                modifier = Modifier.width(1000.dp)
+                onNavigateToTutorial = {},
             )
         }
     }
@@ -542,6 +619,14 @@ fun AppSettingsProvider(prefs: SharedPreferences? = null, content: @Composable (
 }
 
 class AppSettings(val ctx: SettingsContext) {
+    // Intentionally not rendered
+    val hasCompletedTutorial = Setting.Bool(
+        key = "hasCompletedTutorial",
+        label = "Has completed tutorial",
+        defaultValue = false,
+        ctx = ctx
+    )
+
     val letterLayers = Setting.EnumList(
         // Renaming this would reset the people's selected layer..
         key = "layout",
@@ -600,6 +685,34 @@ class AppSettings(val ctx: SettingsContext) {
         fromString = EnabledLayers::valueOf,
         ctx = ctx
     )
+
+    val enabledLayersLandscape = Setting.Enum(
+        key = "enabledLayersLandscape",
+        label = "Enabled layers (landscape)",
+        defaultValue = EnabledLayersLandscape.Inherit,
+        options = EnabledLayersLandscape.entries,
+        fromString = EnabledLayersLandscape::valueOf,
+        ctx = ctx,
+        previewForceLandscape = true,
+    )
+
+    val enabledLayersForCurrentOrientation: State<EnabledLayers>
+        @Composable get() = when {
+            LocalDisplayLimits.current?.isLandscape == true -> {
+                val landscape = enabledLayersLandscape.state
+                val portrait = enabledLayers.state
+                remember {
+                    derivedStateOf {
+                        when (val landscapeValue = landscape.value) {
+                            is EnabledLayersLandscape.Set -> landscapeValue.setting
+                            EnabledLayersLandscape.Inherit -> portrait.value
+                        }
+                    }
+                }
+            }
+
+            else -> enabledLayers.state
+        }
 
     val handedness = Setting.Enum(
         key = "handedness",
@@ -794,7 +907,7 @@ class AppSettings(val ctx: SettingsContext) {
         key = "keyHeight",
         label = "Key height",
         defaultValue = 72F,
-        range = 48F..96F,
+        range = 48F..128F,
         ctx = ctx
     )
 
@@ -879,6 +992,7 @@ class AppSettings(val ctx: SettingsContext) {
                     secondaryLetterLayer,
                     numericLayer,
                     enabledLayers,
+                    enabledLayersLandscape,
                     handedness,
                     landscapeLocation,
                     landscapeScale,
@@ -947,7 +1061,33 @@ enum class EnabledLayers(override val label: String) : Labeled {
     Numbers("Numbers only"),
     DoubleLetters("Double letters"),
     AllMiniNumbers("All (mini numbers)"),
-    AllMiniNumbersMiddle("All (mini numbers in middle)"),
+    AllMiniNumbersMiddle("All (mini numbers in middle)");
+
+    val toggle: EnabledLayers?
+        get() = when (this) {
+            Letters -> Numbers
+            Numbers -> Letters
+            else -> null
+        }
+}
+
+sealed interface EnabledLayersLandscape : Labeled {
+    data class Set(val setting: EnabledLayers) : EnabledLayersLandscape {
+        override val label: String = setting.label
+        override fun toString(): String = setting.toString()
+    }
+
+    data object Inherit : EnabledLayersLandscape {
+        override val label: String = "Same as portrait"
+    }
+
+    companion object {
+        val entries = listOf(Inherit) + EnabledLayers.entries.map(::Set)
+        fun valueOf(str: String): EnabledLayersLandscape = when (str) {
+            "Inherit" -> Inherit
+            else -> Set(EnabledLayers.valueOf(str))
+        }
+    }
 }
 
 enum class Handedness(override val label: String) : Labeled {
@@ -961,16 +1101,27 @@ enum class Handedness(override val label: String) : Labeled {
 }
 
 enum class LetterLayerOption(override val label: String, val layout: Layout) : Labeled {
+    Danish("Danish (MessagEase)", DA_MESSAGEASE),
     English("English (MessagEase)", EN_MESSAGEASE),
     German("German (MessagEase)", DE_MESSAGEASE),
     GermanEnglish("German/English (MessagEase)", EN_DE_MESSAGEASE),
+    Hungarian("Hungarian (MessagEase)", HU_MESSAGEASE),
+    HungarianDT("Hungarian (MessagEase, by Dániel Tenke)", HU_DT_MESSAGEASE),
+    HungarianMF("Hungarian (MessagEase, by Máté Farkas)", HU_MF_MESSAGEASE),
+    HungarianUUp("Hungarian (MessagEase, U always up)", HU_UUP_MESSAGEASE),
+    Italian("Italian (MessagEase)", IT_MESSAGEASE),
+    Portuguese("Portuguese (MessagEase)", PT_MESSAGEASE),
+    PortugueseIos("Portuguese (MessagEase, iOS)", PT_IOS_MESSAGEASE),
     Russian("Russian (MessagEase)", RU_MESSAGEASE),
     RussianPhonetic("Russian phonetic (MessagEase)", RU_PHONETIC_MESSAGEASE),
     Spanish("Spanish (MessagEase)", ES_MESSAGEASE),
     Swedish("Swedish (MessagEase)", SV_MESSAGEASE),
     SwedishDE("Swedish (MessagEase, German-style)", SV_DE_MESSAGEASE),
+    Turkish("Turkish (MessagEase)", TR_MESSAGEASE),
     Ukrainian("Ukrainian (MessagEase)", UK_MESSAGEASE),
+    UkrainianRussian("Ukrainian Russian (MessagEase)", UK_RU_MESSAGEASE),
     French("French (MessagEase)", FR_MESSAGEASE),
+    FrenchExt("French (Extended MessagEase)", FR_EXT_MESSAGEASE),
 }
 
 enum class NumericLayerOption(override val label: String, val layer: Layer) : Labeled {
@@ -1112,6 +1263,7 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         override val description: String? = null,
         val writePreviewSettings: (SharedPreferences) -> Unit = {},
         val previewOverride: (@Composable (T) -> Unit)? = null,
+        val previewForceLandscape: Boolean = false,
     ) : Setting<T>(ctx) {
         override fun readFrom(prefs: SharedPreferences): T =
             prefs.getString(key, null)?.let(fromString) ?: defaultValue
