@@ -7,6 +7,8 @@ class AndroidKeycodeMapper {
     private val keycodesByChar =
         KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD).let { charMap ->
             (0..KeyEvent.getMaxKeyCode())
+                // Prefer lower keyevent codes, since they're more likely to be expected
+                .reversed()
                 .associateBy { keyCode ->
                     (charMap.get(keyCode, 0) and KeyCharacterMap.COMBINING_ACCENT.inv())
                         .toChar().lowercaseChar()
