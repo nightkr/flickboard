@@ -180,10 +180,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                             warningMessageScope.launch {
                                 warningSnackbarHostState.currentSnackbarData?.dismiss()
                             }
-                            fun typeText(text: String) {
+                            fun typeText(text: String, forceRawKeyEvent: Boolean = false) {
                                 var char = text
                                 val rawKeyCode = when {
-                                    activeModifiers.useRawKeyEvent -> char.singleOrNull()
+                                    forceRawKeyEvent || activeModifiers.useRawKeyEvent -> char.singleOrNull()
                                         ?.let(keycodeMapper::keycodeForChar)
                                         ?: KeyEvent.KEYCODE_UNKNOWN
 
@@ -243,7 +243,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                             }
                             when (action) {
-                                is Action.Text -> typeText(action.character)
+                                is Action.Text -> typeText(
+                                    action.character,
+                                    forceRawKeyEvent = action.forceRawKeyEvent
+                                )
 
                                 is Action.Delete -> {
                                     when {

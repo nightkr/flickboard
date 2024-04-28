@@ -118,6 +118,7 @@ val MESSAGEASE_SYMBOLS_LAYER = Layer(
                     Direction.RIGHT to Action.Text("*"),
                     Direction.BOTTOM_RIGHT to Action.Text(
                         "\t",
+                        forceRawKeyEvent = true,
                         visualOverride = ActionVisual.Icon(R.drawable.baseline_keyboard_tab_24)
                     ),
                 ),

@@ -100,6 +100,7 @@ sealed class Action {
 
     data class Text(
         val character: String,
+        val forceRawKeyEvent: Boolean = false,
         val visualOverride: ActionVisual? = null,
     ) : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual =
