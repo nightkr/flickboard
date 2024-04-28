@@ -9,9 +9,9 @@ import se.nullable.flickboard.util.hct.HctSolver
 
 private const val customColourChroma: Int = 20
 
-private fun Color.toHct(): Hct = Hct.fromInt(toArgb())
-fun colourOfHctHue(hue: Int): Color = Color(HctSolver.solveToInt(hue.toDouble(), 100.0, 50.0))
-private fun Hct.toColour(): Color = Color(toInt())
+fun Color.toHct(): Hct = Hct.fromInt(toArgb())
+fun colourOfHctHue(hue: Int): Color = Color(HctSolver.solveToInt(hue.toDouble(), 60.0, 50.0))
+fun Hct.toColour(): Color = Color(toInt())
 
 data class MaterialToneConfig(
     val accent: Int,
@@ -39,9 +39,15 @@ data class MaterialToneConfig(
 
 private fun Color.hctSetCt(chroma: Int, tone: Int): Color =
     toHct().also {
-        it.chroma = chroma.toDouble()
+//        it.chroma = chroma.toDouble()
         it.tone = tone.toDouble()
     }.toColour()
+
+fun Color.hctSetHue(hue: Double): Color =
+    toHct().also { it.hue = hue }.toColour()
+
+fun Color.hctSetChroma(chroma: Double): Color =
+    toHct().also { it.chroma = chroma }.toColour()
 
 fun Color.toAccent(toneConfig: MaterialToneConfig) =
     hctSetCt(chroma = customColourChroma, toneConfig.accent)

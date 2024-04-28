@@ -93,6 +93,7 @@ import se.nullable.flickboard.model.layouts.ES_MESSAGEASE
 import se.nullable.flickboard.model.layouts.FR_EXT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.FR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.FR_PUNC_MESSAGEASE
+import se.nullable.flickboard.model.layouts.HEB_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_DT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_MF_MESSAGEASE
@@ -109,7 +110,6 @@ import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import se.nullable.flickboard.model.layouts.TR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_RU_MESSAGEASE
-import se.nullable.flickboard.model.layouts.HEB_MESSAGEASE
 import se.nullable.flickboard.ui.theme.Typography
 import se.nullable.flickboard.util.Boxed
 import java.io.FileOutputStream
@@ -431,8 +431,9 @@ fun ColourSetting(setting: Setting.Colour) {
             }
             AnimatedVisibility(expanded.value, Modifier.align(Alignment.CenterHorizontally)) {
                 ColourPicker(
+                    colour = setting.state.value ?: Color.Red,
                     onColourSelected = { setting.currentValue = it },
-                    Modifier
+                    modifier = Modifier
                         .sizeIn(maxHeight = 200.dp)
                         .padding(horizontal = 16.dp)
                 )
