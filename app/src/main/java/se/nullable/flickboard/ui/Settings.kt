@@ -93,6 +93,7 @@ import se.nullable.flickboard.model.layouts.ES_MESSAGEASE
 import se.nullable.flickboard.model.layouts.FR_EXT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.FR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.FR_PUNC_MESSAGEASE
+import se.nullable.flickboard.model.layouts.HEB_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_DT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_MF_MESSAGEASE
@@ -109,7 +110,6 @@ import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import se.nullable.flickboard.model.layouts.TR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_RU_MESSAGEASE
-import se.nullable.flickboard.model.layouts.HEB_MESSAGEASE
 import se.nullable.flickboard.ui.theme.Typography
 import se.nullable.flickboard.util.Boxed
 import java.io.FileOutputStream
@@ -850,6 +850,14 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Key colour",
         ctx = ctx
     )
+    val keyColourChroma = Setting.FloatSlider(
+        key = "keyColourChroma",
+        label = "Key colour saturation",
+        defaultValue = 20F,
+        range = 0F..100F,
+        ctx = ctx,
+        description = "Only applies when using a custom colour"
+    )
 
     val keyOpacity = Setting.FloatSlider(
         key = "keyOpacity",
@@ -1013,6 +1021,7 @@ class AppSettings(val ctx: SettingsContext) {
                     actionVisualBiasCenter,
                     actionVisualScale,
                     keyColour,
+                    keyColourChroma,
                     keyOpacity,
                     backgroundOpacity,
                     backgroundImage,

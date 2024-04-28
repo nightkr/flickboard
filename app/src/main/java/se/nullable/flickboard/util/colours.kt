@@ -7,8 +7,6 @@ import androidx.compose.ui.graphics.toArgb
 import se.nullable.flickboard.util.hct.Hct
 import se.nullable.flickboard.util.hct.HctSolver
 
-private const val customColourChroma: Int = 20
-
 private fun Color.toHct(): Hct = Hct.fromInt(toArgb())
 fun colourOfHctHue(hue: Int): Color = Color(HctSolver.solveToInt(hue.toDouble(), 100.0, 50.0))
 private fun Hct.toColour(): Color = Color(toInt())
@@ -37,20 +35,25 @@ data class MaterialToneConfig(
     }
 }
 
-private fun Color.hctSetCt(chroma: Int, tone: Int): Color =
+private fun Color.hctRotateHue(hueOffset: Int): Color =
+    toHct().also { it.hue += hueOffset }.toColour()
+
+fun Color.toTertiary() = hctRotateHue(240)
+
+private fun Color.hctSetCt(chroma: Float, tone: Int): Color =
     toHct().also {
         it.chroma = chroma.toDouble()
         it.tone = tone.toDouble()
     }.toColour()
 
-fun Color.toAccent(toneConfig: MaterialToneConfig) =
-    hctSetCt(chroma = customColourChroma, toneConfig.accent)
+fun Color.toAccent(chroma: Float, toneConfig: MaterialToneConfig) =
+    hctSetCt(chroma = chroma, toneConfig.accent)
 
-fun Color.toOnAccent(toneConfig: MaterialToneConfig) =
-    hctSetCt(chroma = customColourChroma, toneConfig.onAccent)
+fun Color.toOnAccent(chroma: Float, toneConfig: MaterialToneConfig) =
+    hctSetCt(chroma = chroma, toneConfig.onAccent)
 
-fun Color.toAccentContainer(toneConfig: MaterialToneConfig) =
-    hctSetCt(chroma = customColourChroma, toneConfig.accentContainer)
+fun Color.toAccentContainer(chroma: Float, toneConfig: MaterialToneConfig) =
+    hctSetCt(chroma = chroma, toneConfig.accentContainer)
 
-fun Color.toOnAccentContainer(toneConfig: MaterialToneConfig) =
-    hctSetCt(chroma = customColourChroma, toneConfig.onAccentContainer)
+fun Color.toOnAccentContainer(chroma: Float, toneConfig: MaterialToneConfig) =
+    hctSetCt(chroma = chroma, toneConfig.onAccentContainer)

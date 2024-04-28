@@ -77,7 +77,9 @@ import se.nullable.flickboard.ui.layout.KeyLabelGrid
 import se.nullable.flickboard.util.MaterialToneConfig
 import se.nullable.flickboard.util.toAccent
 import se.nullable.flickboard.util.toAccentContainer
+import se.nullable.flickboard.util.toOnAccent
 import se.nullable.flickboard.util.toOnAccentContainer
+import se.nullable.flickboard.util.toTertiary
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.pow
@@ -113,24 +115,37 @@ fun Key(
     val enableHapticFeedback = settings.enableHapticFeedback.state
     val enableVisualFeedback = settings.enableVisualFeedback.state
     val keyColour = settings.keyColour.state
+    val keyColourChroma = settings.keyColourChroma.state
     val toneConfig = MaterialToneConfig.current
     val materialColourScheme = MaterialTheme.colorScheme
     val keySurfaceColour = remember {
         derivedStateOf {
-            keyColour.value?.toAccentContainer(toneConfig)
+            keyColour.value?.toAccentContainer(chroma = keyColourChroma.value, toneConfig)
                 ?: materialColourScheme.primaryContainer
         }
     }
     val keyIndicatorColour = remember {
         derivedStateOf {
-            keyColour.value?.toOnAccentContainer(toneConfig)
+            keyColour.value?.toOnAccentContainer(chroma = keyColourChroma.value, toneConfig)
                 ?: materialColourScheme.onPrimaryContainer
         }
     }
     val activeKeyIndicatorColour = remember {
         derivedStateOf {
-            keyColour.value?.toAccent(toneConfig)
+            keyColour.value?.toAccent(chroma = keyColourChroma.value, toneConfig)
                 ?: materialColourScheme.primary
+        }
+    }
+    val lastActionSurfaceColour = remember {
+        derivedStateOf {
+            keyColour.value?.toTertiary()?.toAccent(chroma = keyColourChroma.value, toneConfig)
+                ?: materialColourScheme.tertiary
+        }
+    }
+    val lastActionColour = remember {
+        derivedStateOf {
+            keyColour.value?.toTertiary()?.toOnAccent(chroma = keyColourChroma.value, toneConfig)
+                ?: materialColourScheme.onTertiary
         }
     }
     var lastActionTaken: TakenAction? by remember { mutableStateOf(null, neverEqualPolicy()) }
@@ -241,6 +256,8 @@ fun Key(
                 action = it.action,
                 enterKeyLabel = enterKeyLabel,
                 shape = shape,
+                colour = lastActionColour.value,
+                surfaceColour = lastActionSurfaceColour.value,
                 modifier = Modifier.alpha(lastActionAlpha.value),
             )
         }
@@ -255,17 +272,19 @@ fun KeyActionTakenIndicator(
     action: Action,
     enterKeyLabel: String?,
     shape: Shape,
+    colour: Color,
+    surfaceColour: Color,
     modifier: Modifier = Modifier
 ) {
-    Surface(color = MaterialTheme.colorScheme.tertiary, shape = shape, modifier = modifier) {
+    Surface(color = surfaceColour, shape = shape, modifier = modifier) {
         Box(Modifier.fillMaxSize()) {
             KeyActionIndicator(
                 action = action,
                 enterKeyLabel = enterKeyLabel,
                 modifiers = null,
                 modifier = Modifier.align(Alignment.Center),
-                colour = MaterialTheme.colorScheme.onTertiary,
-                activeColour = MaterialTheme.colorScheme.onTertiary,
+                colour = colour,
+                activeColour = colour,
                 allowFade = false,
             )
         }
@@ -562,6 +581,8 @@ fun KeyActionTakenPreview() {
                 KeyActionTakenIndicator(
                     action = Action.Text("A"),
                     enterKeyLabel = null,
+                    colour = MaterialTheme.colorScheme.onTertiary,
+                    surfaceColour = MaterialTheme.colorScheme.tertiary,
                     shape = RectangleShape,
                 )
             }
@@ -570,6 +591,8 @@ fun KeyActionTakenPreview() {
                 KeyActionTakenIndicator(
                     action = Action.Text("{"),
                     enterKeyLabel = null,
+                    colour = MaterialTheme.colorScheme.onTertiary,
+                    surfaceColour = MaterialTheme.colorScheme.tertiary,
                     shape = RectangleShape,
                 )
             }
