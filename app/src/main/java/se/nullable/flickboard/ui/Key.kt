@@ -34,6 +34,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,7 +75,6 @@ import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.times
 import se.nullable.flickboard.ui.layout.KeyLabelGrid
-import se.nullable.flickboard.util.MaterialToneConfig
 import se.nullable.flickboard.util.toAccent
 import se.nullable.flickboard.util.toAccentContainer
 import se.nullable.flickboard.util.toOnAccent
@@ -116,35 +116,38 @@ fun Key(
     val enableVisualFeedback = settings.enableVisualFeedback.state
     val keyColour = settings.keyColour.state
     val keyColourChroma = settings.keyColourChroma.state
-    val toneConfig = MaterialToneConfig.current
+    val toneMode = settings.keyColourTone.state
+    val toneConfig = rememberUpdatedState(toneMode.value.config)
     val materialColourScheme = MaterialTheme.colorScheme
     val keySurfaceColour = remember {
         derivedStateOf {
-            keyColour.value?.toAccentContainer(chroma = keyColourChroma.value, toneConfig)
+            keyColour.value?.toAccentContainer(chroma = keyColourChroma.value, toneConfig.value)
                 ?: materialColourScheme.primaryContainer
         }
     }
     val keyIndicatorColour = remember {
         derivedStateOf {
-            keyColour.value?.toOnAccentContainer(chroma = keyColourChroma.value, toneConfig)
+            keyColour.value?.toOnAccentContainer(chroma = keyColourChroma.value, toneConfig.value)
                 ?: materialColourScheme.onPrimaryContainer
         }
     }
     val activeKeyIndicatorColour = remember {
         derivedStateOf {
-            keyColour.value?.toAccent(chroma = keyColourChroma.value, toneConfig)
+            keyColour.value?.toAccent(chroma = keyColourChroma.value, toneConfig.value)
                 ?: materialColourScheme.primary
         }
     }
     val lastActionSurfaceColour = remember {
         derivedStateOf {
-            keyColour.value?.toTertiary()?.toAccent(chroma = keyColourChroma.value, toneConfig)
+            keyColour.value?.toTertiary()
+                ?.toAccent(chroma = keyColourChroma.value, toneConfig.value)
                 ?: materialColourScheme.tertiary
         }
     }
     val lastActionColour = remember {
         derivedStateOf {
-            keyColour.value?.toTertiary()?.toOnAccent(chroma = keyColourChroma.value, toneConfig)
+            keyColour.value?.toTertiary()
+                ?.toOnAccent(chroma = keyColourChroma.value, toneConfig.value)
                 ?: materialColourScheme.onTertiary
         }
     }

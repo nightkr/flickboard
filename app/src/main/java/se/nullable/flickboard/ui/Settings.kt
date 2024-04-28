@@ -112,6 +112,7 @@ import se.nullable.flickboard.model.layouts.UK_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_RU_MESSAGEASE
 import se.nullable.flickboard.ui.theme.Typography
 import se.nullable.flickboard.util.Boxed
+import se.nullable.flickboard.util.MaterialToneMode
 import java.io.FileOutputStream
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -856,7 +857,16 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = 20F,
         range = 0F..100F,
         ctx = ctx,
-        description = "Only applies when using a custom colour"
+        description = "Only applies when using a custom colour",
+    )
+    val keyColourTone = Setting.Enum<MaterialToneMode>(
+        key = "keyColourTone",
+        label = "Key colour brightness",
+        defaultValue = MaterialToneMode.System,
+        options = MaterialToneMode.entries,
+        fromString = MaterialToneMode::valueOf,
+        ctx = ctx,
+        description = "Only applies when using a custom colour",
     )
 
     val keyOpacity = Setting.FloatSlider(
@@ -1022,6 +1032,7 @@ class AppSettings(val ctx: SettingsContext) {
                     actionVisualScale,
                     keyColour,
                     keyColourChroma,
+                    keyColourTone,
                     keyOpacity,
                     backgroundOpacity,
                     backgroundImage,

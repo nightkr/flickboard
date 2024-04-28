@@ -4,12 +4,33 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import se.nullable.flickboard.ui.Labeled
 import se.nullable.flickboard.util.hct.Hct
 import se.nullable.flickboard.util.hct.HctSolver
 
 private fun Color.toHct(): Hct = Hct.fromInt(toArgb())
 fun colourOfHctHue(hue: Int): Color = Color(HctSolver.solveToInt(hue.toDouble(), 100.0, 50.0))
 private fun Hct.toColour(): Color = Color(toInt())
+
+enum class MaterialToneMode(override val label: String) : Labeled {
+    System("System"),
+    Light("Light"),
+    Dark("Dark"),
+    Midnight("Midnight");
+
+    val config: MaterialToneConfig
+        @Composable
+        get() = when (this) {
+            System -> when {
+                isSystemInDarkTheme() -> MaterialToneConfig.dark
+                else -> MaterialToneConfig.light
+            }
+
+            Light -> MaterialToneConfig.light
+            Dark -> MaterialToneConfig.dark
+            Midnight -> MaterialToneConfig.midnight
+        }
+}
 
 data class MaterialToneConfig(
     val accent: Int,
@@ -18,20 +39,16 @@ data class MaterialToneConfig(
     val onAccentContainer: Int
 ) {
     companion object {
-        // Constants from Google/Material Design 3
-        private val light = MaterialToneConfig(
+        // Constants based on Google/Material Design 3
+        val light = MaterialToneConfig(
             accent = 40, onAccent = 100, accentContainer = 90, onAccentContainer = 10
         )
-        private val dark = MaterialToneConfig(
+        val dark = MaterialToneConfig(
             accent = 80, onAccent = 20, accentContainer = 30, onAccentContainer = 90
         )
-
-        val current: MaterialToneConfig
-            @Composable
-            get() = when {
-                isSystemInDarkTheme() -> dark
-                else -> light
-            }
+        val midnight = MaterialToneConfig(
+            accent = 40, onAccent = 0, accentContainer = 0, onAccentContainer = 60
+        )
     }
 }
 
