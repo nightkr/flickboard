@@ -198,7 +198,9 @@ fun Keyboard(
             thisWidth = min(thisWidth, limits.portraitWidth)
         }
         thisWidth *= appSettings.currentScale
-        val backgroundColor = MaterialTheme.colorScheme.surface
+        val toneMode = appSettings.keyColourTone.state
+        val toneConfig = rememberUpdatedState(toneMode.value.config)
+        val backgroundColor = toneConfig.value.surfaceColour
         val backgroundImagePainter = remember {
             derivedStateOf {
                 try {

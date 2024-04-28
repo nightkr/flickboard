@@ -36,18 +36,21 @@ data class MaterialToneConfig(
     val accent: Int,
     val onAccent: Int,
     val accentContainer: Int,
-    val onAccentContainer: Int
+    val onAccentContainer: Int,
+    val surface: Int,
 ) {
+    val surfaceColour = Hct.from(0.0, 0.0, surface.toDouble()).toColour()
+
     companion object {
         // Constants based on Google/Material Design 3
         val light = MaterialToneConfig(
-            accent = 40, onAccent = 100, accentContainer = 90, onAccentContainer = 10
+            accent = 40, onAccent = 100, accentContainer = 90, onAccentContainer = 10, surface = 99
         )
         val dark = MaterialToneConfig(
-            accent = 80, onAccent = 20, accentContainer = 30, onAccentContainer = 90
+            accent = 80, onAccent = 20, accentContainer = 30, onAccentContainer = 90, surface = 10
         )
         val midnight = MaterialToneConfig(
-            accent = 40, onAccent = 0, accentContainer = 0, onAccentContainer = 60
+            accent = 40, onAccent = 0, accentContainer = 0, onAccentContainer = 60, surface = 0,
         )
     }
 }
