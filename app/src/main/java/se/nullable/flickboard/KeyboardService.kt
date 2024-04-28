@@ -51,6 +51,7 @@ import se.nullable.flickboard.ui.LocalDisplayLimits
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
 import se.nullable.flickboard.ui.voice.getVoiceInputId
+import se.nullable.flickboard.util.AndroidKeycodeMapper
 import se.nullable.flickboard.util.LastTypedData
 import se.nullable.flickboard.util.asCombiningMarkOrNull
 import se.nullable.flickboard.util.singleCodePointOrNull
@@ -65,6 +66,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
     override val savedStateRegistry: SavedStateRegistry =
         savedStateRegistryController.savedStateRegistry
+
+    val keycodeMapper = AndroidKeycodeMapper()
 
     // Not available in all apps, use selection (or, preferably, the helpers)
     // instead of accessing directly
@@ -177,68 +180,70 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                             warningMessageScope.launch {
                                 warningSnackbarHostState.currentSnackbarData?.dismiss()
                             }
-                            when (action) {
-                                is Action.Text -> {
-                                    var char = action.character
-                                    val rawKeyCode = when {
-                                        activeModifiers.useRawKeyEvent -> KeyEvent.keyCodeFromString(
-                                            "KEYCODE_${char.uppercase()}"
-                                        )
+                            fun typeText(text: String) {
+                                var char = text
+                                val rawKeyCode = when {
+                                    activeModifiers.useRawKeyEvent -> char.singleOrNull()
+                                        ?.let(keycodeMapper::keycodeForChar)
+                                        ?: KeyEvent.KEYCODE_UNKNOWN
 
-                                        else -> KeyEvent.KEYCODE_UNKNOWN
-                                    }
-                                    when {
-                                        rawKeyCode != KeyEvent.KEYCODE_UNKNOWN ->
-                                            sendKeyPressEvents(rawKeyCode)
+                                    else -> KeyEvent.KEYCODE_UNKNOWN
+                                }
+                                when {
+                                    rawKeyCode != KeyEvent.KEYCODE_UNKNOWN ->
+                                        sendKeyPressEvents(rawKeyCode)
 
-                                        else -> {
-                                            val combiner = when {
-                                                activeModifiers.zalgo -> char.asCombiningMarkOrNull()
-                                                    ?.let {
-                                                        LastTypedData.Combiner(
-                                                            original = char,
-                                                            combinedReplacement = it,
-                                                            baseCharLength = 0
-                                                        )
-                                                    }
+                                    else -> {
+                                        val combiner = when {
+                                            activeModifiers.zalgo -> char.asCombiningMarkOrNull()
+                                                ?.let {
+                                                    LastTypedData.Combiner(
+                                                        original = char,
+                                                        combinedReplacement = it,
+                                                        baseCharLength = 0
+                                                    )
+                                                }
 
-                                                else -> lastTyped?.tryCombineWith(
-                                                    char,
-                                                    periodOnDoubleSpace = periodOnDoubleSpace.value,
-                                                )
-                                            }
-                                            if (combiner != null) {
-                                                char = combiner.combinedReplacement
-                                            }
-                                            val codePoint = char.singleCodePointOrNull()
-                                            val positionOfChar =
-                                                currentCursorPosition(SearchDirection.Backwards)
-                                                    ?.plus(char.length)
-                                                    ?.minus(combiner?.baseCharLength ?: 0)
-                                            lastTyped = when {
-                                                positionOfChar != null -> LastTypedData(
-                                                    codePoint = codePoint,
-                                                    position = positionOfChar,
-                                                    combiner = combiner
-                                                )
-
-                                                else -> null
-                                            }
-                                            currentInputConnection.beginBatchEdit()
-                                            if (combiner != null) {
-                                                currentInputConnection.deleteSurroundingText(
-                                                    combiner.baseCharLength,
-                                                    0
-                                                )
-                                            }
-                                            currentInputConnection.commitText(
+                                            else -> lastTyped?.tryCombineWith(
                                                 char,
-                                                1
+                                                periodOnDoubleSpace = periodOnDoubleSpace.value,
                                             )
-                                            currentInputConnection.endBatchEdit()
                                         }
+                                        if (combiner != null) {
+                                            char = combiner.combinedReplacement
+                                        }
+                                        val codePoint = char.singleCodePointOrNull()
+                                        val positionOfChar =
+                                            currentCursorPosition(SearchDirection.Backwards)
+                                                ?.plus(char.length)
+                                                ?.minus(combiner?.baseCharLength ?: 0)
+                                        lastTyped = when {
+                                            positionOfChar != null -> LastTypedData(
+                                                codePoint = codePoint,
+                                                position = positionOfChar,
+                                                combiner = combiner
+                                            )
+
+                                            else -> null
+                                        }
+                                        currentInputConnection.beginBatchEdit()
+                                        if (combiner != null) {
+                                            currentInputConnection.deleteSurroundingText(
+                                                combiner.baseCharLength,
+                                                0
+                                            )
+                                        }
+                                        currentInputConnection.commitText(
+                                            char,
+                                            1
+                                        )
+                                        currentInputConnection.endBatchEdit()
                                     }
                                 }
+
+                            }
+                            when (action) {
+                                is Action.Text -> typeText(action.character)
 
                                 is Action.Delete -> {
                                     when (selectionSize()) {
@@ -291,7 +296,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     val editorInfo = editorInfo.value
                                     val imeOptions = editorInfo?.imeOptions ?: 0
                                     if (imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
-                                        currentInputConnection.commitText("\n", 1)
+                                        typeText("\n")
                                     } else {
                                         currentInputConnection.performEditorAction(
                                             when {
