@@ -246,48 +246,57 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 is Action.Text -> typeText(action.character)
 
                                 is Action.Delete -> {
-                                    when (selectionSize()) {
-                                        SelectionSize.NonEmpty -> {
-                                            // if selection is non-empty, delete it regardless of the mode requested by the user
-                                            currentInputConnection.commitText("", 0)
-                                        }
+                                    when {
+                                        activeModifiers.useRawKeyEvent -> sendKeyPressEvents(
+                                            when (action.direction) {
+                                                SearchDirection.Backwards -> KeyEvent.KEYCODE_DEL
+                                                SearchDirection.Forwards -> KeyEvent.KEYCODE_FORWARD_DEL
+                                            }
+                                        )
 
-                                        SelectionSize.Empty -> {
-                                            val length = findBoundary(
-                                                action.boundary,
-                                                action.direction,
-                                                coalesce = true
-                                            )
-                                            val lastTypedComposed = lastTyped?.combiner
-                                            if (action.direction == SearchDirection.Backwards && lastTypedComposed != null) {
-                                                currentInputConnection.beginBatchEdit()
-                                                currentInputConnection.deleteSurroundingText(
-                                                    lastTypedComposed.combinedReplacement.length,
-                                                    0
+                                        else -> when (selectionSize()) {
+                                            SelectionSize.NonEmpty -> {
+                                                // if selection is non-empty, delete it regardless of the mode requested by the user
+                                                currentInputConnection.commitText("", 0)
+                                            }
+
+                                            SelectionSize.Empty -> {
+                                                val length = findBoundary(
+                                                    action.boundary,
+                                                    action.direction,
+                                                    coalesce = true
                                                 )
-                                                currentInputConnection.commitText(
-                                                    lastTypedComposed.original,
-                                                    1
-                                                )
-                                                currentInputConnection.endBatchEdit()
-                                                // Clear last-typed data even if we're in a context without
-                                                // a working requestCursorUpdates
-                                                lastTyped = null
-                                            } else {
-                                                currentInputConnection.deleteSurroundingText(
-                                                    if (action.direction == SearchDirection.Backwards) length else 0,
-                                                    if (action.direction == SearchDirection.Forwards) length else 0,
+                                                val lastTypedComposed = lastTyped?.combiner
+                                                if (action.direction == SearchDirection.Backwards && lastTypedComposed != null) {
+                                                    currentInputConnection.beginBatchEdit()
+                                                    currentInputConnection.deleteSurroundingText(
+                                                        lastTypedComposed.combinedReplacement.length,
+                                                        0
+                                                    )
+                                                    currentInputConnection.commitText(
+                                                        lastTypedComposed.original,
+                                                        1
+                                                    )
+                                                    currentInputConnection.endBatchEdit()
+                                                    // Clear last-typed data even if we're in a context without
+                                                    // a working requestCursorUpdates
+                                                    lastTyped = null
+                                                } else {
+                                                    currentInputConnection.deleteSurroundingText(
+                                                        if (action.direction == SearchDirection.Backwards) length else 0,
+                                                        if (action.direction == SearchDirection.Forwards) length else 0,
+                                                    )
+                                                }
+                                            }
+
+                                            SelectionSize.BufferUnavailable -> {
+                                                sendKeyPressEvents(
+                                                    keyCode = when (action.direction) {
+                                                        SearchDirection.Backwards -> KeyEvent.KEYCODE_DEL
+                                                        SearchDirection.Forwards -> KeyEvent.KEYCODE_FORWARD_DEL
+                                                    }
                                                 )
                                             }
-                                        }
-
-                                        SelectionSize.BufferUnavailable -> {
-                                            sendKeyPressEvents(
-                                                keyCode = when (action.direction) {
-                                                    SearchDirection.Backwards -> KeyEvent.KEYCODE_DEL
-                                                    SearchDirection.Forwards -> KeyEvent.KEYCODE_FORWARD_DEL
-                                                }
-                                            )
                                         }
                                     }
                                 }
