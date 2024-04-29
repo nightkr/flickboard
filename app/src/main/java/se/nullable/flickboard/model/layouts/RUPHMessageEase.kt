@@ -22,7 +22,6 @@ val RU_PHONETIC_MESSAGEASE_MAIN_LAYER = Layer(
             ),
             KeyM(
                 actions = mapOf(
-                    Direction.TOP to Action.Text("й"),
                     Direction.CENTER to Action.Text("н"),
                     Direction.BOTTOM to Action.Text("л")
                 )
