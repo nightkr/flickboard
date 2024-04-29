@@ -233,19 +233,49 @@ fun SettingsSectionPage(section: SettingsSection, modifier: Modifier = Modifier)
 
 @Composable
 fun SettingsKeyboardPreview() {
+    val enable = LocalAppSettings.current.enableKeyboardPreview
+    val enableState = enable.state
     Box {
         Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
             Column {
-                Text(
-                    text = "Preview keyboard",
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.padding(8.dp)
-                )
-                ProvideDisplayLimits {
-                    ConfiguredKeyboard(
-                        onAction = { }, // Keyboard provides internal visual feedback if enabled
-                        modifier = Modifier.fillMaxWidth()
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            enable.currentValue = !enable.currentValue
+                        },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Preview keyboard",
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(8.dp)
                     )
+                    val hideIconAngle = animateFloatAsState(
+                        when {
+                            enableState.value -> 0F
+                            else -> 180F
+                        }, label = "hideIconAngle"
+                    )
+                    Icon(
+                        painterResource(R.drawable.baseline_arrow_drop_down_24),
+                        when {
+                            enableState.value -> "hide"
+                            else -> "show"
+                        },
+                        Modifier
+                            .padding(8.dp)
+                            .rotate(hideIconAngle.value)
+                    )
+                }
+                AnimatedVisibility(enableState.value) {
+                    ProvideDisplayLimits {
+                        ConfiguredKeyboard(
+                            onAction = { }, // Keyboard provides internal visual feedback if enabled
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
         }
@@ -999,6 +1029,13 @@ class AppSettings(val ctx: SettingsContext) {
     val enableVisualFeedback = Setting.Bool(
         key = "enableVisualFeedback",
         label = "Highlight taken actions",
+        defaultValue = true,
+        ctx = ctx
+    )
+
+    val enableKeyboardPreview = Setting.Bool(
+        key = "enableKeyboardPreview",
+        label = "Enable keyboard preview",
         defaultValue = true,
         ctx = ctx
     )
