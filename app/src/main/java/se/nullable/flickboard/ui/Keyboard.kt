@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -81,6 +82,7 @@ fun Keyboard(
     val shownActionClasses = appSettings.shownActionClasses
     val enableHiddenActions = appSettings.enableHiddenActions.state
     val backgroundImage = appSettings.backgroundImage.state
+    val keyboardMargin = appSettings.keyboardMargin.state
     var modifierState: ModifierState by remember { mutableStateOf(ModifierState()) }
     LaunchedEffect(modifierState) {
         onModifierStateUpdated(modifierState)
@@ -232,7 +234,8 @@ fun Keyboard(
                         horizontalBias = appSettings.currentLocation,
                         verticalBias = 0F
                     )
-                ),
+                )
+                .padding(keyboardMargin.value.dp),
             columnGap = 1.dp,
             rowGap = 1.dp,
             rows = layer.keyRows.map { row ->

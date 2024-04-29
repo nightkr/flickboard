@@ -849,6 +849,14 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val keyboardMargin = Setting.FloatSlider(
+        key = "keyboardMargin",
+        label = "Keyboard margin",
+        defaultValue = 0F,
+        range = 0F..8F,
+        ctx = ctx
+    )
+
     val keyRoundness = Setting.FloatSlider(
         key = "keyRoundness",
         label = "Key roundness",
@@ -1064,6 +1072,7 @@ class AppSettings(val ctx: SettingsContext) {
                     showSymbols,
                     showNumbers,
                     enableHiddenActions,
+                    keyboardMargin,
                     keyRoundness,
                     actionVisualBiasCenter,
                     actionVisualScale,
