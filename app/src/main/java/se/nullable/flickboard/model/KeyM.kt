@@ -107,7 +107,7 @@ sealed class Action {
             visualOverride ?: ActionVisual.Label(character)
 
         override val actionClass: ActionClass = when {
-            character.isEmpty() -> ActionClass.Other
+            character.isBlank() -> ActionClass.Other
             character.all { it.isDigit() } -> ActionClass.Number
             character.all { it.isLetter() } -> ActionClass.Letter
             else -> ActionClass.Symbol
