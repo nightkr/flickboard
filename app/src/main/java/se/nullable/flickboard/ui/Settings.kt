@@ -889,6 +889,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Key colour",
         ctx = ctx
     )
+
     val keyColourChroma = Setting.FloatSlider(
         key = "keyColourChroma",
         label = "Key colour saturation",
@@ -935,6 +936,12 @@ class AppSettings(val ctx: SettingsContext) {
         key = "enablePointerTrail",
         label = "Enable pointer trail",
         defaultValue = true,
+        ctx = ctx
+    )
+
+    val pointerTrailColour = Setting.Colour(
+        key = "pointerTrailColour",
+        label = "Pointer trail colour",
         ctx = ctx
     )
 
@@ -1083,6 +1090,7 @@ class AppSettings(val ctx: SettingsContext) {
                     backgroundOpacity,
                     backgroundImage,
                     enablePointerTrail,
+                    pointerTrailColour,
                 )
             ),
             SettingsSection(

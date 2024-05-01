@@ -79,6 +79,7 @@ fun Keyboard(
     val handedness = appSettings.handedness.state
     val backgroundOpacity = appSettings.backgroundOpacity.state
     val enablePointerTrail = appSettings.enablePointerTrail.state
+    val pointerTrailColour = appSettings.pointerTrailColour.state
     val shownActionClasses = appSettings.shownActionClasses
     val enableHiddenActions = appSettings.enableHiddenActions.state
     val backgroundImage = appSettings.backgroundImage.state
@@ -168,7 +169,7 @@ fun Keyboard(
             }
         }
     }
-    val pointerTrailColor = MaterialTheme.colorScheme.onSurface
+    val pointerTrailColor = pointerTrailColour.value!!
     BoxWithConstraints(
         modifier
             .onGloballyPositioned { globalPosition = it.positionInRoot() }
