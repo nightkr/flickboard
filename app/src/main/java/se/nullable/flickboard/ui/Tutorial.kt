@@ -45,6 +45,7 @@ import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
+import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.ui.theme.Typography
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -319,7 +320,8 @@ fun TutorialKey(key: KeyM, onAction: ((Action) -> Unit)?) {
         modifier = Modifier
             .size(96.dp)
             .padding(8.dp)
-            .border(Dp.Hairline, MaterialTheme.colorScheme.surface)
+            .border(Dp.Hairline, MaterialTheme.colorScheme.surface),
+        layoutTextDirection = TextDirection.LeftToRight,
     )
 }
 

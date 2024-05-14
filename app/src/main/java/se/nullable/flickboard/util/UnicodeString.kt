@@ -26,3 +26,9 @@ fun String.asCombiningMarkOrNull(): String? =
                 .getRawDecomposition(codePoint)?.dropInitialSpace()
         }
     }
+
+private val bracketPairs = listOf("(" to ")", "[" to "]", "{" to "}", "<" to ">")
+    .flatMap { (left, right) -> listOf(left to right, right to left) }
+    .toMap()
+
+fun String.flipIfBracket(): String = bracketPairs[this] ?: this

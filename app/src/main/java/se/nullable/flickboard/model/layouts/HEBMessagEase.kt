@@ -7,6 +7,7 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
+import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.Keyboard
 
@@ -95,7 +96,8 @@ val HEB_MESSAGEASE_MAIN_LAYER = Layer(
 
 val HEB_MESSAGEASE = Layout(
     mainLayer = HEB_MESSAGEASE_MAIN_LAYER,
-    controlLayer = CONTROL_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER,
+    textDirection = TextDirection.RightToLeft,
 )
 
 @Composable

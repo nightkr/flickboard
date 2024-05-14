@@ -45,6 +45,7 @@ import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.ShiftState
+import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.MINI_NUMBERS_SYMBOLS_LAYER
@@ -90,9 +91,7 @@ fun Keyboard(
     val mergedFullSizedNumericLayer =
         remember {
             derivedStateOf {
-                numericLayer.value.fullSizedLayer.mergeFallback(
-                    MESSAGEASE_SYMBOLS_LAYER
-                )
+                numericLayer.value.fullSizedLayer.mergeFallback(MESSAGEASE_SYMBOLS_LAYER)
             }
         }
     val mergedMiniNumericLayer =
@@ -168,6 +167,12 @@ fun Keyboard(
                     }
                 }
                 .fold(Layer.empty, Layer::chain)
+                .let {
+                    when (layout.textDirection) {
+                        TextDirection.LeftToRight -> it
+                        TextDirection.RightToLeft -> it.flipBrackets()
+                    }
+                }
         }
     }
     var globalPosition: Offset by remember { mutableStateOf(Offset.Zero) }
@@ -299,7 +304,8 @@ fun Keyboard(
                                         keyPosition.value = it.positionInRoot() - globalPosition
                                     },
                                 enterKeyLabel = enterKeyLabel,
-                                keyPointerTrailListener = keyPointerTrailListener
+                                keyPointerTrailListener = keyPointerTrailListener,
+                                layoutTextDirection = layout.textDirection,
                             )
                         }
                     }

@@ -2,12 +2,14 @@ package se.nullable.flickboard.model
 
 import se.nullable.flickboard.R
 import se.nullable.flickboard.util.HardLineBreakIterator
+import se.nullable.flickboard.util.flipIfBracket
 import java.text.BreakIterator
 
 data class Layout(
     val mainLayer: Layer,
     val shiftLayer: Layer = mainLayer.autoShift(),
-    val controlLayer: Layer? = null
+    val controlLayer: Layer? = null,
+    val textDirection: TextDirection = TextDirection.LeftToRight,
 )
 
 data class Layer(val keyRows: List<List<KeyM>>) {
@@ -34,6 +36,8 @@ data class Layer(val keyRows: List<List<KeyM>>) {
 
     private inline fun mapKeys(f: (KeyM) -> KeyM): Layer =
         copy(keyRows = keyRows.map { row -> row.map { key -> f(key) } })
+
+    fun flipBrackets(): Layer = mapKeys { it.flipBrackets() }
 
     fun autoShift(): Layer =
         mapKeys { it.autoShift() }
@@ -87,6 +91,17 @@ data class KeyM(
                 else -> null
             }
         }.toMap())
+
+    fun flipBrackets(): KeyM = copy(
+        actions = actions.mapValues {
+            when (val action = it.value) {
+                is Action.Text -> action.copy(character = action.character.flipIfBracket())
+                else -> action
+            }
+        },
+        shift = shift?.flipBrackets(),
+        transientShift = transientShift?.flipBrackets(),
+    )
 }
 
 sealed class Action {
@@ -308,6 +323,11 @@ enum class TextBoundary {
         Word -> BreakIterator.getWordInstance()
         Line -> HardLineBreakIterator()
     }
+}
+
+enum class TextDirection(val unicodeDirectionMark: Char) {
+    LeftToRight(unicodeDirectionMark = '\u200E'),
+    RightToLeft(unicodeDirectionMark = '\u200F'),
 }
 
 enum class SearchDirection(val factor: Int) {

@@ -73,6 +73,7 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.ModifierState
+import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.times
 import se.nullable.flickboard.ui.layout.KeyLabelGrid
 import se.nullable.flickboard.util.toAccent
@@ -96,6 +97,7 @@ fun Key(
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
     keyPointerTrailListener: State<KeyPointerTrailListener?> = remember { mutableStateOf(null) },
+    layoutTextDirection: TextDirection,
 ) {
     val haptic = LocalHapticFeedback.current
     val settings = LocalAppSettings.current
@@ -249,6 +251,7 @@ fun Key(
                         modifiers = modifierState,
                         colour = keyIndicatorColour.value,
                         activeColour = activeKeyIndicatorColour.value,
+                        layoutTextDirection = layoutTextDirection,
                         modifier = actionModifier,
                     )
                 }
@@ -261,6 +264,7 @@ fun Key(
                 shape = shape,
                 colour = lastActionColour.value,
                 surfaceColour = lastActionSurfaceColour.value,
+                layoutTextDirection = layoutTextDirection,
                 modifier = Modifier.alpha(lastActionAlpha.value),
             )
         }
@@ -277,6 +281,7 @@ fun KeyActionTakenIndicator(
     shape: Shape,
     colour: Color,
     surfaceColour: Color,
+    layoutTextDirection: TextDirection,
     modifier: Modifier = Modifier
 ) {
     Surface(color = surfaceColour, shape = shape, modifier = modifier) {
@@ -289,6 +294,7 @@ fun KeyActionTakenIndicator(
                 colour = colour,
                 activeColour = colour,
                 allowFade = false,
+                layoutTextDirection = layoutTextDirection,
             )
         }
     }
@@ -301,6 +307,7 @@ fun KeyActionIndicator(
     modifiers: ModifierState?,
     colour: Color,
     activeColour: Color,
+    layoutTextDirection: TextDirection,
     modifier: Modifier = Modifier,
     allowFade: Boolean = true,
 ) {
@@ -316,7 +323,7 @@ fun KeyActionIndicator(
             BoxWithConstraints(modifier.padding(horizontal = 2.dp)) {
                 val density = LocalDensity.current
                 Text(
-                    text = actionVisual.label,
+                    text = layoutTextDirection.unicodeDirectionMark + actionVisual.label + layoutTextDirection.unicodeDirectionMark,
                     color = usedColour,
                     fontSize = with(density) {
                         min(
@@ -567,6 +574,7 @@ fun KeyPreview() {
                         )
                     ),
                     onAction = { lastAction = it },
+                    layoutTextDirection = TextDirection.LeftToRight,
                     modifier = Modifier.aspectRatio(1F),
                     modifierState = ModifierState()
                 )
@@ -587,6 +595,7 @@ fun KeyActionTakenPreview() {
                     colour = MaterialTheme.colorScheme.onTertiary,
                     surfaceColour = MaterialTheme.colorScheme.tertiary,
                     shape = RectangleShape,
+                    layoutTextDirection = TextDirection.LeftToRight,
                 )
             }
             Spacer(modifier = Modifier.size(10.dp))
@@ -597,6 +606,7 @@ fun KeyActionTakenPreview() {
                     colour = MaterialTheme.colorScheme.onTertiary,
                     surfaceColour = MaterialTheme.colorScheme.tertiary,
                     shape = RectangleShape,
+                    layoutTextDirection = TextDirection.LeftToRight,
                 )
             }
         }
