@@ -47,7 +47,7 @@ import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
-import se.nullable.flickboard.model.layouts.MINI_NUMBERS_LAYER
+import se.nullable.flickboard.model.layouts.MINI_NUMBERS_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 import se.nullable.flickboard.ui.layout.Grid
 import java.io.IOException
@@ -87,18 +87,34 @@ fun Keyboard(
     LaunchedEffect(modifierState) {
         onModifierStateUpdated(modifierState)
     }
-    val mergedNumericLayer =
-        remember { derivedStateOf { numericLayer.value.layer.mergeFallback(MESSAGEASE_SYMBOLS_LAYER) } }
+    val mergedFullSizedNumericLayer =
+        remember {
+            derivedStateOf {
+                numericLayer.value.fullSizedLayer.mergeFallback(
+                    MESSAGEASE_SYMBOLS_LAYER
+                )
+            }
+        }
+    val mergedMiniNumericLayer =
+        remember {
+            derivedStateOf {
+                numericLayer.value.miniLayer.mergeFallback(MINI_NUMBERS_SYMBOLS_LAYER)
+            }
+        }
     val layersByShiftState = remember(layout) {
         derivedStateOf {
             val shift = layout.shiftLayer
                 .mergeFallback(
-                    OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value)
+                    OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedFullSizedNumericLayer.value)
                         .autoShift()
                 )
             mapOf(
                 ShiftState.Normal to layout.mainLayer
-                    .mergeFallback(OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedNumericLayer.value))
+                    .mergeFallback(
+                        OVERLAY_MESSAGEASE_LAYER.mergeFallback(
+                            mergedFullSizedNumericLayer.value
+                        )
+                    )
                     .setShift(shift),
 
                 ShiftState.Shift to shift,
@@ -108,7 +124,7 @@ fun Keyboard(
                     .mergeFallback(
                         OVERLAY_MESSAGEASE_LAYER
                             .autoShift()
-                            .mergeFallback(mergedNumericLayer.value)
+                            .mergeFallback(mergedFullSizedNumericLayer.value)
                     ),
             ).mapValues {
                 it.value.filterActions(
@@ -123,24 +139,24 @@ fun Keyboard(
             val activeLayer = layersByShiftState.value[modifierState.shift]!!
             listOfNotNull(
                 when (enabledLayers.value) {
-                    EnabledLayers.All -> mergedNumericLayer.value
-                    EnabledLayers.AllMiniNumbers -> MINI_NUMBERS_LAYER
+                    EnabledLayers.All -> mergedFullSizedNumericLayer.value
+                    EnabledLayers.AllMiniNumbers -> mergedMiniNumericLayer.value
 
                     EnabledLayers.DoubleLetters -> when {
                         modifierState.shift.isShifted -> secondaryLetterLayer.value.layout.shiftLayer
                         else -> secondaryLetterLayer.value.layout.mainLayer
                             .setShift(secondaryLetterLayer.value.layout.shiftLayer)
-                    }.mergeFallback(mergedNumericLayer.value)
+                    }.mergeFallback(mergedFullSizedNumericLayer.value)
 
                     else -> null
                 },
                 layout.controlLayer?.let { it.setShift(it.autoShift()) },
                 when (enabledLayers.value) {
-                    EnabledLayers.AllMiniNumbersMiddle -> MINI_NUMBERS_LAYER
+                    EnabledLayers.AllMiniNumbersMiddle -> mergedMiniNumericLayer.value
                     else -> null
                 },
                 when (enabledLayers.value) {
-                    EnabledLayers.Numbers -> mergedNumericLayer.value
+                    EnabledLayers.Numbers -> mergedFullSizedNumericLayer.value
                     EnabledLayers.Letters, EnabledLayers.DoubleLetters, EnabledLayers.All,
                     EnabledLayers.AllMiniNumbers, EnabledLayers.AllMiniNumbersMiddle -> activeLayer
                 },

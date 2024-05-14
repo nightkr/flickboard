@@ -101,6 +101,8 @@ import se.nullable.flickboard.model.layouts.HU_UUP_MESSAGEASE
 import se.nullable.flickboard.model.layouts.IT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_CALCULATOR_LAYER
 import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_PHONE_LAYER
+import se.nullable.flickboard.model.layouts.MINI_NUMBERS_CALCULATOR_LAYER
+import se.nullable.flickboard.model.layouts.MINI_NUMBERS_PHONE_LAYER
 import se.nullable.flickboard.model.layouts.PT_IOS_MESSAGEASE
 import se.nullable.flickboard.model.layouts.PT_MESSAGEASE
 import se.nullable.flickboard.model.layouts.RU_MESSAGEASE
@@ -1194,9 +1196,21 @@ enum class LetterLayerOption(override val label: String, val layout: Layout) : L
     UkrainianRussian("Ukrainian Russian (MessagEase)", UK_RU_MESSAGEASE),
 }
 
-enum class NumericLayerOption(override val label: String, val layer: Layer) : Labeled {
-    Phone("Phone", MESSAGEASE_NUMERIC_PHONE_LAYER),
-    Calculator("Calculator", MESSAGEASE_NUMERIC_CALCULATOR_LAYER),
+enum class NumericLayerOption(
+    override val label: String,
+    val fullSizedLayer: Layer,
+    val miniLayer: Layer
+) : Labeled {
+    Phone(
+        "Phone",
+        fullSizedLayer = MESSAGEASE_NUMERIC_PHONE_LAYER,
+        miniLayer = MINI_NUMBERS_PHONE_LAYER,
+    ),
+    Calculator(
+        "Calculator",
+        fullSizedLayer = MESSAGEASE_NUMERIC_CALCULATOR_LAYER,
+        miniLayer = MINI_NUMBERS_CALCULATOR_LAYER,
+    ),
 }
 
 class SettingsContext(val prefs: SharedPreferences, val coroutineScope: CoroutineScope)
