@@ -131,7 +131,7 @@ fun DeEoKeyboardPreview() {
 
 @Composable
 @Preview
-fun DeEOFullKeyboardPreview() {
+fun DeEoFullKeyboardPreview() {
     FlickBoardParent {
         Keyboard(layout = DE_EO_MESSAGEASE, onAction = {})
     }
