@@ -307,7 +307,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 is Action.Enter -> {
                                     val editorInfo = editorInfo.value
                                     val imeOptions = editorInfo?.imeOptions ?: 0
-                                    if (imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
+                                    if (activeModifiers.useRawKeyEvent ||
+                                        imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0
+                                    ) {
                                         typeText("\n")
                                     } else {
                                         currentInputConnection.performEditorAction(
