@@ -1178,6 +1178,7 @@ enum class LetterLayerOption(override val label: String, val layout: Layout) : L
     FrenchPunc("French (Punctuation MessagEase)", FR_PUNC_MESSAGEASE),
     German("German (MessagEase)", DE_MESSAGEASE),
     GermanEnglish("German/English (MessagEase)", EN_DE_MESSAGEASE),
+    GermanEsperanto("German/Esperanto (Extended ME)", DE_EO_MESSAGEASE),
     Hebrew("Hebrew (MessagEase)", HEB_MESSAGEASE),
     Hungarian("Hungarian (MessagEase)", HU_MESSAGEASE),
     HungarianDT("Hungarian (MessagEase, by Dániel Tenke)", HU_DT_MESSAGEASE),
