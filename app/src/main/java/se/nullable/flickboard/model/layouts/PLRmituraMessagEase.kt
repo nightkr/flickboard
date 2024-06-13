@@ -23,7 +23,7 @@ import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.Keyboard
 
-val PL_MESSAGEASE_MAIN_LAYER = Layer(
+val PL_RMITURA_MESSAGEASE_MAIN_LAYER = Layer(
     keyRows = listOf(
         listOf(
             KeyM(
@@ -107,23 +107,23 @@ val PL_MESSAGEASE_MAIN_LAYER = Layer(
     )
 )
 
-val PL_MESSAGEASE = Layout(
-    mainLayer = PL_MESSAGEASE_MAIN_LAYER,
+val PL_RMITURA_MESSAGEASE = Layout(
+    mainLayer = PL_RMITURA_MESSAGEASE_MAIN_LAYER,
     controlLayer = CONTROL_MESSAGEASE_LAYER
 )
 
 @Composable
 @Preview
-fun PlKeyboardPreview() {
+fun PlRmituraKeyboardPreview() {
     FlickBoardParent {
-        Keyboard(layout = Layout(PL_MESSAGEASE_MAIN_LAYER), onAction = {})
+        Keyboard(layout = Layout(PL_RMITURA_MESSAGEASE_MAIN_LAYER), onAction = {})
     }
 }
 
 @Composable
 @Preview
-fun PlFullKeyboardPreview() {
+fun PlRmituraFullKeyboardPreview() {
     FlickBoardParent {
-        Keyboard(layout = PL_MESSAGEASE, showAllModifiers = true, onAction = {})
+        Keyboard(layout = PL_RMITURA_MESSAGEASE, showAllModifiers = true, onAction = {})
     }
 }
