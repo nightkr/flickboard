@@ -51,6 +51,7 @@ import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.MINI_NUMBERS_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 import se.nullable.flickboard.ui.layout.Grid
+import se.nullable.flickboard.util.toOnAccentContainer
 import java.io.IOException
 
 @Composable
@@ -82,6 +83,10 @@ fun Keyboard(
     val enablePointerTrail = appSettings.enablePointerTrail.state
     val shownActionClasses = appSettings.shownActionClasses
     val enableHiddenActions = appSettings.enableHiddenActions.state
+    val keyColour = appSettings.keyColour.state
+    val keyColourChroma = appSettings.keyColourChroma.state
+    val toneMode = appSettings.keyColourTone.state
+    val toneConfig = rememberUpdatedState(toneMode.value.config)
     val backgroundImage = appSettings.backgroundImage.state
     val keyboardMargin = appSettings.keyboardMargin.state
     var modifierState: ModifierState by remember { mutableStateOf(ModifierState()) }
@@ -189,7 +194,9 @@ fun Keyboard(
             }
         }
     }
-    val pointerTrailColor = MaterialTheme.colorScheme.onSurface
+    val pointerTrailColor =
+        keyColour.value?.toOnAccentContainer(keyColourChroma.value, toneConfig.value)
+            ?: MaterialTheme.colorScheme.onPrimaryContainer
     BoxWithConstraints(
         modifier
             .onGloballyPositioned { globalPosition = it.positionInRoot() }
@@ -221,8 +228,6 @@ fun Keyboard(
             thisWidth = min(thisWidth, limits.portraitWidth)
         }
         thisWidth *= appSettings.currentScale
-        val toneMode = appSettings.keyColourTone.state
-        val toneConfig = rememberUpdatedState(toneMode.value.config)
         val backgroundColor = toneConfig.value.surfaceColour
         val backgroundImagePainter = remember {
             derivedStateOf {
