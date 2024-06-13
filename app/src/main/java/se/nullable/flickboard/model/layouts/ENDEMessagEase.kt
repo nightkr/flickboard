@@ -19,6 +19,7 @@ val EN_DE_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP to Action.Text("ö"),
                     Direction.TOP_RIGHT to Action.Text("ß"),
                     Direction.LEFT to Action.Text("ä"),
+                    Direction.BOTTOM to Action.Text("ü"),
                     Direction.BOTTOM_RIGHT to Action.Text("v")
                 )
             ),
