@@ -115,6 +115,7 @@ val MESSAGEASE_SYMBOLS_LAYER = Layer(
                     Direction.TOP_LEFT to Action.Text("~"),
                     Direction.TOP to Action.Text("¨"),
                     Direction.LEFT to Action.Text("<"),
+                    Direction.BOTTOM_LEFT to Action.Text("ˇ"),
                     Direction.RIGHT to Action.Text("*"),
                     Direction.BOTTOM_RIGHT to Action.Text(
                         "\t",

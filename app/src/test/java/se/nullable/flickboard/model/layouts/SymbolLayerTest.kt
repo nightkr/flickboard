@@ -22,6 +22,7 @@ class SymbolLayerTest {
                     Pair(LetterLayerOption.French, Action.Text("Ê")) -> {}
                     Pair(LetterLayerOption.French, Action.Text("È")) -> {}
                     Pair(LetterLayerOption.FrenchExt, Action.Text("W")) -> {}
+                    Pair(LetterLayerOption.FrenchExt, Action.Text("ë")) -> {}
                     Pair(LetterLayerOption.FrenchExt, Action.Text("Ë")) -> {}
                     Pair(LetterLayerOption.FrenchExt, Action.Text("Ü")) -> {}
                     Pair(LetterLayerOption.FrenchPunc, Action.Text("Ç")) -> {}
@@ -35,6 +36,7 @@ class SymbolLayerTest {
                     Pair(LetterLayerOption.GermanEsperanto, Action.Text("ä")) -> {}
                     Pair(LetterLayerOption.GermanEsperanto, Action.Text("Ä")) -> {}
                     Pair(LetterLayerOption.GermanEsperanto, Action.Text("Ö")) -> {}
+                    Pair(LetterLayerOption.GermanEsperanto, Action.Text("ch")) -> {}
                     Pair(LetterLayerOption.GermanEsperanto, Action.Text("Ch")) -> {}
                     Pair(LetterLayerOption.GermanEsperanto, Action.Text("Sch")) -> {}
                     Pair(LetterLayerOption.Hungarian, Action.Text("ú")) -> {}

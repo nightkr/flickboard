@@ -22,6 +22,7 @@ fun String.asCombiningMarkOrNull(): String? =
             '`'.code -> "\u0300"
             '^'.code -> "\u0302"
             '~'.code -> "\u0303"
+            'ˇ'.code -> "\u030C"
             else -> Normalizer2.getNFKDInstance()
                 .getRawDecomposition(codePoint)?.dropInitialSpace()
         }
