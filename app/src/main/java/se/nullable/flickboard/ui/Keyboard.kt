@@ -105,6 +105,7 @@ fun Keyboard(
         remember {
             derivedStateOf {
                 numericLayer.value.miniLayer.mergeFallback(MINI_NUMBERS_SYMBOLS_LAYER)
+                    .let { it.setShift(it.autoShift()) }
             }
         }
     val layersByShiftState = remember(layout) {
