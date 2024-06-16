@@ -110,7 +110,7 @@ val CONTROL_MESSAGEASE_LAYER =
             listOf(
                 KeyM(
                     actions = mapOf(
-                        Direction.CENTER to Action.Enter,
+                        Direction.CENTER to Action.Enter(),
                         Direction.TOP_LEFT to Action.ToggleEmojiMode,
                         Direction.TOP_RIGHT to Action.ToggleEmojiMode,
                         Direction.BOTTOM to Action.ToggleZalgo,

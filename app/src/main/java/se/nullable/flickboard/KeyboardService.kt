@@ -114,7 +114,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
             }
         }
 
-    private fun sendKeyPressEvents(keyCode: Int) {
+    private fun sendKeyPressEvents(keyCode: Int, extraModifiers: Int = 0) {
         listOf(KeyEvent.ACTION_DOWN, KeyEvent.ACTION_UP).forEach { keyAction ->
             currentInputConnection.sendKeyEvent(
                 KeyEvent(
@@ -123,7 +123,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                     keyAction,
                     keyCode,
                     0,
-                    activeModifiers.androidMetaState,
+                    activeModifiers.androidMetaState or extraModifiers,
                     KeyCharacterMap.VIRTUAL_KEYBOARD,
                     0,
                     KeyEvent.FLAG_SOFT_KEYBOARD,
@@ -180,7 +180,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                             warningMessageScope.launch {
                                 warningSnackbarHostState.currentSnackbarData?.dismiss()
                             }
-                            fun typeText(text: String, forceRawKeyEvent: Boolean = false) {
+                            fun typeText(
+                                text: String,
+                                forceRawKeyEvent: Boolean = false,
+                                forceShift: Boolean = false
+                            ) {
                                 var char = text
                                 val rawKeyCode = when {
                                     forceRawKeyEvent || activeModifiers.useRawKeyEvent -> char.singleOrNull()
@@ -191,7 +195,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 }
                                 when {
                                     rawKeyCode != KeyEvent.KEYCODE_UNKNOWN ->
-                                        sendKeyPressEvents(rawKeyCode)
+                                        sendKeyPressEvents(
+                                            rawKeyCode, extraModifiers = when {
+                                                forceShift -> KeyEvent.normalizeMetaState(KeyEvent.META_SHIFT_LEFT_ON)
+                                                else -> 0
+                                            }
+                                        )
 
                                     else -> {
                                         val combiner = when {
@@ -307,10 +316,18 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 is Action.Enter -> {
                                     val editorInfo = editorInfo.value
                                     val imeOptions = editorInfo?.imeOptions ?: 0
+                                    println(action)
                                     if (activeModifiers.useRawKeyEvent ||
+                                        activeModifiers.shift.isShift ||
+                                        action.shift ||
                                         imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0
                                     ) {
-                                        typeText("\n")
+                                        println("aaa")
+                                        typeText(
+                                            "\n",
+                                            forceRawKeyEvent = activeModifiers.shift.isShift || action.shift,
+                                            forceShift = action.shift
+                                        )
                                     } else {
                                         currentInputConnection.performEditorAction(
                                             when {

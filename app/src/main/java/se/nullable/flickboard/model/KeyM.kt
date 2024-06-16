@@ -145,9 +145,11 @@ sealed class Action {
         override fun shift(): Action = copy(boundary = TextBoundary.Word)
     }
 
-    data object Enter : Action() {
+    data class Enter(val shift: Boolean = false) : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_keyboard_return_24)
+
+        override fun shift(): Action = copy(shift = true)
     }
 
     data class Jump(
