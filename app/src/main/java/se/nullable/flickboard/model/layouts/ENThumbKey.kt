@@ -91,7 +91,7 @@ val EN_THUMBKEY = Layout(
 
 @Composable
 @Preview
-fun EnThKeyboardPreview() {
+fun EnThumbKeyKeyboardPreview() {
     FlickBoardParent {
         Keyboard(layout = Layout(EN_THUMBKEY_MAIN_LAYER), onAction = {})
     }
@@ -99,7 +99,7 @@ fun EnThKeyboardPreview() {
 
 @Composable
 @Preview
-fun EnThFullKeyboardPreview() {
+fun EnThumbKeyFullKeyboardPreview() {
     FlickBoardParent {
         Keyboard(layout = EN_THUMBKEY, showAllModifiers = true, onAction = {})
     }
