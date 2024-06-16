@@ -224,6 +224,7 @@ fun SettingsSectionPage(section: SettingsSection, modifier: Modifier = Modifier)
                 when (setting) {
                     is Setting.Bool -> BoolSetting(setting)
                     is Setting.Integer -> {} // Not rendered right now, implement if used anywhere
+                    is Setting.Text -> TextSetting(setting)
                     is Setting.FloatSlider -> FloatSliderSetting(setting)
                     is Setting.EnumList<*> -> EnumListSetting(setting)
                     is Setting.Enum -> EnumSetting(setting)
@@ -300,6 +301,33 @@ fun BoolSetting(setting: Setting.Bool) {
                 checked = state.value,
                 onCheckedChange = { setting.currentValue = it },
             )
+        }
+    }
+}
+
+@Composable
+fun TextSetting(setting: Setting.Text) {
+    val state = setting.state
+    SettingRow {
+        Column {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SettingLabel(setting)
+            }
+            Row {
+                TextField(
+                    value = state.value,
+                    onValueChange = { setting.currentValue = it },
+                    placeholder = { setting.placeholder?.let { Text(it) } },
+                    modifier = Modifier.weight(1F)
+                )
+                IconButton(onClick = { setting.resetToDefault() }) {
+                    Icon(painterResource(R.drawable.baseline_clear_24), "Reset to default")
+                }
+            }
         }
     }
 }
@@ -974,6 +1002,15 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val disabledDeadkeys = Setting.Text(
+        key = "disabledDeadkeys",
+        label = "Disabled deadkeys",
+        defaultValue = "",
+        ctx = ctx,
+        description = "Special characters that should never be merged into the previous character",
+        placeholder = "(none)"
+    )
+
     val keyHeight = Setting.FloatSlider(
         key = "keyHeight",
         label = "Key height",
@@ -1107,6 +1144,7 @@ class AppSettings(val ctx: SettingsContext) {
                     enableAdvancedModifiers,
                     periodOnDoubleSpace,
                     longHoldOnClockwiseCircle,
+                    disabledDeadkeys,
                     keyHeight,
                     swipeThreshold,
                     fastSwipeThreshold,
@@ -1310,6 +1348,21 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
 
         override fun writeTo(prefs: SharedPreferences, value: Int) =
             prefs.edit { putInt(key, value) }
+    }
+
+    class Text(
+        override val key: String,
+        override val label: String,
+        val defaultValue: String,
+        ctx: SettingsContext,
+        override val description: String? = null,
+        val placeholder: String? = null,
+    ) : Setting<String>(ctx) {
+        override fun readFrom(prefs: SharedPreferences): String =
+            prefs.getString(key, defaultValue) ?: defaultValue
+
+        override fun writeTo(prefs: SharedPreferences, value: String) =
+            prefs.edit { putString(key, value) }
     }
 
     class FloatSlider(

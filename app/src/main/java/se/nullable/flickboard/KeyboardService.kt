@@ -175,6 +175,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                         val warningSnackbarHostState = remember { SnackbarHostState() }
                         val appSettings = LocalAppSettings.current
                         val periodOnDoubleSpace = appSettings.periodOnDoubleSpace.state
+                        val disabledDeadkeys = appSettings.disabledDeadkeys.state
                         val displayLimits = LocalDisplayLimits.current
                         val onAction: (Action) -> Unit = { action ->
                             warningMessageScope.launch {
@@ -212,6 +213,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                         baseCharLength = 0
                                                     )
                                                 }
+
+                                            disabledDeadkeys.value.contains(char) -> null
 
                                             else -> lastTyped?.tryCombineWith(
                                                 char,
