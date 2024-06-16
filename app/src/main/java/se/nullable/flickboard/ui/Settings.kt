@@ -1143,7 +1143,8 @@ enum class EnabledLayers(override val label: String) : Labeled {
     Numbers("Numbers only"),
     DoubleLetters("Double letters"),
     AllMiniNumbers("All (mini numbers)"),
-    AllMiniNumbersMiddle("All (mini numbers in middle)");
+    AllMiniNumbersMiddle("All (mini numbers in middle)"),
+    AllMiniNumbersOpposite("All (mini numbers on opposite side)");
 
     val toggle: EnabledLayers?
         get() = when (this) {

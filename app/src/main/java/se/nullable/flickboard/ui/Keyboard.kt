@@ -168,7 +168,12 @@ fun Keyboard(
                 when (enabledLayers.value) {
                     EnabledLayers.Numbers -> mergedFullSizedNumericLayer.value
                     EnabledLayers.Letters, EnabledLayers.DoubleLetters, EnabledLayers.All,
-                    EnabledLayers.AllMiniNumbers, EnabledLayers.AllMiniNumbersMiddle -> activeLayer
+                    EnabledLayers.AllMiniNumbers, EnabledLayers.AllMiniNumbersMiddle,
+                    EnabledLayers.AllMiniNumbersOpposite -> activeLayer
+                },
+                when (enabledLayers.value) {
+                    EnabledLayers.AllMiniNumbersOpposite -> mergedMiniNumericLayer.value
+                    else -> null
                 },
             )
                 .let {
