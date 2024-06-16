@@ -951,6 +951,14 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val enableAdvancedModifiers = Setting.Bool(
+        key = "enableAdvancedModifiers",
+        label = "Enable advanced modifiers",
+        description = "Allows ctrl and alt modifiers to be toggled by swiping diagonally from space",
+        defaultValue = true,
+        ctx = ctx
+    )
+
     val periodOnDoubleSpace = Setting.Bool(
         key = "periodOnDoubleSpace",
         label = "Period on double space",
@@ -1096,6 +1104,7 @@ class AppSettings(val ctx: SettingsContext) {
                 icon = R.drawable.baseline_app_settings_alt_24,
                 settings = listOf(
                     enableFastActions,
+                    enableAdvancedModifiers,
                     periodOnDoubleSpace,
                     longHoldOnClockwiseCircle,
                     keyHeight,

@@ -49,6 +49,7 @@ import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.MINI_NUMBERS_SYMBOLS_LAYER
+import se.nullable.flickboard.model.layouts.OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 import se.nullable.flickboard.ui.layout.Grid
 import se.nullable.flickboard.util.toOnAccentContainer
@@ -83,6 +84,7 @@ fun Keyboard(
     val enablePointerTrail = appSettings.enablePointerTrail.state
     val shownActionClasses = appSettings.shownActionClasses
     val enableHiddenActions = appSettings.enableHiddenActions.state
+    val enableAdvancedModifiers = appSettings.enableAdvancedModifiers.state
     val keyColour = appSettings.keyColour.state
     val keyColourChroma = appSettings.keyColourChroma.state
     val toneMode = appSettings.keyColourTone.state
@@ -107,13 +109,17 @@ fun Keyboard(
         }
     val layersByShiftState = remember(layout) {
         derivedStateOf {
+            var mainLayer = layout.mainLayer
+            if (enableAdvancedModifiers.value) {
+                mainLayer = mainLayer.mergeFallback(OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER)
+            }
             val shift = layout.shiftLayer
                 .mergeFallback(
                     OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedFullSizedNumericLayer.value)
                         .autoShift()
                 )
             mapOf(
-                ShiftState.Normal to layout.mainLayer
+                ShiftState.Normal to mainLayer
                     .mergeFallback(
                         OVERLAY_MESSAGEASE_LAYER.mergeFallback(
                             mergedFullSizedNumericLayer.value
