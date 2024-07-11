@@ -116,6 +116,8 @@ fun Key(
     val circleAngleThreshold = settings.circleAngleThreshold.state
     val enableHapticFeedback = settings.enableHapticFeedback.state
     val enableVisualFeedback = settings.enableVisualFeedback.state
+    val dropLastGesturePoint = settings.dropLastGesturePoint.state
+    val ignoreJumpsLongerThanPx = settings.ignoreJumpsLongerThanPx.state
     val keyColour = settings.keyColour.state
     val keyColourChroma = settings.keyColourChroma.state
     val toneMode = settings.keyColourTone.state
@@ -209,6 +211,8 @@ fun Key(
                     onFastAction = handleAction,
                     trailListenerState = keyPointerTrailListener,
                     gestureLibrary = { gestureLibrary },
+                    dropLastGesturePoint = { dropLastGesturePoint.value },
+                    ignoreJumpsLongerThanPx = { ignoreJumpsLongerThanPx.value },
                 )?.let { gesture ->
                     val flick =
                         gesture.toFlick(longHoldOnClockwiseCircle = key.holdAction != null && longHoldOnClockwiseCircle.value)
@@ -376,6 +380,8 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     // HACK: Taking it as a regular argument prevents the function from
     // being loaded when the type is unavailable
     gestureLibrary: () -> GestureLibrary?,
+    dropLastGesturePoint: () -> Boolean,
+    ignoreJumpsLongerThanPx: () -> Float,
 ): Gesture? {
     val down = awaitFirstDown()
     down.consume()
@@ -398,15 +404,25 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
             trailListener?.onUp?.invoke()
             return Gesture.Flick(Direction.CENTER, longHold = true, shift = false)
         }
-        for (change in event?.changes ?: emptyList()) {
+        for (changeVal in event?.changes ?: emptyList()) {
+            // HACK: kotlin doesn't support for (var ... in ...)
+            var change = changeVal
             if (change.isConsumed || change.changedToUp()) {
                 trailListener?.onUp?.invoke()
             }
             if (change.isConsumed) {
                 return null
             }
-            positions.add(change.position)
-            trailListener?.onTrailUpdate?.invoke(positions)
+            if (change.positionChange().getDistance() > ignoreJumpsLongerThanPx()) {
+                change.consume()
+                continue
+            }
+            if (dropLastGesturePoint() && change.changedToUp()) {
+                change = change.copy(currentPosition = positions.last())
+            } else {
+                positions.add(change.position)
+                trailListener?.onTrailUpdate?.invoke(positions)
+            }
             val posFromDown = change.position - down.position
             val distanceFromDownSquared = posFromDown.getDistanceSquared()
             if (!isDragging) {

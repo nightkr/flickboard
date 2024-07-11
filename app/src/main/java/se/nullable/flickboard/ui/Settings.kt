@@ -1098,6 +1098,24 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val dropLastGesturePoint = Setting.Bool(
+        key = "dropLastGesturePoint",
+        label = "Ignore last gesture point",
+        defaultValue = false,
+        ctx = ctx,
+        description = "This can help against some devices that insert erroneous motion at the end of gestures",
+    )
+
+    val ignoreJumpsLongerThanPx = Setting.FloatSlider(
+        key = "ignoreJumpsLongerThanPx",
+        label = "Ignore jumps larger than limit",
+        defaultValue = 200F,
+        range = 16F..200F,
+        ctx = ctx,
+        description = "This can help against some devices that insert erroneous motion in the middle of " +
+                "gestures, at the cost of sometimes causing misinput if the device lags",
+    )
+
     val all =
         listOf<SettingsSection>(
             SettingsSection(
@@ -1160,6 +1178,12 @@ class AppSettings(val ctx: SettingsContext) {
                     enableHapticFeedback,
                     enableVisualFeedback,
                 ),
+            ),
+            SettingsSection(
+                key = "workarounds",
+                label = "Workarounds",
+                icon = R.drawable.baseline_bug_report_24,
+                settings = listOf(dropLastGesturePoint, ignoreJumpsLongerThanPx),
             )
         )
 }
