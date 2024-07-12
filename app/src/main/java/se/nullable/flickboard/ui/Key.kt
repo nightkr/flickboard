@@ -414,13 +414,16 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
             if (change.isConsumed) {
                 return null
             }
+            var ignoreCurrentChangePosition = false
             if (change.changedToDown()
                 || change.positionChange().getDistance() > ignoreJumpsLongerThanPx()
             ) {
-                change.consume()
-                continue
+                ignoreCurrentChangePosition = true
             }
             if (dropLastGesturePoint() && change.changedToUp()) {
+                ignoreCurrentChangePosition = true
+            }
+            if (ignoreCurrentChangePosition) {
                 change = change.copy(currentPosition = positions.lastOrNull() ?: change.position)
             } else {
                 positions.add(change.position)
