@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
@@ -413,12 +414,14 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
             if (change.isConsumed) {
                 return null
             }
-            if (change.positionChange().getDistance() > ignoreJumpsLongerThanPx()) {
+            if (change.changedToDown()
+                || change.positionChange().getDistance() > ignoreJumpsLongerThanPx()
+            ) {
                 change.consume()
                 continue
             }
             if (dropLastGesturePoint() && change.changedToUp()) {
-                change = change.copy(currentPosition = positions.last())
+                change = change.copy(currentPosition = positions.lastOrNull() ?: change.position)
             } else {
                 positions.add(change.position)
                 trailListener?.onTrailUpdate?.invoke(positions)
