@@ -35,8 +35,8 @@ android {
         applicationId = "se.nullable.flickboard"
         minSdk = 28
         targetSdk = 34
-        versionCode = 24
-        versionName = "0.1.6-beta2"
+        versionCode = 25
+        versionName = "0.1.6-beta3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
