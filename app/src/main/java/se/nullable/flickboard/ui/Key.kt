@@ -119,6 +119,7 @@ fun Key(
     val enableVisualFeedback = settings.enableVisualFeedback.state
     val dropLastGesturePoint = settings.dropLastGesturePoint.state
     val ignoreJumpsLongerThanPx = settings.ignoreJumpsLongerThanPx.state
+    val flicksMustBeLongerThanSeconds = settings.flicksMustBeLongerThanSeconds.state
     val keyColour = settings.keyColour.state
     val keyColourChroma = settings.keyColourChroma.state
     val toneMode = settings.keyColourTone.state
@@ -214,6 +215,7 @@ fun Key(
                     gestureLibrary = { gestureLibrary },
                     dropLastGesturePoint = { dropLastGesturePoint.value },
                     ignoreJumpsLongerThanPx = { ignoreJumpsLongerThanPx.value },
+                    flicksMustBeLongerThanSeconds = { flicksMustBeLongerThanSeconds.value },
                 )?.let { gesture ->
                     val flick =
                         gesture.toFlick(longHoldOnClockwiseCircle = key.holdAction != null && longHoldOnClockwiseCircle.value)
@@ -383,9 +385,11 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     gestureLibrary: () -> GestureLibrary?,
     dropLastGesturePoint: () -> Boolean,
     ignoreJumpsLongerThanPx: () -> Float,
+    flicksMustBeLongerThanSeconds: () -> Float,
 ): Gesture? {
     val down = awaitFirstDown()
     down.consume()
+    val gestureStartedAtNanos = System.nanoTime()
     val trailListener = trailListenerState.value
     trailListener?.onDown?.invoke()
     var isDragging = false
@@ -447,7 +451,10 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                 if (fastActionPerformed) {
                     return null
                 }
-                if (!isDragging) {
+                if (!isDragging ||
+                    System.nanoTime() - gestureStartedAtNanos <
+                    flicksMustBeLongerThanSeconds() * 10.toDouble().pow(9)
+                ) {
                     return Gesture.Flick(
                         direction = Direction.CENTER,
                         longHold = false,

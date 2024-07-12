@@ -119,6 +119,7 @@ import se.nullable.flickboard.ui.theme.Typography
 import se.nullable.flickboard.util.Boxed
 import se.nullable.flickboard.util.MaterialToneMode
 import java.io.FileOutputStream
+import java.util.Locale
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -1116,6 +1117,16 @@ class AppSettings(val ctx: SettingsContext) {
                 "gestures, at the cost of sometimes causing misinput if the device lags",
     )
 
+    val flicksMustBeLongerThanSeconds = Setting.FloatSlider(
+        key = "flicksMustBeLongerThanSeconds",
+        label = "Swipes must be longer than limit",
+        defaultValue = 0F,
+        range = 0F..1F,
+        ctx = ctx,
+        description = "All gestures shorter than the limit will be forcibly interpreted as taps, rather than swipes",
+        render = { String.format(locale = Locale.getDefault(), "%.2fs", it) }
+    )
+
     val all =
         listOf<SettingsSection>(
             SettingsSection(
@@ -1183,7 +1194,11 @@ class AppSettings(val ctx: SettingsContext) {
                 key = "workarounds",
                 label = "Workarounds",
                 icon = R.drawable.baseline_bug_report_24,
-                settings = listOf(dropLastGesturePoint, ignoreJumpsLongerThanPx),
+                settings = listOf(
+                    dropLastGesturePoint,
+                    ignoreJumpsLongerThanPx,
+                    flicksMustBeLongerThanSeconds
+                ),
             )
         )
 }
