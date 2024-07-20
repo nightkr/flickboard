@@ -42,10 +42,11 @@ import androidx.core.content.res.getResourceIdOrThrow
 import androidx.core.content.res.use
 import se.nullable.flickboard.R
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.ui.OnAction
 import androidx.emoji2.emojipicker.R as Emoji2R
 
 @Composable
-fun EmojiKeyboard(onAction: (Action) -> Unit) {
+fun EmojiKeyboard(onAction: OnAction) {
     val emojis = emojiList()
     var selectedCategoryIndex by remember(emojis) { mutableStateOf(0) }
     val tabScrollState = rememberScrollState()
@@ -118,7 +119,7 @@ fun EmojiKeyboard(onAction: (Action) -> Unit) {
 @Composable
 @Preview
 fun EmojiKeyboardPreview() {
-    EmojiKeyboard(onAction = {})
+    EmojiKeyboard(onAction = { true })
 }
 
 @SuppressLint("PrivateResource")

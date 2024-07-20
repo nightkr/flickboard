@@ -7,8 +7,7 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
-import se.nullable.flickboard.ui.FlickBoardParent
-import se.nullable.flickboard.ui.Keyboard
+import se.nullable.flickboard.ui.KeyboardLayoutPreview
 
 val EN_THUMBKEY_MAIN_LAYER = Layer(
     keyRows = listOf(
@@ -92,15 +91,11 @@ val EN_THUMBKEY = Layout(
 @Composable
 @Preview
 fun EnThumbKeyKeyboardPreview() {
-    FlickBoardParent {
-        Keyboard(layout = Layout(EN_THUMBKEY_MAIN_LAYER), onAction = {})
-    }
+    KeyboardLayoutPreview(layout = Layout(EN_THUMBKEY_MAIN_LAYER))
 }
 
 @Composable
 @Preview
 fun EnThumbKeyFullKeyboardPreview() {
-    FlickBoardParent {
-        Keyboard(layout = EN_THUMBKEY, showAllModifiers = true, onAction = {})
-    }
+    KeyboardLayoutPreview(layout = EN_THUMBKEY, showAllModifiers = true)
 }

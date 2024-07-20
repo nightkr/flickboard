@@ -7,8 +7,7 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
-import se.nullable.flickboard.ui.FlickBoardParent
-import se.nullable.flickboard.ui.Keyboard
+import se.nullable.flickboard.ui.KeyboardLayoutPreview
 
 val HU_UUP_MESSAGEASE_MAIN_LAYER = Layer(
     keyRows = listOf(
@@ -101,15 +100,11 @@ val HU_UUP_MESSAGEASE = Layout(
 @Composable
 @Preview
 fun HuUUpKeyboardPreview() {
-    FlickBoardParent {
-        Keyboard(layout = Layout(HU_UUP_MESSAGEASE_MAIN_LAYER), onAction = {})
-    }
+    KeyboardLayoutPreview(layout = Layout(HU_UUP_MESSAGEASE_MAIN_LAYER))
 }
 
 @Composable
 @Preview
 fun HuUUpFullKeyboardPreview() {
-    FlickBoardParent {
-        Keyboard(layout = HU_UUP_MESSAGEASE, onAction = {})
-    }
+    KeyboardLayoutPreview(layout = HU_UUP_MESSAGEASE)
 }

@@ -55,10 +55,13 @@ import se.nullable.flickboard.ui.layout.Grid
 import se.nullable.flickboard.util.toOnAccentContainer
 import java.io.IOException
 
+// Returns false if action could not be processed
+typealias OnAction = (Action) -> Boolean
+
 @Composable
 fun Keyboard(
     layout: Layout,
-    onAction: ((Action) -> Unit)?,
+    onAction: OnAction?,
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
     onModifierStateUpdated: (ModifierState) -> Unit = {},
@@ -334,7 +337,7 @@ fun Keyboard(
 
 @Composable
 fun ConfiguredKeyboard(
-    onAction: ((Action) -> Unit)?,
+    onAction: OnAction?,
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
     onModifierStateUpdated: (ModifierState) -> Unit = {},
@@ -355,6 +358,13 @@ fun ConfiguredKeyboard(
 }
 
 @Composable
+fun KeyboardLayoutPreview(layout: Layout, showAllModifiers: Boolean = false) {
+    FlickBoardParent {
+        Keyboard(layout = layout, showAllModifiers = showAllModifiers, onAction = { true })
+    }
+}
+
+@Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun KeyboardPreview() {
@@ -365,7 +375,10 @@ fun KeyboardPreview() {
                 Row {
                     Text(text = "Tapped: $lastAction")
                 }
-                ConfiguredKeyboard(onAction = { lastAction = it })
+                ConfiguredKeyboard(onAction = {
+                    lastAction = it
+                    true
+                })
             }
         }
     }
@@ -381,7 +394,10 @@ fun PlayKeyboardPreview() {
             AppSettingsProvider(prefs = MockedSharedPreferences(appSettings.ctx.prefs).also {
                 appSettings.keyHeight.writeTo(it, 128F)
             }) {
-                ConfiguredKeyboard(onAction = { lastAction = it })
+                ConfiguredKeyboard(onAction = {
+                    lastAction = it
+                    true
+                })
             }
         }
     }

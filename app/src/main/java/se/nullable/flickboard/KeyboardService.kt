@@ -39,6 +39,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import kotlinx.coroutines.launch
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.CaseChangeDirection
+import se.nullable.flickboard.model.FastActionType
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.TextBoundary
@@ -73,6 +74,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
     // instead of accessing directly
     private var cursor: CursorAnchorInfo? = null
 
+    var gestureBeginPosition: Int = 0
     private fun selection(): IntRange? = when (val currentCursor = cursor) {
         null -> {
             // Some apps (such as Firefox) don't always support requestCursorUpdates,
@@ -85,7 +87,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
             }, 0)?.let { it.selectionStart..it.selectionEnd }
         }
 
-        else -> currentCursor.selectionStart..currentCursor.selectionEnd
+        else -> {
+            println("aaaa ${currentCursor.selectionStart} ${currentCursor.selectionEnd}")
+            currentCursor.selectionStart..currentCursor.selectionEnd
+        }
     }
 
     private var activeModifiers = ModifierState()
@@ -177,7 +182,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                         val periodOnDoubleSpace = appSettings.periodOnDoubleSpace.state
                         val disabledDeadkeys = appSettings.disabledDeadkeys.state
                         val displayLimits = LocalDisplayLimits.current
-                        val onAction: (Action) -> Unit = { action ->
+                        val onAction: (Action) -> Boolean = { action ->
                             warningMessageScope.launch {
                                 warningSnackbarHostState.currentSnackbarData?.dismiss()
                             }
@@ -252,13 +257,39 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         currentInputConnection.endBatchEdit()
                                     }
                                 }
-
                             }
+
+                            var actionSuccessful = true
                             when (action) {
                                 is Action.Text -> typeText(
                                     action.character,
                                     forceRawKeyEvent = action.forceRawKeyEvent
                                 )
+
+                                is Action.BeginFastAction -> {
+                                    gestureBeginPosition =
+                                        currentCursorPosition(direction = SearchDirection.Backwards)
+                                            ?: 0
+                                }
+
+                                is Action.FastActionDone -> when (action.type) {
+                                    FastActionType.Delete -> {
+                                        currentInputConnection.commitText("", 0)
+                                    }
+                                }
+
+                                is Action.FastDelete -> {
+                                    // Let user select text, which is then deleted when FastActionDone is fired
+                                    when (val range = selection()) {
+                                        null -> actionSuccessful = false
+                                        else -> {
+                                            currentInputConnection.setSelection(
+                                                range.first + action.direction.factor * (range.last == gestureBeginPosition && range.first != gestureBeginPosition),
+                                                range.last + action.direction.factor * (range.first == gestureBeginPosition),
+                                            )
+                                        }
+                                    }
+                                }
 
                                 is Action.Delete -> {
                                     when {
@@ -606,6 +637,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     }
                                 }
                             }
+                            actionSuccessful
                         }
                         Box {
                             when {

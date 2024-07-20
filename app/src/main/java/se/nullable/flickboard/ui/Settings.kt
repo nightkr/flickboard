@@ -279,7 +279,7 @@ fun SettingsKeyboardPreview() {
                 AnimatedVisibility(enableState.value) {
                     ProvideDisplayLimits {
                         ConfiguredKeyboard(
-                            onAction = { }, // Keyboard provides internal visual feedback if enabled
+                            onAction = { true }, // Keyboard provides internal visual feedback if enabled
                             modifier = Modifier.fillMaxWidth()
                         )
                     }

@@ -7,8 +7,7 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
-import se.nullable.flickboard.ui.FlickBoardParent
-import se.nullable.flickboard.ui.Keyboard
+import se.nullable.flickboard.ui.KeyboardLayoutPreview
 
 val PT_IOS_MESSAGEASE_MAIN_LAYER = Layer(
     keyRows = listOf(
@@ -105,15 +104,11 @@ val PT_IOS_MESSAGEASE = Layout(
 @Composable
 @Preview
 fun PtIosKeyboardPreview() {
-    FlickBoardParent {
-        Keyboard(layout = Layout(PT_IOS_MESSAGEASE_MAIN_LAYER), onAction = {})
-    }
+    KeyboardLayoutPreview(layout = Layout(PT_IOS_MESSAGEASE_MAIN_LAYER))
 }
 
 @Composable
 @Preview
 fun PtIosFullKeyboardPreview() {
-    FlickBoardParent {
-        Keyboard(layout = PT_IOS_MESSAGEASE, showAllModifiers = true, onAction = {})
-    }
+    KeyboardLayoutPreview(layout = PT_IOS_MESSAGEASE, showAllModifiers = true)
 }

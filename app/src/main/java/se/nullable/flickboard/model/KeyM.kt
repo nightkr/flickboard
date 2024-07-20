@@ -108,10 +108,13 @@ sealed class Action {
     abstract fun visual(modifier: ModifierState?): ActionVisual
     open fun isActive(modifier: ModifierState?): Boolean = false
     open val actionClass = ActionClass.Other
+    open val fastActionType: FastActionType? = null
     open fun shift(): Action = this
     open fun hide(): Action = this
 
     open val isModifier = false
+    open val flashOnAction: Boolean
+        get() = !isModifier
 
     data class Text(
         val character: String,
@@ -143,6 +146,23 @@ sealed class Action {
         }
 
         override fun shift(): Action = copy(boundary = TextBoundary.Word)
+    }
+
+    data class FastDelete(val direction: SearchDirection) : Action() {
+        override fun visual(modifier: ModifierState?): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_backspace_24)
+
+        override val fastActionType: FastActionType = FastActionType.Delete
+    }
+
+    data object BeginFastAction : Action() {
+        override fun visual(modifier: ModifierState?): ActionVisual = ActionVisual.None
+        override val flashOnAction: Boolean = false
+    }
+
+    data class FastActionDone(val type: FastActionType) : Action() {
+        override fun visual(modifier: ModifierState?): ActionVisual = ActionVisual.None
+        override val flashOnAction: Boolean = false
     }
 
     data class Enter(val shift: Boolean = false) : Action() {
@@ -303,6 +323,10 @@ sealed class Action {
         override fun visual(modifier: ModifierState?): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_mic_24)
     }
+}
+
+enum class FastActionType {
+    Delete,
 }
 
 enum class ActionClass {

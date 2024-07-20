@@ -303,6 +303,7 @@ fun TutorialKeyStep(
                 when {
                     action == desiredAction -> onGesturePerformed()
                 }
+                true
             },
         )
         if (handedness.value == Handedness.LeftHanded) {
@@ -312,7 +313,7 @@ fun TutorialKeyStep(
 }
 
 @Composable
-fun TutorialKey(key: KeyM, onAction: ((Action) -> Unit)?) {
+fun TutorialKey(key: KeyM, onAction: OnAction?) {
     Key(
         key,
         onAction = onAction,

@@ -20,8 +20,7 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
-import se.nullable.flickboard.ui.FlickBoardParent
-import se.nullable.flickboard.ui.Keyboard
+import se.nullable.flickboard.ui.KeyboardLayoutPreview
 
 val PL_RMITURA_MESSAGEASE_MAIN_LAYER = Layer(
     keyRows = listOf(
@@ -115,15 +114,11 @@ val PL_RMITURA_MESSAGEASE = Layout(
 @Composable
 @Preview
 fun PlRmituraKeyboardPreview() {
-    FlickBoardParent {
-        Keyboard(layout = Layout(PL_RMITURA_MESSAGEASE_MAIN_LAYER), onAction = {})
-    }
+    KeyboardLayoutPreview(layout = Layout(PL_RMITURA_MESSAGEASE_MAIN_LAYER))
 }
 
 @Composable
 @Preview
 fun PlRmituraFullKeyboardPreview() {
-    FlickBoardParent {
-        Keyboard(layout = PL_RMITURA_MESSAGEASE, showAllModifiers = true, onAction = {})
-    }
+    KeyboardLayoutPreview(layout = PL_RMITURA_MESSAGEASE, showAllModifiers = true)
 }

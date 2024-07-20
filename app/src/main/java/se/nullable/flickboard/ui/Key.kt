@@ -71,6 +71,7 @@ import se.nullable.flickboard.model.ActionClass
 import se.nullable.flickboard.model.ActionVisual
 import se.nullable.flickboard.model.CircleDirection
 import se.nullable.flickboard.model.Direction
+import se.nullable.flickboard.model.FastActionType
 import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.ModifierState
@@ -93,7 +94,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun Key(
     key: KeyM,
-    onAction: ((Action) -> Unit)?,
+    onAction: OnAction?,
     modifierState: ModifierState?,
     modifier: Modifier = Modifier,
     enterKeyLabel: String? = null,
@@ -193,7 +194,7 @@ fun Key(
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             }
             if (enableVisualFeedback.value) {
-                if (!action.isModifier) {
+                if (action.flashOnAction) {
                     lastActionTaken = TakenAction(action)
                 }
             }
@@ -377,7 +378,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     circleAngleThreshold: () -> Float,
     gestureRecognizer: () -> GestureRecognizer,
     fastActions: Map<Direction, Action>,
-    onFastAction: (Action) -> Unit,
+    onFastAction: OnAction,
     // Passed as state to ensure that it's only grabbed once we have a down event
     trailListenerState: State<KeyPointerTrailListener?>,
     // HACK: Taking it as a regular argument prevents the function from
@@ -394,7 +395,10 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     trailListener?.onDown?.invoke()
     var isDragging = false
     var canBeFastAction = fastActions.isNotEmpty()
+    var fastActionBegan = false
     var fastActionPerformed = false
+    // Must be separate from fastActionPerformed, since not all fast actions have an associated type
+    var fastActionType: FastActionType? = null
     val positions = mutableListOf<Offset>()
     var mostExtremePosFromDown = Offset(0F, 0F)
     var mostExtremeDistanceFromDownSquared = 0F
@@ -449,6 +453,9 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                 // If fast action was performed then the user is presumably already happy with the
                 // state when they release, so suppress the release action.
                 if (fastActionPerformed) {
+                    fastActionType
+                        ?.let(Action::FastActionDone)
+                        ?.let(onFastAction)
                     return null
                 }
                 if (!isDragging ||
@@ -508,9 +515,15 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                     val direction = posChange.direction()
                     val fastAction = fastActions[direction]
                     if (fastAction != null) {
-                        fastActionPerformed = true
-                        fastActionTraveled -= fastActionTraveled / fastActionCount
-                        onFastAction(fastAction)
+                        if (!fastActionBegan) {
+                            onFastAction(Action.BeginFastAction)
+                            fastActionBegan = true
+                        }
+                        if (onFastAction(fastAction)) {
+                            fastActionPerformed = true
+                            fastActionType = fastAction.fastActionType
+                            fastActionTraveled -= fastActionTraveled / fastActionCount
+                        }
                     } else {
                         canBeFastAction = fastActionPerformed
                     }
@@ -602,7 +615,10 @@ fun KeyPreview() {
                             Direction.BOTTOM_RIGHT to Action.Text(character = "I"),
                         )
                     ),
-                    onAction = { lastAction = it },
+                    onAction = {
+                        lastAction = it
+                        true
+                    },
                     layoutTextDirection = TextDirection.LeftToRight,
                     modifier = Modifier.aspectRatio(1F),
                     modifierState = ModifierState()

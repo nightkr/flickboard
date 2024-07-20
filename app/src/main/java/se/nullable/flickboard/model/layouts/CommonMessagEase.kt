@@ -14,8 +14,7 @@ import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.ShiftState
-import se.nullable.flickboard.ui.FlickBoardParent
-import se.nullable.flickboard.ui.Keyboard
+import se.nullable.flickboard.ui.KeyboardLayoutPreview
 
 val SPACE = KeyM(
     actions = mapOf(
@@ -102,8 +101,12 @@ val CONTROL_MESSAGEASE_LAYER =
                         Direction.RIGHT to Action.Delete(
                             direction = SearchDirection.Forwards,
                             hidden = true
-                        )
-                    )
+                        ),
+                    ),
+                    fastActions = mapOf(
+                        Direction.LEFT to Action.FastDelete(direction = SearchDirection.Backwards),
+                        Direction.RIGHT to Action.FastDelete(direction = SearchDirection.Forwards),
+                    ),
                 )
             ),
             // enter
@@ -155,9 +158,7 @@ val OVERLAY_MESSAGEASE_LAYER = Layer(
 @Composable
 @Preview
 fun CommonKeyboardPreview() {
-    FlickBoardParent {
-        Box(Modifier.width(100.dp)) {
-            Keyboard(layout = Layout(CONTROL_MESSAGEASE_LAYER), onAction = {})
-        }
+    Box(Modifier.width(100.dp)) {
+        KeyboardLayoutPreview(layout = Layout(CONTROL_MESSAGEASE_LAYER))
     }
 }
