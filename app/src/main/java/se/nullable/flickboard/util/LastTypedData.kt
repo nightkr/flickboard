@@ -10,13 +10,46 @@ data class LastTypedData(val codePoint: Int?, val position: Int, val combiner: C
         val baseCharLength: Int
     )
 
-    fun tryCombineWith(nextChar: String, periodOnDoubleSpace: Boolean): Combiner? {
+    fun tryCombineWith(
+        nextChar: String,
+        periodOnDoubleSpace: Boolean,
+        // zalgo mode
+        tryHarder: Boolean = false,
+    ): Combiner? {
         return when {
             periodOnDoubleSpace && codePoint == ' '.code && nextChar == " " -> Combiner(
                 original = "  ",
                 combinedReplacement = ". ",
                 baseCharLength = UCharacter.charCount(codePoint),
             )
+
+            tryHarder && codePoint == 'a'.code && nextChar.lowercase() == "e" ->
+                Combiner(
+                    original = "a$nextChar",
+                    combinedReplacement = "æ",
+                    baseCharLength = UCharacter.charCount(codePoint)
+                )
+
+            tryHarder && codePoint == 'A'.code && nextChar.lowercase() == "e" ->
+                Combiner(
+                    original = "A$nextChar",
+                    combinedReplacement = "Æ",
+                    baseCharLength = UCharacter.charCount(codePoint)
+                )
+
+            tryHarder && codePoint == 'o'.code && nextChar == "/" ->
+                Combiner(
+                    original = "o/",
+                    combinedReplacement = "ø",
+                    baseCharLength = UCharacter.charCount(codePoint)
+                )
+
+            tryHarder && codePoint == 'O'.code && nextChar == "/" ->
+                Combiner(
+                    original = "O/",
+                    combinedReplacement = "Ø",
+                    baseCharLength = UCharacter.charCount(codePoint)
+                )
 
             else -> {
                 val normalizer = Normalizer2.getNFKDInstance()

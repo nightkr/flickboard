@@ -210,14 +210,19 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                     else -> {
                                         val combiner = when {
-                                            activeModifiers.zalgo -> char.asCombiningMarkOrNull()
-                                                ?.let {
-                                                    LastTypedData.Combiner(
-                                                        original = char,
-                                                        combinedReplacement = it,
-                                                        baseCharLength = 0
-                                                    )
-                                                }
+                                            activeModifiers.zalgo ->
+                                                lastTyped?.tryCombineWith(
+                                                    char,
+                                                    periodOnDoubleSpace = false,
+                                                    tryHarder = true
+                                                ) ?: char.asCombiningMarkOrNull()
+                                                    ?.let {
+                                                        LastTypedData.Combiner(
+                                                            original = char,
+                                                            combinedReplacement = it,
+                                                            baseCharLength = 0
+                                                        )
+                                                    }
 
                                             disabledDeadkeys.value.contains(char) -> null
 
