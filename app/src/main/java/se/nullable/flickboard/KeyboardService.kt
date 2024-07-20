@@ -264,6 +264,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 }
                             }
 
+                            fun moveSelection(direction: SearchDirection): Boolean {
+                                val range = selection() ?: return false
+                                currentInputConnection.setSelection(
+                                    range.first + direction.factor * (range.last == gestureBeginPosition && range.first != gestureBeginPosition),
+                                    range.last + direction.factor * (range.first == gestureBeginPosition),
+                                )
+                                return true
+                            }
+
                             var actionSuccessful = true
                             when (action) {
                                 is Action.Text -> typeText(
@@ -272,9 +281,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 )
 
                                 is Action.BeginFastAction -> {
-                                    gestureBeginPosition =
-                                        currentCursorPosition(direction = SearchDirection.Backwards)
-                                            ?: 0
+                                    if (!activeModifiers.select) {
+                                        gestureBeginPosition =
+                                            currentCursorPosition(direction = SearchDirection.Backwards)
+                                                ?: 0
+                                    }
                                 }
 
                                 is Action.FastActionDone -> when (action.type) {
@@ -285,15 +296,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                 is Action.FastDelete -> {
                                     // Let user select text, which is then deleted when FastActionDone is fired
-                                    when (val range = selection()) {
-                                        null -> actionSuccessful = false
-                                        else -> {
-                                            currentInputConnection.setSelection(
-                                                range.first + action.direction.factor * (range.last == gestureBeginPosition && range.first != gestureBeginPosition),
-                                                range.last + action.direction.factor * (range.first == gestureBeginPosition),
-                                            )
-                                        }
-                                    }
+                                    actionSuccessful = moveSelection(action.direction)
                                 }
 
                                 is Action.Delete -> {
@@ -383,25 +386,32 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 }
 
                                 is Action.Jump -> {
-                                    when (val currentPos =
-                                        currentCursorPosition(action.direction)) {
-                                        null -> sendKeyPressEvents(
-                                            keyCode = when (action.direction) {
-                                                SearchDirection.Backwards -> KeyEvent.KEYCODE_DPAD_LEFT
-                                                SearchDirection.Forwards -> KeyEvent.KEYCODE_DPAD_RIGHT
-                                            }
-                                        )
+                                    when {
+                                        activeModifiers.select -> actionSuccessful =
+                                            moveSelection(action.direction)
 
                                         else -> {
-                                            val newPos = currentPos + findBoundary(
-                                                action.boundary,
-                                                action.direction,
-                                                coalesce = true,
-                                            ) * action.direction.factor
-                                            currentInputConnection.setSelection(
-                                                newPos,
-                                                newPos
-                                            )
+                                            when (val currentPos =
+                                                currentCursorPosition(action.direction)) {
+                                                null -> sendKeyPressEvents(
+                                                    keyCode = when (action.direction) {
+                                                        SearchDirection.Backwards -> KeyEvent.KEYCODE_DPAD_LEFT
+                                                        SearchDirection.Forwards -> KeyEvent.KEYCODE_DPAD_RIGHT
+                                                    }
+                                                )
+
+                                                else -> {
+                                                    val newPos = currentPos + findBoundary(
+                                                        action.boundary,
+                                                        action.direction,
+                                                        coalesce = true,
+                                                    ) * action.direction.factor
+                                                    currentInputConnection.setSelection(
+                                                        newPos,
+                                                        newPos
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -538,6 +548,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 is Action.ToggleShift, Action.ToggleCtrl, Action.ToggleAlt, Action.ToggleZalgo -> {
                                     // handled internally in Keyboard
                                 }
+
+                                Action.ToggleSelect -> gestureBeginPosition =
+                                    currentCursorPosition(direction = SearchDirection.Backwards)
+                                        ?: 0
 
                                 Action.Copy -> {
                                     if (selectionSize() == SelectionSize.Empty) {

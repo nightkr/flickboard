@@ -8,8 +8,9 @@ data class ModifierState(
     val ctrl: Boolean = false,
     val alt: Boolean = false,
     val zalgo: Boolean = false,
+    val select: Boolean = false,
 ) {
-    fun next(): ModifierState = ModifierState(shift = shift.next())
+    fun next(): ModifierState = ModifierState(shift = shift.next(), select = select)
 
     val useRawKeyEvent = ctrl || alt
 

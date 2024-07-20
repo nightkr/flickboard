@@ -79,6 +79,7 @@ val CONTROL_MESSAGEASE_LAYER =
             listOf(
                 KeyM(
                     actions = mapOf(
+                        Direction.CENTER to Action.ToggleSelect,
                         Direction.TOP_LEFT to Action.Cut,
                         Direction.TOP to Action.Copy,
                         Direction.TOP_RIGHT to Action.Cut,

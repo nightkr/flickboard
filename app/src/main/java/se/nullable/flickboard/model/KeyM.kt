@@ -250,6 +250,15 @@ sealed class Action {
         }
     }
 
+    data object ToggleSelect : Action() {
+        override val isModifier: Boolean = true
+
+        override fun visual(modifier: ModifierState?): ActionVisual = when {
+            modifier?.select ?: true -> ActionVisual.Icon(R.drawable.baseline_select_all_24)
+            else -> ActionVisual.None
+        }
+    }
+
     data object Cut : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_content_cut_24)
