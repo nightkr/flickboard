@@ -23,6 +23,9 @@ fun String.asCombiningMarkOrNull(): String? =
             '^'.code -> "\u0302"
             '~'.code -> "\u0303"
             'ˇ'.code -> "\u030C"
+            // Degree sign isn't strictly a diacritic, but visually
+            // the same and we're not adding a separate ring diacritic key
+            '°'.code -> "\u030A"
             else -> Normalizer2.getNFKDInstance()
                 .getRawDecomposition(codePoint)?.dropInitialSpace()
         }
