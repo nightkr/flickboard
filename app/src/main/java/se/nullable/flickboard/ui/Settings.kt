@@ -103,10 +103,6 @@ import se.nullable.flickboard.model.layouts.HU_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_MF_MESSAGEASE
 import se.nullable.flickboard.model.layouts.HU_UUP_MESSAGEASE
 import se.nullable.flickboard.model.layouts.IT_MESSAGEASE
-import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_CALCULATOR_LAYER
-import se.nullable.flickboard.model.layouts.MESSAGEASE_NUMERIC_PHONE_LAYER
-import se.nullable.flickboard.model.layouts.MINI_NUMBERS_CALCULATOR_LAYER
-import se.nullable.flickboard.model.layouts.MINI_NUMBERS_PHONE_LAYER
 import se.nullable.flickboard.model.layouts.PL_RMITURA_MESSAGEASE
 import se.nullable.flickboard.model.layouts.PT_IOS_MESSAGEASE
 import se.nullable.flickboard.model.layouts.PT_MESSAGEASE
@@ -117,6 +113,10 @@ import se.nullable.flickboard.model.layouts.SV_MESSAGEASE
 import se.nullable.flickboard.model.layouts.TR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_MESSAGEASE
 import se.nullable.flickboard.model.layouts.UK_RU_MESSAGEASE
+import se.nullable.flickboard.model.layouts.messageaseNumericCalculatorLayer
+import se.nullable.flickboard.model.layouts.messageaseNumericPhoneLayer
+import se.nullable.flickboard.model.layouts.miniNumbersCalculatorLayer
+import se.nullable.flickboard.model.layouts.miniNumbersPhoneLayer
 import se.nullable.flickboard.ui.theme.Typography
 import se.nullable.flickboard.util.Boxed
 import se.nullable.flickboard.util.MaterialToneMode
@@ -1328,18 +1328,18 @@ enum class LetterLayerOption(override val label: String, val layout: Layout) : L
 
 enum class NumericLayerOption(
     override val label: String,
-    val fullSizedLayer: Layer,
-    val miniLayer: Layer
+    val fullSizedLayer: (Layout) -> Layer,
+    val miniLayer: (Layout) -> Layer
 ) : Labeled {
     Phone(
         "Phone",
-        fullSizedLayer = MESSAGEASE_NUMERIC_PHONE_LAYER,
-        miniLayer = MINI_NUMBERS_PHONE_LAYER,
+        fullSizedLayer = { messageaseNumericPhoneLayer(it.digits) },
+        miniLayer = { miniNumbersPhoneLayer(it.digits) },
     ),
     Calculator(
         "Calculator",
-        fullSizedLayer = MESSAGEASE_NUMERIC_CALCULATOR_LAYER,
-        miniLayer = MINI_NUMBERS_CALCULATOR_LAYER,
+        fullSizedLayer = { messageaseNumericCalculatorLayer(it.digits) },
+        miniLayer = { miniNumbersCalculatorLayer(it.digits) },
     ),
 }
 

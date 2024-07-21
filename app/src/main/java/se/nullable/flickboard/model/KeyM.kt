@@ -9,6 +9,7 @@ data class Layout(
     val mainLayer: Layer,
     val shiftLayer: Layer = mainLayer.autoShift(),
     val controlLayer: Layer? = null,
+    val digits: String = "0123456789",
     val textDirection: TextDirection = TextDirection.LeftToRight,
 )
 
