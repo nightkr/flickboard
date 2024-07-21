@@ -1135,17 +1135,23 @@ class AppSettings(val ctx: SettingsContext) {
         render = { String.format(locale = Locale.getDefault(), "%.2fs", it) }
     )
 
+    // Pseudo-option used to store history
+    val emojiHistory =
+        Setting.Text(key = "emojiHistory", label = "Emoji history", defaultValue = "", ctx = ctx)
+
     val saveEmojiHistory = Setting.Bool(
         key = "saveEmojiHistory",
         label = "Remember recent emojis",
         defaultValue = false,
         ctx = ctx,
-        description = "History is only saved locally, and will not be shared"
+        description = "History is only saved locally, and will not be shared",
+        onChange = {
+            // Reset history on disable
+            if (!it) {
+                emojiHistory.currentValue = ""
+            }
+        },
     )
-
-    // Pseudo-option used to store history
-    val emojiHistory =
-        Setting.Text(key = "emojiHistory", label = "Emoji history", defaultValue = "", ctx = ctx)
 
     val all =
         listOf<SettingsSection>(
@@ -1394,12 +1400,15 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         val defaultValue: Boolean,
         ctx: SettingsContext,
         override val description: String? = null,
+        val onChange: (Boolean) -> Unit = {},
     ) : Setting<Boolean>(ctx) {
         override fun readFrom(prefs: SharedPreferences): Boolean =
             prefs.getBoolean(key, defaultValue)
 
-        override fun writeTo(prefs: SharedPreferences, value: Boolean) =
+        override fun writeTo(prefs: SharedPreferences, value: Boolean) {
+            onChange(value)
             prefs.edit { putBoolean(key, value) }
+        }
     }
 
     class Integer(
