@@ -9,8 +9,7 @@ import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 //import se.nullable.flickboard.model.TextDirection
-import se.nullable.flickboard.ui.FlickBoardParent
-import se.nullable.flickboard.ui.Keyboard
+import se.nullable.flickboard.ui.KeyboardLayoutPreview
 
 val FA_MESSAGEASE_MAIN_LAYER = Layer(
     keyRows = listOf(
@@ -114,21 +113,18 @@ val FA_MESSAGEASE_MAIN_LAYER = Layer(
 val FA_MESSAGEASE = Layout(
     mainLayer = FA_MESSAGEASE_MAIN_LAYER,
     controlLayer = CONTROL_MESSAGEASE_LAYER,
+    digits = "۰۱۲۳۴۵۶۷۸۹",
 //    textDirection = TextDirection.RightToLeft,
 )
 
 @Composable
 @Preview
-fun FaMessagEasePreview() {
-    FlickBoardParent {
-        Keyboard(layout = Layout(FA_MESSAGEASE_MAIN_LAYER), onAction = {})
-    }
+fun FaMessagEaseKeyboardPreview() {
+    KeyboardLayoutPreview(layout = Layout(FA_MESSAGEASE_MAIN_LAYER))
 }
 
 @Composable
 @Preview
 fun FaMessagEaseFullKeyboardPreview() {
-    FlickBoardParent {
-        Keyboard(layout = FA_MESSAGEASE, showAllModifiers = true, onAction = {})
-    }
+    KeyboardLayoutPreview(layout = FA_MESSAGEASE, showAllModifiers = true)
 }
