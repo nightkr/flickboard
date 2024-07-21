@@ -331,7 +331,7 @@ fun KeyActionIndicator(
             BoxWithConstraints(modifier.padding(horizontal = 2.dp)) {
                 val density = LocalDensity.current
                 Text(
-                    text = layoutTextDirection.unicodeDirectionMark + actionVisual.label + layoutTextDirection.unicodeDirectionMark,
+                    text = actionVisual.label,
                     color = usedColour,
                     fontSize = with(density) {
                         min(
@@ -345,6 +345,10 @@ fun KeyActionIndicator(
                             alignment = LineHeightStyle.Alignment.Center,
                             trim = LineHeightStyle.Trim.Both
                         ),
+                        textDirection = when (layoutTextDirection) {
+                            TextDirection.LeftToRight -> androidx.compose.ui.text.style.TextDirection.Ltr
+                            TextDirection.RightToLeft -> androidx.compose.ui.text.style.TextDirection.Rtl
+                        }
                     ),
                 )
             }

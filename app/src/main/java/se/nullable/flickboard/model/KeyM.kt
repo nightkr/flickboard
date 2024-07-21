@@ -360,9 +360,9 @@ enum class TextBoundary {
     }
 }
 
-enum class TextDirection(val unicodeDirectionMark: Char) {
-    LeftToRight(unicodeDirectionMark = '\u200E'),
-    RightToLeft(unicodeDirectionMark = '\u200F'),
+enum class TextDirection {
+    LeftToRight,
+    RightToLeft,
 }
 
 enum class SearchDirection(val factor: Int) {
