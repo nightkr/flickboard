@@ -113,8 +113,8 @@ sealed class Action {
     open fun hide(): Action = this
 
     open val isModifier = false
-    open val flashOnAction: Boolean
-        get() = !isModifier
+    open val isHiddenAction: Boolean
+        get() = isModifier
 
     data class Text(
         val character: String,
@@ -157,12 +157,12 @@ sealed class Action {
 
     data object BeginFastAction : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual = ActionVisual.None
-        override val flashOnAction: Boolean = false
+        override val isHiddenAction: Boolean = true
     }
 
     data class FastActionDone(val type: FastActionType) : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual = ActionVisual.None
-        override val flashOnAction: Boolean = false
+        override val isHiddenAction: Boolean = true
     }
 
     data class Enter(val shift: Boolean = false) : Action() {

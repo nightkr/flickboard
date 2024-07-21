@@ -194,7 +194,7 @@ fun Key(
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             }
             if (enableVisualFeedback.value) {
-                if (action.flashOnAction) {
+                if (!action.isHiddenAction) {
                     lastActionTaken = TakenAction(action)
                 }
             }

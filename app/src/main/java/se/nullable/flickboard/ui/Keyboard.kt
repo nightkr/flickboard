@@ -318,7 +318,13 @@ fun Keyboard(
                                             Action.ToggleAlt -> modifierState.copy(alt = !modifierState.alt)
                                             Action.ToggleZalgo -> modifierState.copy(zalgo = !modifierState.zalgo)
                                             Action.ToggleSelect -> modifierState.copy(select = !modifierState.select)
-                                            else -> modifierState.next()
+                                            is Action.Jump -> modifierState.next()
+                                                .copy(select = modifierState.select)
+
+                                            else -> when {
+                                                action.isHiddenAction -> modifierState
+                                                else -> modifierState.next()
+                                            }
                                         }
                                         onAction(action)
                                     }
