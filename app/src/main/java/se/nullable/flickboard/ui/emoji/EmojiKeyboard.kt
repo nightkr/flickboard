@@ -26,10 +26,8 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -42,13 +40,17 @@ import androidx.core.content.res.getResourceIdOrThrow
 import androidx.core.content.res.use
 import se.nullable.flickboard.R
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.OnAction
 import androidx.emoji2.emojipicker.R as Emoji2R
 
 @Composable
 fun EmojiKeyboard(onAction: OnAction) {
+    val appSettings = LocalAppSettings.current
+    val saveHistory = appSettings.saveEmojiHistory.state
+    val emojiHistory = appSettings.emojiHistory.state
     val emojis = emojiList()
-    var selectedCategoryIndex by remember(emojis) { mutableStateOf(0) }
+    val selectedTab = remember(emojis) { mutableStateOf<EmojiTab>(EmojiTab.Recent) }
     val tabScrollState = rememberScrollState()
     val emojiSize = 32.dp
     val emojiPadding = 8.dp
@@ -68,23 +70,34 @@ fun EmojiKeyboard(onAction: OnAction) {
                     .weight(1F)
                     .horizontalScroll(tabScrollState)
             ) {
-                emojis.categories.forEachIndexed { index, emojiCategory ->
-                    Tab(
-                        selected = selectedCategoryIndex == index,
-                        onClick = { selectedCategoryIndex = index },
+                if (saveHistory.value) {
+                    NarrowTab(
+                        selected = selectedTab.value == EmojiTab.Recent,
+                        onClick = { selectedTab.value = EmojiTab.Recent },
                         icon = {
-                            Box {
-                                Icon(
-                                    painterResource(emojiCategory.iconId),
-                                    contentDescription = null,
-                                    Modifier.padding(8.dp)
-                                )
-                                if (selectedCategoryIndex == index) {
-                                    TabRowDefaults.SecondaryIndicator(Modifier.align(Alignment.BottomCenter))
-                                }
-                            }
+                            Icon(
+                                painterResource(R.drawable.baseline_history_24),
+                                contentDescription = null,
+                                Modifier.padding(8.dp)
+                            )
                         },
-                        modifier = Modifier.width(IntrinsicSize.Max)
+                    )
+                } else {
+                    if (selectedTab.value == EmojiTab.Recent) {
+                        selectedTab.value = EmojiTab.Category(0)
+                    }
+                }
+                emojis.categories.forEachIndexed { index, emojiCategory ->
+                    NarrowTab(
+                        selected = (selectedTab.value as? EmojiTab.Category)?.index == index,
+                        onClick = { selectedTab.value = EmojiTab.Category(index) },
+                        icon = {
+                            Icon(
+                                painterResource(emojiCategory.iconId),
+                                contentDescription = null,
+                                Modifier.padding(8.dp)
+                            )
+                        },
                     )
                 }
             }
@@ -99,9 +112,31 @@ fun EmojiKeyboard(onAction: OnAction) {
                 .heightIn(max = 200.dp)
                 .background(MaterialTheme.colorScheme.surface)
         ) {
-            items(emojis.categories[selectedCategoryIndex].emojis) {
+            val tabEmojis = when (val tab = selectedTab.value) {
+                is EmojiTab.Category -> emojis.categories[tab.index].emojis
+                EmojiTab.Recent -> emojiHistory.value.split('\n')
+                    .filter { it.isNotBlank() }
+                    .map { EmojiGroup(listOf(it)) }
+            }
+            items(tabEmojis) {
                 val primaryVariant = it.variants[0]
-                Box(Modifier.clickable { onAction(Action.Text(primaryVariant)) }) {
+                Box(Modifier.clickable {
+                    if (saveHistory.value) {
+                        appSettings.emojiHistory.currentValue =
+                            "$primaryVariant\n${
+                                emojiHistory.value
+                                    // Remove duplicates
+                                    .replace("$primaryVariant\n", "")
+                            }"
+                                // Limit history length
+                                .let { history ->
+                                    history.findAnyOf(listOf("\n"), startIndex = 50)
+                                        ?.let { (i) -> history.substring(0..i) }
+                                        ?: history
+                                }
+                    }
+                    onAction(Action.Text(primaryVariant))
+                }) {
                     Text(
                         primaryVariant,
                         fontSize = emojiSizeSp,
@@ -117,9 +152,31 @@ fun EmojiKeyboard(onAction: OnAction) {
 }
 
 @Composable
+fun NarrowTab(selected: Boolean, onClick: () -> Unit, icon: @Composable () -> Unit) {
+    Tab(
+        selected = selected,
+        onClick = onClick,
+        icon = {
+            Box {
+                icon()
+                if (selected) {
+                    TabRowDefaults.SecondaryIndicator(Modifier.align(Alignment.BottomCenter))
+                }
+            }
+        },
+        modifier = Modifier.width(IntrinsicSize.Max)
+    )
+}
+
+@Composable
 @Preview
 fun EmojiKeyboardPreview() {
     EmojiKeyboard(onAction = { true })
+}
+
+sealed class EmojiTab {
+    data object Recent : EmojiTab()
+    data class Category(val index: Int) : EmojiTab()
 }
 
 @SuppressLint("PrivateResource")

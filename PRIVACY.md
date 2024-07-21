@@ -2,7 +2,10 @@
 
 We (FlickBoard) do not track you, however possible.
 
-The keyboard does not save anything you type, even locally.
+By default, the keyboard does not save anything you type, even locally.
+In a few cases, users may opt into local tracking to help deliver certain features. These are
+clearly
+signposted, and will never be shared or uploaded anywhere.
 
 When you install FlickBoard through a marketplace (such as Google Play), the marketplace will
 usually connect that to your marketplace user account, as well as generic identifiers such as your

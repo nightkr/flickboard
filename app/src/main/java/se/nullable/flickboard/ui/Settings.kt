@@ -1135,6 +1135,18 @@ class AppSettings(val ctx: SettingsContext) {
         render = { String.format(locale = Locale.getDefault(), "%.2fs", it) }
     )
 
+    val saveEmojiHistory = Setting.Bool(
+        key = "saveEmojiHistory",
+        label = "Remember recent emojis",
+        defaultValue = false,
+        ctx = ctx,
+        description = "History is only saved locally, and will not be shared"
+    )
+
+    // Pseudo-option used to store history
+    val emojiHistory =
+        Setting.Text(key = "emojiHistory", label = "Emoji history", defaultValue = "", ctx = ctx)
+
     val all =
         listOf<SettingsSection>(
             SettingsSection(
@@ -1208,7 +1220,13 @@ class AppSettings(val ctx: SettingsContext) {
                     ignoreJumpsLongerThanPx,
                     flicksMustBeLongerThanSeconds
                 ),
-            )
+            ),
+            SettingsSection(
+                key = "privacy",
+                label = "Privacy",
+                icon = R.drawable.baseline_fingerprint_24,
+                settings = listOf(saveEmojiHistory)
+            ),
         )
 }
 
