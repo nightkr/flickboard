@@ -177,53 +177,38 @@ val MESSAGEASE_SYMBOLS_LAYER = Layer(
     )
 )
 
-val MESSAGEASE_NUMERIC_PHONE_LAYER = Layer(
+fun messageaseNumericPhoneLayer(digits: String) = Layer(
     keyRows = listOf(
         listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("1"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("2"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("3"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text(digits[1].toString()))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text(digits[2].toString()))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text(digits[3].toString()))),
         ),
         listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("4"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("5"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("6"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text(digits[4].toString()))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text(digits[5].toString()))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text(digits[6].toString()))),
         ),
         listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("7"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("8"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("9"))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text(digits[7].toString()))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text(digits[8].toString()))),
+            KeyM(actions = mapOf(Direction.CENTER to Action.Text(digits[9].toString()))),
         ),
         listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("0")), colspan = 2),
+            KeyM(
+                actions = mapOf(Direction.CENTER to Action.Text(digits[0].toString())),
+                colspan = 2
+            ),
             SPACE.copy(colspan = 1)
         )
     )
 )
 
-val MESSAGEASE_NUMERIC_CALCULATOR_LAYER = Layer(
-    keyRows = listOf(
-        listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("7"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("8"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("9"))),
-        ),
-        listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("4"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("5"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("6"))),
-        ),
-        listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("1"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("2"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("3"))),
-        ),
-        listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("0")), colspan = 2),
-            SPACE.copy(colspan = 1)
-        )
-    )
-)
+fun messageaseNumericCalculatorLayer(digits: String) =
+    messageaseNumericPhoneLayer(reorderDigitsForCalculatorLayout(digits))
+
+fun reorderDigitsForCalculatorLayout(digits: String) =
+    "${digits[0]}${digits.substring(7..9)}${digits.substring(4..6)}${digits.substring(1..3)}"
 
 @Composable
 @Preview

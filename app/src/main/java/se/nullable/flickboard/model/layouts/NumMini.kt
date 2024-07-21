@@ -64,76 +64,42 @@ val MINI_NUMBERS_SYMBOLS_LAYER = Layer(
     )
 )
 
-val MINI_NUMBERS_PHONE_LAYER = Layer(
+fun miniNumbersPhoneLayer(digits: String) = Layer(
     keyRows = listOf(
         listOf(
             KeyM(
                 actions = mapOf(
-                    Direction.LEFT to Action.Text("1"),
-                    Direction.CENTER to Action.Text("2"),
-                    Direction.RIGHT to Action.Text("3"),
+                    Direction.LEFT to Action.Text(digits[1].toString()),
+                    Direction.CENTER to Action.Text(digits[2].toString()),
+                    Direction.RIGHT to Action.Text(digits[3].toString()),
                 ),
             ),
         ),
         listOf(
             KeyM(
                 actions = mapOf(
-                    Direction.LEFT to Action.Text("4"),
-                    Direction.CENTER to Action.Text("5"),
-                    Direction.RIGHT to Action.Text("6"),
+                    Direction.LEFT to Action.Text(digits[4].toString()),
+                    Direction.CENTER to Action.Text(digits[5].toString()),
+                    Direction.RIGHT to Action.Text(digits[6].toString()),
                 ),
             ),
         ),
         listOf(
             KeyM(
                 actions = mapOf(
-                    Direction.LEFT to Action.Text("7"),
-                    Direction.CENTER to Action.Text("8"),
-                    Direction.RIGHT to Action.Text("9"),
+                    Direction.LEFT to Action.Text(digits[7].toString()),
+                    Direction.CENTER to Action.Text(digits[8].toString()),
+                    Direction.RIGHT to Action.Text(digits[9].toString()),
                 ),
             ),
         ),
         listOf(
             KeyM(
-                actions = mapOf(Direction.CENTER to Action.Text("0")),
+                actions = mapOf(Direction.CENTER to Action.Text(digits[0].toString())),
             ),
         ),
     ),
 )
 
-val MINI_NUMBERS_CALCULATOR_LAYER = Layer(
-    keyRows = listOf(
-        listOf(
-            KeyM(
-                actions = mapOf(
-                    Direction.LEFT to Action.Text("7"),
-                    Direction.CENTER to Action.Text("8"),
-                    Direction.RIGHT to Action.Text("9"),
-                ),
-            ),
-        ),
-        listOf(
-            KeyM(
-                actions = mapOf(
-                    Direction.LEFT to Action.Text("4"),
-                    Direction.CENTER to Action.Text("5"),
-                    Direction.RIGHT to Action.Text("6"),
-                ),
-            ),
-        ),
-        listOf(
-            KeyM(
-                actions = mapOf(
-                    Direction.LEFT to Action.Text("1"),
-                    Direction.CENTER to Action.Text("2"),
-                    Direction.RIGHT to Action.Text("3"),
-                ),
-            ),
-        ),
-        listOf(
-            KeyM(
-                actions = mapOf(Direction.CENTER to Action.Text("0")),
-            ),
-        ),
-    ),
-)
+fun miniNumbersCalculatorLayer(digits: String) =
+    miniNumbersPhoneLayer(reorderDigitsForCalculatorLayout(digits))

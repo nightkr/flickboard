@@ -100,29 +100,32 @@ fun Keyboard(
     LaunchedEffect(modifierState) {
         onModifierStateUpdated(modifierState)
     }
+    val layoutState = rememberUpdatedState(layout)
     val mergedFullSizedNumericLayer =
         remember {
             derivedStateOf {
-                numericLayer.value.fullSizedLayer.mergeFallback(MESSAGEASE_SYMBOLS_LAYER)
+                numericLayer.value.fullSizedLayer(layoutState.value)
+                    .mergeFallback(MESSAGEASE_SYMBOLS_LAYER)
             }
         }
     val mergedMiniNumericLayer =
         remember {
             derivedStateOf {
-                numericLayer.value.miniLayer.mergeFallback(MINI_NUMBERS_SYMBOLS_LAYER)
+                numericLayer.value.miniLayer(layoutState.value)
+                    .mergeFallback(MINI_NUMBERS_SYMBOLS_LAYER)
                     .let { it.setShift(it.autoShift()) }
             }
         }
-    val layersByShiftState = remember(layout) {
+    val layersByShiftState = remember {
         derivedStateOf {
-            var mainLayer = layout.mainLayer
+            var mainLayer = layoutState.value.mainLayer
             if (enableAdvancedModifiers.value) {
                 mainLayer = mainLayer.mergeFallback(OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER)
             }
             if (enableToggleShowSymbols.value) {
                 mainLayer = mainLayer.mergeFallback(OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER)
             }
-            val shift = layout.shiftLayer
+            val shift = layoutState.value.shiftLayer
                 .mergeFallback(
                     OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedFullSizedNumericLayer.value)
                         .autoShift()
@@ -139,7 +142,7 @@ fun Keyboard(
                 ShiftState.Shift to shift,
 
                 // Don't shift numeric layer in caps lock
-                ShiftState.CapsLock to layout.shiftLayer
+                ShiftState.CapsLock to layoutState.value.shiftLayer
                     .mergeFallback(
                         OVERLAY_MESSAGEASE_LAYER
                             .autoShift()
@@ -153,7 +156,7 @@ fun Keyboard(
             }
         }
     }
-    val layer by remember(layout) {
+    val layer by remember {
         derivedStateOf {
             val activeLayer = layersByShiftState.value[modifierState.shift]!!
             listOfNotNull(
@@ -169,7 +172,7 @@ fun Keyboard(
 
                     else -> null
                 },
-                layout.controlLayer?.let { it.setShift(it.autoShift()) },
+                layoutState.value.controlLayer?.let { it.setShift(it.autoShift()) },
                 when (enabledLayers.value) {
                     EnabledLayers.AllMiniNumbersMiddle -> mergedMiniNumericLayer.value
                     else -> null
@@ -193,7 +196,7 @@ fun Keyboard(
                 }
                 .fold(Layer.empty, Layer::chain)
                 .let {
-                    when (layout.textDirection) {
+                    when (layoutState.value.textDirection) {
                         TextDirection.LeftToRight -> it
                         TextDirection.RightToLeft -> it.flipBrackets()
                     }
