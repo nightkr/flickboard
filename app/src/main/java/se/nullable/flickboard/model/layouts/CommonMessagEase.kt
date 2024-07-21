@@ -14,6 +14,7 @@ import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.ShiftState
+import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.ui.KeyboardLayoutPreview
 
 val SPACE = KeyM(
@@ -134,6 +135,10 @@ val CONTROL_MESSAGEASE_LAYER =
                     fastActions = mapOf(
                         Direction.LEFT to Action.FastDelete(direction = SearchDirection.Backwards),
                         Direction.RIGHT to Action.FastDelete(direction = SearchDirection.Forwards),
+                    ),
+                    holdAction = Action.Delete(
+                        direction = SearchDirection.Forwards,
+                        boundary = TextBoundary.Word,
                     ),
                 )
             ),
