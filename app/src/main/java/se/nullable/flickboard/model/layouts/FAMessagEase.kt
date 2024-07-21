@@ -36,7 +36,6 @@ val FA_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("م"),
                     Direction.TOP_RIGHT to Action.Text(
                         "\u200F", //RLM
-                        forceRawKeyEvent = true,
                         visualOverride = ActionVisual.Label("‹"),
                     ),
                     Direction.BOTTOM_LEFT to Action.Text("چ"),
@@ -81,7 +80,6 @@ val FA_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_RIGHT to Action.Text("ؤ"),
                     Direction.RIGHT to Action.Text(
                         "\u200C", //ZWNJ
-                        forceRawKeyEvent = true,
                         visualOverride = ActionVisual.Label("‹›"),
                     ),
                 )
