@@ -19,7 +19,6 @@ import se.nullable.flickboard.ui.KeyboardLayoutPreview
 val SPACE = KeyM(
     actions = mapOf(
         Direction.CENTER to Action.Text(" "),
-        Direction.TOP to Action.ToggleShowSymbols,
         Direction.LEFT to Action.Jump(direction = SearchDirection.Backwards),
         Direction.RIGHT to Action.Jump(direction = SearchDirection.Forwards),
     ),
@@ -53,6 +52,34 @@ val OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER =
                     actions = mapOf(
                         Direction.TOP_LEFT to Action.ToggleAlt,
                         Direction.TOP_RIGHT to Action.ToggleCtrl,
+                    )
+                )
+            ),
+        )
+    )
+
+val OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER =
+    Layer(
+        keyRows = listOf(
+            listOf(
+                KeyM(actions = mapOf()),
+                KeyM(actions = mapOf()),
+                KeyM(actions = mapOf()),
+            ),
+            listOf(
+                KeyM(actions = mapOf()),
+                KeyM(actions = mapOf()),
+                KeyM(actions = mapOf()),
+            ),
+            listOf(
+                KeyM(actions = mapOf()),
+                KeyM(actions = mapOf()),
+                KeyM(actions = mapOf()),
+            ),
+            listOf(
+                KeyM(
+                    actions = mapOf(
+                        Direction.TOP to Action.ToggleShowSymbols,
                     )
                 )
             ),

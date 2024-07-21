@@ -51,6 +51,7 @@ import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.MINI_NUMBERS_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
+import se.nullable.flickboard.model.layouts.OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER
 import se.nullable.flickboard.ui.layout.Grid
 import se.nullable.flickboard.util.toOnAccentContainer
 import java.io.IOException
@@ -88,6 +89,7 @@ fun Keyboard(
     val shownActionClasses = appSettings.shownActionClasses
     val enableHiddenActions = appSettings.enableHiddenActions.state
     val enableAdvancedModifiers = appSettings.enableAdvancedModifiers.state
+    val enableToggleShowSymbols = appSettings.enableToggleShowSymbolsGesture.state
     val keyColour = appSettings.keyColour.state
     val keyColourChroma = appSettings.keyColourChroma.state
     val toneMode = appSettings.keyColourTone.state
@@ -116,6 +118,9 @@ fun Keyboard(
             var mainLayer = layout.mainLayer
             if (enableAdvancedModifiers.value) {
                 mainLayer = mainLayer.mergeFallback(OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER)
+            }
+            if (enableToggleShowSymbols.value) {
+                mainLayer = mainLayer.mergeFallback(OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER)
             }
             val shift = layout.shiftLayer
                 .mergeFallback(
