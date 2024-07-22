@@ -9,8 +9,7 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
-import se.nullable.flickboard.ui.FlickBoardParent
-import se.nullable.flickboard.ui.Keyboard
+import se.nullable.flickboard.ui.KeyboardLayoutPreview
 
 val FA_SYMBOLS_LAYER = Layer(
     keyRows = listOf(
@@ -202,59 +201,3 @@ val FA_SYMBOLS_LAYER = Layer(
         )
     )
 )
-
-val FA_NUMERIC_PHONE_LAYER = Layer(
-    keyRows = listOf(
-        listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۱"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۲"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۳"))),
-        ),
-        listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۴"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۵"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۶"))),
-        ),
-        listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۷"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۸"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۹"))),
-        ),
-        listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۰")), colspan = 2),
-            SPACE.copy(colspan = 1)
-        )
-    )
-)
-
-val FA_NUMERIC_CALCULATOR_LAYER = Layer(
-    keyRows = listOf(
-        listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۷"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۸"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۹"))),
-        ),
-        listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۴"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۵"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۶"))),
-        ),
-        listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۱"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۲"))),
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۳"))),
-        ),
-        listOf(
-            KeyM(actions = mapOf(Direction.CENTER to Action.Text("۰")), colspan = 2),
-            SPACE.copy(colspan = 1)
-        )
-    )
-)
-
-@Composable
-@Preview
-fun FaNumericKeyboardPreview() {
-    FlickBoardParent {
-        Keyboard(layout = Layout(Layer.empty), onAction = {})
-    }
-}
