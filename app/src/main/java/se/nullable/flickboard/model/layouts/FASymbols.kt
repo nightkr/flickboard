@@ -8,8 +8,6 @@ import se.nullable.flickboard.model.ActionVisual
 import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
-import se.nullable.flickboard.model.Layout
-import se.nullable.flickboard.ui.KeyboardLayoutPreview
 
 val FA_SYMBOLS_LAYER = Layer(
     keyRows = listOf(
@@ -20,7 +18,6 @@ val FA_SYMBOLS_LAYER = Layer(
                     Direction.BOTTOM to Action.Text("٫"),
                     Direction.RIGHT to Action.Text(
                         "ّ",
-                        forceRawKeyEvent = true,
                         visualOverride = ActionVisual.Label("ـّ")
                     )                    
                 ),
@@ -93,17 +90,14 @@ val FA_SYMBOLS_LAYER = Layer(
                 actions = mapOf(
                     Direction.TOP_LEFT to Action.Text(
                         "ُ",
-                        forceRawKeyEvent = true,
                         visualOverride = ActionVisual.Label("ـُ")
                     ),
                     Direction.TOP_RIGHT to Action.Text(
                         "َ",
-                        forceRawKeyEvent = true,
                         visualOverride = ActionVisual.Label("ـَ")
                     ),
                     Direction.BOTTOM to Action.Text(
                         "ِ",
-                        forceRawKeyEvent = true,
                         visualOverride = ActionVisual.Label("ـِ")
                     )
                 )
@@ -133,7 +127,6 @@ val FA_SYMBOLS_LAYER = Layer(
                     Direction.TOP_LEFT to Action.Text("~"), 
                     Direction.TOP_RIGHT to Action.Text(
                         "ً",
-                        forceRawKeyEvent = true,
                         visualOverride = ActionVisual.Label("ـً")
                     ),                                       
                     Direction.LEFT to Action.Text("«"),
