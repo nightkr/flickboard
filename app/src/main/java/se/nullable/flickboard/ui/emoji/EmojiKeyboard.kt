@@ -9,7 +9,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -50,7 +51,15 @@ fun EmojiKeyboard(onAction: OnAction) {
     val saveHistory = appSettings.saveEmojiHistory.state
     val emojiHistory = appSettings.emojiHistory.state
     val emojis = emojiList()
-    val selectedTab = remember(emojis) { mutableStateOf<EmojiTab>(EmojiTab.Recent) }
+    val selectedTab = remember(emojis) {
+        mutableStateOf<EmojiTab>(
+            when {
+                emojiHistory.value.isBlank() -> EmojiTab.Category(0)
+                else -> EmojiTab.Recent
+            }
+        )
+    }
+
     val tabScrollState = rememberScrollState()
     val emojiSize = 32.dp
     val emojiPadding = 8.dp
@@ -109,7 +118,8 @@ fun EmojiKeyboard(onAction: OnAction) {
             columns = GridCells.Adaptive(emojiItemSize),
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .heightIn(max = 200.dp)
+                .fillMaxWidth()
+                .height(200.dp)
                 .background(MaterialTheme.colorScheme.surface)
         ) {
             val tabEmojis = when (val tab = selectedTab.value) {
