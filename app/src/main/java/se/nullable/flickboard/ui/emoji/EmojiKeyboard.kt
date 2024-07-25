@@ -113,6 +113,14 @@ fun EmojiKeyboard(onAction: OnAction) {
                 Icon(painterResource(R.drawable.baseline_backspace_24), "Backspace")
             }
         }
+        val tabEmojis = when (val tab = selectedTab.value) {
+            is EmojiTab.Category -> emojis.categories[tab.index].emojis
+            EmojiTab.Recent -> remember { // Don't reshuffle recents while it's still visible
+                emojiHistory.value.split('\n')
+                    .filter { it.isNotBlank() }
+                    .map { EmojiGroup(listOf(it)) }
+            }
+        }
         LazyVerticalGrid(
             columns = GridCells.Adaptive(emojiItemSize),
             modifier = Modifier
@@ -120,12 +128,6 @@ fun EmojiKeyboard(onAction: OnAction) {
                 .height(200.dp)
                 .background(MaterialTheme.colorScheme.surface)
         ) {
-            val tabEmojis = when (val tab = selectedTab.value) {
-                is EmojiTab.Category -> emojis.categories[tab.index].emojis
-                EmojiTab.Recent -> emojiHistory.value.split('\n')
-                    .filter { it.isNotBlank() }
-                    .map { EmojiGroup(listOf(it)) }
-            }
             items(tabEmojis) {
                 val primaryVariant = it.variants[0]
                 Box(Modifier.clickable {
