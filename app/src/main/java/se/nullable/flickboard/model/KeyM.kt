@@ -255,7 +255,12 @@ sealed class Action {
         override val isModifier: Boolean = true
 
         override fun visual(modifier: ModifierState?): ActionVisual =
-            ActionVisual.Icon(R.drawable.baseline_select_all_24)
+            when {
+                modifier?.select
+                    ?: false -> ActionVisual.Icon(R.drawable.outline_text_select_end_24)
+
+                else -> ActionVisual.Icon(R.drawable.outline_text_select_start_24)
+            }
 
         override fun isActive(modifier: ModifierState?): Boolean = modifier?.select ?: false
     }
