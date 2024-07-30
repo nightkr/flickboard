@@ -117,6 +117,7 @@ import se.nullable.flickboard.model.layouts.messageaseNumericPhoneLayer
 import se.nullable.flickboard.model.layouts.miniNumbersCalculatorLayer
 import se.nullable.flickboard.model.layouts.miniNumbersPhoneLayer
 import se.nullable.flickboard.ui.theme.Typography
+import se.nullable.flickboard.ui.util.isSamsungDevice
 import se.nullable.flickboard.util.Boxed
 import se.nullable.flickboard.util.MaterialToneMode
 import java.io.FileOutputStream
@@ -1136,6 +1137,14 @@ class AppSettings(val ctx: SettingsContext) {
         render = { String.format(locale = Locale.getDefault(), "%.2fs", it) }
     )
 
+    val noReverseRtlBrackets = Setting.Bool(
+        key = "noReverseRtlBrackets",
+        label = "Do not reverse brackets in right-to-left languages",
+        defaultValue = isSamsungDevice,
+        ctx = ctx,
+        description = "This is required for the correct brackets to be typed on some devices (especially Samsung)",
+    )
+
     // Pseudo-option used to store history
     val emojiHistory =
         Setting.Text(key = "emojiHistory", label = "Emoji history", defaultValue = "", ctx = ctx)
@@ -1225,7 +1234,8 @@ class AppSettings(val ctx: SettingsContext) {
                 settings = listOf(
                     dropLastGesturePoint,
                     ignoreJumpsLongerThanPx,
-                    flicksMustBeLongerThanSeconds
+                    flicksMustBeLongerThanSeconds,
+                    noReverseRtlBrackets,
                 ),
             ),
             SettingsSection(

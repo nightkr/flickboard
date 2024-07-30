@@ -96,6 +96,7 @@ fun Keyboard(
     val toneConfig = rememberUpdatedState(toneMode.value.config)
     val backgroundImage = appSettings.backgroundImage.state
     val keyboardMargin = appSettings.keyboardMargin.state
+    val noReverseRtlBrackets = appSettings.noReverseRtlBrackets.state
     var modifierState: ModifierState by remember { mutableStateOf(ModifierState()) }
     LaunchedEffect(modifierState) {
         onModifierStateUpdated(modifierState)
@@ -198,7 +199,10 @@ fun Keyboard(
                 .let {
                     when (layoutState.value.textDirection) {
                         TextDirection.LeftToRight -> it
-                        TextDirection.RightToLeft -> it.flipBrackets()
+                        TextDirection.RightToLeft -> when {
+                            noReverseRtlBrackets.value -> it
+                            else -> it.flipBrackets()
+                        }
                     }
                 }
         }

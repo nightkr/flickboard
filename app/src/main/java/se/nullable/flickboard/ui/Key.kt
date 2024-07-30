@@ -347,7 +347,14 @@ fun KeyActionIndicator(
                         ),
                         textDirection = when (layoutTextDirection) {
                             TextDirection.LeftToRight -> androidx.compose.ui.text.style.TextDirection.Ltr
-                            TextDirection.RightToLeft -> androidx.compose.ui.text.style.TextDirection.Rtl
+                            TextDirection.RightToLeft ->
+                                when {
+                                    LocalAppSettings.current.noReverseRtlBrackets.state.value ->
+                                        androidx.compose.ui.text.style.TextDirection.Content
+
+                                    else ->
+                                        androidx.compose.ui.text.style.TextDirection.Rtl
+                                }
                         }
                     ),
                 )
