@@ -85,6 +85,7 @@ import se.nullable.flickboard.R
 import se.nullable.flickboard.model.ActionClass
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
+import se.nullable.flickboard.model.layouts.AR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.DA_MESSAGEASE
 import se.nullable.flickboard.model.layouts.DE_EO_MESSAGEASE
 import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
@@ -1294,6 +1295,7 @@ enum class Handedness(override val label: String) : Labeled {
 }
 
 enum class LetterLayerOption(override val label: String, val layout: Layout) : Labeled {
+    Arabic("Arabic (MessagEase)", AR_MESSAGEASE),
     Danish("Danish (MessagEase)", DA_MESSAGEASE),
     English("English (MessagEase)", EN_MESSAGEASE),
     EnglishThumbKey("English (Thumb-Key)", EN_THUMBKEY),
