@@ -47,8 +47,6 @@ import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
-import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
-import se.nullable.flickboard.model.layouts.MINI_NUMBERS_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER
@@ -106,14 +104,14 @@ fun Keyboard(
         remember {
             derivedStateOf {
                 numericLayer.value.fullSizedLayer(layoutState.value)
-                    .mergeFallback(MESSAGEASE_SYMBOLS_LAYER)
+                    .mergeFallback(layoutState.value.symbolLayer)
             }
         }
     val mergedMiniNumericLayer =
         remember {
             derivedStateOf {
                 numericLayer.value.miniLayer(layoutState.value)
-                    .mergeFallback(MINI_NUMBERS_SYMBOLS_LAYER)
+                    .mergeFallback(layoutState.value.miniSymbolLayer)
                     .let { it.setShift(it.autoShift()) }
             }
         }

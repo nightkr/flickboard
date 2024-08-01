@@ -1,7 +1,5 @@
 package se.nullable.flickboard.model.layouts
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import se.nullable.flickboard.R
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.ActionVisual

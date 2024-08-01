@@ -113,6 +113,8 @@ val FA_MESSAGEASE = Layout(
     controlLayer = CONTROL_MESSAGEASE_LAYER,
     digits = "۰۱۲۳۴۵۶۷۸۹",
     textDirection = TextDirection.RightToLeft,
+    symbolLayer = FA_SYMBOLS_LAYER,
+    miniSymbolLayer = FA_MINI_NUMBERS_SYMBOLS_LAYER,
 )
 
 @Composable
