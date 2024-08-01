@@ -22,9 +22,14 @@ data class Layer(val keyRows: List<List<KeyM>>) {
         })
 
 
-    fun mergeFallback(fallback: Layer?): Layer =
+    fun mergeFallback(fallback: Layer?, holdForFallback: Boolean = false): Layer =
         if (fallback != null) {
-            zipKeys(fallback) { thisKey, fallbackKey -> thisKey.mergeFallback(fallbackKey) }
+            zipKeys(fallback) { thisKey, fallbackKey ->
+                thisKey.mergeFallback(
+                    fallbackKey,
+                    holdForFallback = holdForFallback
+                )
+            }
         } else {
             this
         }
@@ -68,14 +73,17 @@ data class KeyM(
     val shift: KeyM? = null,
     val transientShift: KeyM? = null
 ) {
-    fun mergeFallback(fallback: KeyM): KeyM = copy(
+    fun mergeFallback(fallback: KeyM, holdForFallback: Boolean): KeyM = copy(
         actions = fallback.actions + actions,
         shift = when {
             shift == null -> fallback.shift
             fallback.shift == null -> shift
-            else -> shift.mergeFallback(fallback.shift)
+            else -> shift.mergeFallback(fallback.shift, holdForFallback = holdForFallback)
         },
-        holdAction = this.holdAction ?: fallback.holdAction ?: fallback.actions[Direction.CENTER],
+        holdAction = this.holdAction ?: fallback.holdAction ?: when {
+            holdForFallback -> fallback.actions[Direction.CENTER]
+            else -> null
+        },
         transientShift = this.transientShift ?: fallback.transientShift
     )
 

@@ -128,14 +128,18 @@ fun Keyboard(
             }
             val shift = layoutState.value.shiftLayer
                 .mergeFallback(
-                    OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedFullSizedNumericLayer.value)
+                    OVERLAY_MESSAGEASE_LAYER.mergeFallback(
+                        mergedFullSizedNumericLayer.value,
+                        holdForFallback = true
+                    )
                         .autoShift()
                 )
             mapOf(
                 ShiftState.Normal to mainLayer
                     .mergeFallback(
                         OVERLAY_MESSAGEASE_LAYER.mergeFallback(
-                            mergedFullSizedNumericLayer.value
+                            mergedFullSizedNumericLayer.value,
+                            holdForFallback = true
                         )
                     )
                     .setShift(shift),
@@ -147,7 +151,10 @@ fun Keyboard(
                     .mergeFallback(
                         OVERLAY_MESSAGEASE_LAYER
                             .autoShift()
-                            .mergeFallback(mergedFullSizedNumericLayer.value)
+                            .mergeFallback(
+                                mergedFullSizedNumericLayer.value,
+                                holdForFallback = true
+                            )
                     ),
             ).mapValues {
                 it.value.filterActions(
