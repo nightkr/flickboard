@@ -85,6 +85,7 @@ import se.nullable.flickboard.R
 import se.nullable.flickboard.model.ActionClass
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
+import se.nullable.flickboard.model.layouts.AR_MESSAGEASE
 import se.nullable.flickboard.model.layouts.DA_MESSAGEASE
 import se.nullable.flickboard.model.layouts.DE_EO_MESSAGEASE
 import se.nullable.flickboard.model.layouts.DE_MESSAGEASE
@@ -118,6 +119,7 @@ import se.nullable.flickboard.model.layouts.messageaseNumericPhoneLayer
 import se.nullable.flickboard.model.layouts.miniNumbersCalculatorLayer
 import se.nullable.flickboard.model.layouts.miniNumbersPhoneLayer
 import se.nullable.flickboard.ui.theme.Typography
+import se.nullable.flickboard.ui.util.isSamsungDevice
 import se.nullable.flickboard.util.Boxed
 import se.nullable.flickboard.util.MaterialToneMode
 import java.io.FileOutputStream
@@ -1137,6 +1139,14 @@ class AppSettings(val ctx: SettingsContext) {
         render = { String.format(locale = Locale.getDefault(), "%.2fs", it) }
     )
 
+    val noReverseRtlBrackets = Setting.Bool(
+        key = "noReverseRtlBrackets",
+        label = "Do not reverse brackets in right-to-left languages",
+        defaultValue = isSamsungDevice,
+        ctx = ctx,
+        description = "This is required for the correct brackets to be typed on some devices (especially Samsung)",
+    )
+
     // Pseudo-option used to store history
     val emojiHistory =
         Setting.Text(key = "emojiHistory", label = "Emoji history", defaultValue = "", ctx = ctx)
@@ -1226,7 +1236,8 @@ class AppSettings(val ctx: SettingsContext) {
                 settings = listOf(
                     dropLastGesturePoint,
                     ignoreJumpsLongerThanPx,
-                    flicksMustBeLongerThanSeconds
+                    flicksMustBeLongerThanSeconds,
+                    noReverseRtlBrackets,
                 ),
             ),
             SettingsSection(
@@ -1296,6 +1307,7 @@ enum class Handedness(override val label: String) : Labeled {
 }
 
 enum class LetterLayerOption(override val label: String, val layout: Layout) : Labeled {
+    Arabic("Arabic (MessagEase)", AR_MESSAGEASE),
     Danish("Danish (MessagEase)", DA_MESSAGEASE),
     English("English (MessagEase)", EN_MESSAGEASE),
     EnglishThumbKey("English (Thumb-Key)", EN_THUMBKEY),

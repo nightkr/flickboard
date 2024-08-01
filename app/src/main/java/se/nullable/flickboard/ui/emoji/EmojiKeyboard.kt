@@ -4,12 +4,12 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -50,7 +50,15 @@ fun EmojiKeyboard(onAction: OnAction) {
     val saveHistory = appSettings.saveEmojiHistory.state
     val emojiHistory = appSettings.emojiHistory.state
     val emojis = emojiList()
-    val selectedTab = remember(emojis) { mutableStateOf<EmojiTab>(EmojiTab.Recent) }
+    val selectedTab = remember(emojis) {
+        mutableStateOf<EmojiTab>(
+            when {
+                emojiHistory.value.isBlank() -> EmojiTab.Category(0)
+                else -> EmojiTab.Recent
+            }
+        )
+    }
+
     val tabScrollState = rememberScrollState()
     val emojiSize = 32.dp
     val emojiPadding = 8.dp
@@ -105,19 +113,21 @@ fun EmojiKeyboard(onAction: OnAction) {
                 Icon(painterResource(R.drawable.baseline_backspace_24), "Backspace")
             }
         }
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(emojiItemSize),
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .heightIn(max = 200.dp)
-                .background(MaterialTheme.colorScheme.surface)
-        ) {
-            val tabEmojis = when (val tab = selectedTab.value) {
-                is EmojiTab.Category -> emojis.categories[tab.index].emojis
-                EmojiTab.Recent -> emojiHistory.value.split('\n')
+        val tabEmojis = when (val tab = selectedTab.value) {
+            is EmojiTab.Category -> emojis.categories[tab.index].emojis
+            EmojiTab.Recent -> remember { // Don't reshuffle recents while it's still visible
+                emojiHistory.value.split('\n')
                     .filter { it.isNotBlank() }
                     .map { EmojiGroup(listOf(it)) }
             }
+        }
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(emojiItemSize),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .background(MaterialTheme.colorScheme.surface)
+        ) {
             items(tabEmojis) {
                 val primaryVariant = it.variants[0]
                 Box(Modifier.clickable {
