@@ -36,7 +36,7 @@ val FA_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("م"),
                     Direction.TOP_RIGHT to Action.Text(
                         "\u200F", //RLM
-                        visualOverride = ActionVisual.Label("‹"),
+                        visualOverride = ActionVisual.Label("¶‹"),
                     ),
                     Direction.BOTTOM_LEFT to Action.Text("چ"),
                 )
