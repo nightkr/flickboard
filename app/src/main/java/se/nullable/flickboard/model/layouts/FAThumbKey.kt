@@ -36,7 +36,7 @@ val FA_THUMBKEY_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("و"),
                     Direction.TOP_RIGHT to Action.Text(
                         "\u200F", //RLM
-                        visualOverride = ActionVisual.Label("‹"),
+                        visualOverride = ActionVisual.Label("¶‹"),
                     ),                    
                     Direction.BOTTOM_LEFT to Action.Text("ع"),
                     Direction.BOTTOM to Action.Text("ء"),
