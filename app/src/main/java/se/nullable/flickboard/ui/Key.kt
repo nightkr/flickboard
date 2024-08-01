@@ -116,7 +116,8 @@ fun Key(
     val circleJaggednessThreshold = settings.circleJaggednessThreshold.state
     val circleDiscontinuityThreshold = settings.circleDiscontinuityThreshold.state
     val circleAngleThreshold = settings.circleAngleThreshold.state
-    val enableHapticFeedback = settings.enableHapticFeedback.state
+    val enableHapticFeedbackOnGestureStart = settings.enableHapticFeedbackOnGestureStart.state
+    val enableHapticFeedbackOnGestureSuccess = settings.enableHapticFeedbackOnGestureSuccess.state
     val enableVisualFeedback = settings.enableVisualFeedback.state
     val dropLastGesturePoint = settings.dropLastGesturePoint.state
     val ignoreJumpsLongerThanPx = settings.ignoreJumpsLongerThanPx.state
@@ -189,8 +190,14 @@ fun Key(
         }
     }
     val onActionModifier = if (onAction != null) {
-        val handleAction = { action: Action ->
-            if (enableHapticFeedback.value) {
+        fun onGestureStart() {
+            if (enableHapticFeedbackOnGestureStart.value) {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            }
+        }
+
+        fun handleAction(action: Action, isFast: Boolean): Boolean {
+            if (enableHapticFeedbackOnGestureSuccess.value || (isFast && enableHapticFeedbackOnGestureStart.value)) {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             }
             if (enableVisualFeedback.value) {
@@ -198,7 +205,7 @@ fun Key(
                     lastActionTaken = TakenAction(action)
                 }
             }
-            onAction(action)
+            return onAction(action)
         }
         Modifier.pointerInput(key) {
             awaitEachGesture {
@@ -211,7 +218,8 @@ fun Key(
                     gestureRecognizer = { gestureRecognizer.value },
                     fastActions = key.fastActions.takeIf { enableFastActions.value }
                         ?: emptyMap(),
-                    onFastAction = handleAction,
+                    onGestureStart = ::onGestureStart,
+                    onFastAction = { handleAction(it, isFast = true) },
                     trailListenerState = keyPointerTrailListener,
                     gestureLibrary = { gestureLibrary },
                     dropLastGesturePoint = { dropLastGesturePoint.value },
@@ -220,7 +228,7 @@ fun Key(
                 )?.let { gesture ->
                     val flick =
                         gesture.toFlick(longHoldOnClockwiseCircle = key.holdAction != null && longHoldOnClockwiseCircle.value)
-                    flick.resolveAction(key)?.let(handleAction)
+                    flick.resolveAction(key)?.let { handleAction(it, isFast = false) }
                 }
             }
         }
@@ -389,6 +397,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     circleAngleThreshold: () -> Float,
     gestureRecognizer: () -> GestureRecognizer,
     fastActions: Map<Direction, Action>,
+    onGestureStart: () -> Unit,
     onFastAction: OnAction,
     // Passed as state to ensure that it's only grabbed once we have a down event
     trailListenerState: State<KeyPointerTrailListener?>,
@@ -401,6 +410,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
 ): Gesture? {
     val down = awaitFirstDown()
     down.consume()
+    onGestureStart()
     val gestureStartedAtNanos = System.nanoTime()
     val trailListener = trailListenerState.value
     trailListener?.onDown?.invoke()
