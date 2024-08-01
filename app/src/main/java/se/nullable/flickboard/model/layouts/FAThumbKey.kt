@@ -8,7 +8,7 @@ import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
-//import se.nullable.flickboard.model.TextDirection
+import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.ui.KeyboardLayoutPreview
 
 val FA_THUMBKEY_MAIN_LAYER = Layer(
@@ -112,7 +112,7 @@ val FA_THUMBKEY = Layout(
     mainLayer = FA_THUMBKEY_MAIN_LAYER,
     controlLayer = CONTROL_MESSAGEASE_LAYER,
     digits = "۰۱۲۳۴۵۶۷۸۹",
-//    textDirection = TextDirection.RightToLeft,
+    textDirection = TextDirection.RightToLeft,
 )
 
 @Composable
