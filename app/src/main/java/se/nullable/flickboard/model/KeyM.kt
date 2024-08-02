@@ -89,6 +89,8 @@ data class KeyM(
 
     fun autoShift(): KeyM = (shift ?: this).copy(
         actions = actions.mapValues { it.value.shift() } + (shift?.actions ?: emptyMap()),
+        fastActions = fastActions.mapValues { it.value.shift() } + (shift?.fastActions
+            ?: emptyMap())
     )
 
     fun filterActions(shownActionClasses: Set<ActionClass>, enableHiddenActions: Boolean) =
