@@ -340,7 +340,7 @@ fun Keyboard(
                                             Action.ToggleAlt -> modifierState.copy(alt = !modifierState.alt)
                                             Action.ToggleZalgo -> modifierState.copy(zalgo = !modifierState.zalgo)
                                             Action.ToggleSelect -> modifierState.copy(select = !modifierState.select)
-                                            is Action.Jump, is Action.FastDelete -> modifierState
+                                            is Action.Jump, is Action.JumpLineKeepPos, is Action.FastDelete -> modifierState
 
                                             else -> when {
                                                 action.isHiddenAction -> modifierState
