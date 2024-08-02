@@ -159,11 +159,16 @@ sealed class Action {
         override fun shift(): Action = copy(boundary = TextBoundary.Word)
     }
 
-    data class FastDelete(val direction: SearchDirection) : Action() {
+    data class FastDelete(
+        val direction: SearchDirection,
+        val boundary: TextBoundary = TextBoundary.Character
+    ) : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_backspace_24)
 
         override val fastActionType: FastActionType = FastActionType.Delete
+
+        override fun shift(): Action = copy(boundary = TextBoundary.Word)
     }
 
     data object BeginFastAction : Action() {

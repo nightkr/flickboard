@@ -164,6 +164,11 @@ fun Keyboard(
             }
         }
     }
+    val controlLayer = remember {
+        derivedStateOf {
+            layoutState.value.controlLayer?.let { it.setShift(it.autoShift()) }
+        }
+    }
     val layer by remember {
         derivedStateOf {
             val activeLayer = layersByShiftState.value[modifierState.shift]!!
@@ -180,7 +185,10 @@ fun Keyboard(
 
                     else -> null
                 },
-                layoutState.value.controlLayer?.let { it.setShift(it.autoShift()) },
+                when {
+                    modifierState.shift.isShifted -> controlLayer.value?.autoShift()
+                    else -> controlLayer.value
+                },
                 when (enabledLayers.value) {
                     EnabledLayers.AllMiniNumbersMiddle -> mergedMiniNumericLayer.value
                     else -> null
@@ -332,7 +340,7 @@ fun Keyboard(
                                             Action.ToggleAlt -> modifierState.copy(alt = !modifierState.alt)
                                             Action.ToggleZalgo -> modifierState.copy(zalgo = !modifierState.zalgo)
                                             Action.ToggleSelect -> modifierState.copy(select = !modifierState.select)
-                                            is Action.Jump -> modifierState
+                                            is Action.Jump, is Action.FastDelete -> modifierState
 
                                             else -> when {
                                                 action.isHiddenAction -> modifierState

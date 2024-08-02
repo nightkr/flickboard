@@ -282,12 +282,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     includeSelection = movingSide != direction,
                                 ) * direction.factor
                                 currentInputConnection.setSelection(
-                                    (range.first + distance * (movingSide == SearchDirection.Backwards)).coerceAtMost(
-                                        range.last
-                                    ),
-                                    (range.last + distance * (movingSide == SearchDirection.Forwards)).coerceAtLeast(
-                                        range.first
-                                    ),
+                                    (range.first + distance * (movingSide == SearchDirection.Backwards))
+                                        .coerceAtMost(range.last),
+                                    (range.last + distance * (movingSide == SearchDirection.Forwards))
+                                        .coerceAtLeast(range.first),
                                 )
                                 return true
                             }
@@ -316,7 +314,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 is Action.FastDelete -> {
                                     // Let user select text, which is then deleted when FastActionDone is fired
                                     actionSuccessful =
-                                        moveSelection(action.direction, TextBoundary.Character)
+                                        moveSelection(action.direction, action.boundary)
                                 }
 
                                 is Action.Delete -> {
