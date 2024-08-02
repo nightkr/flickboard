@@ -18,10 +18,10 @@ val FA_MESSAGEASE_MAIN_LAYER = Layer(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("ه"),
                     Direction.RIGHT to Action.Text("ـ"),
-                    Direction.BOTTOM to Action.Text("ۀ"),                    
+                    Direction.BOTTOM to Action.Text("ۀ"),
                     Direction.BOTTOM_RIGHT to Action.Text("ق"),
-                    
-                )
+
+                    )
             ),
             KeyM(
                 actions = mapOf(
@@ -36,7 +36,10 @@ val FA_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("م"),
                     Direction.TOP_RIGHT to Action.Text(
                         "\u200F", //RLM
-                        visualOverride = ActionVisual.Label("¶‹"),
+                        visualOverride = ActionVisual.Label(
+                            "¶‹",
+                            directionOverride = TextDirection.RightToLeft
+                        ),
                     ),
                     Direction.BOTTOM_LEFT to Action.Text("چ"),
                 )
@@ -88,7 +91,7 @@ val FA_MESSAGEASE_MAIN_LAYER = Layer(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("ن"),
                     Direction.TOP_LEFT to Action.Text("ظ"),
-                    Direction.TOP to Action.Text("ث"), 
+                    Direction.TOP to Action.Text("ث"),
                     Direction.TOP_RIGHT to Action.Text("غ"),
                     Direction.LEFT to Action.Text("ء"),
                     Direction.RIGHT to Action.Text("أ"),

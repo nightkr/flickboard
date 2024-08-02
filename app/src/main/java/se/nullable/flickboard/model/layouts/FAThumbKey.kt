@@ -17,10 +17,10 @@ val FA_THUMBKEY_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("د"),
-                    Direction.BOTTOM to Action.Text("ض"),                    
+                    Direction.BOTTOM to Action.Text("ض"),
                     Direction.BOTTOM_RIGHT to Action.Text("ص"),
-                    
-                )
+
+                    )
             ),
             KeyM(
                 actions = mapOf(
@@ -36,8 +36,11 @@ val FA_THUMBKEY_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("و"),
                     Direction.TOP_RIGHT to Action.Text(
                         "\u200F", //RLM
-                        visualOverride = ActionVisual.Label("¶‹"),
-                    ),                    
+                        visualOverride = ActionVisual.Label(
+                            "¶‹",
+                            directionOverride = TextDirection.RightToLeft
+                        ),
+                    ),
                     Direction.BOTTOM_LEFT to Action.Text("ع"),
                     Direction.BOTTOM to Action.Text("ء"),
                 )
@@ -87,7 +90,7 @@ val FA_THUMBKEY_MAIN_LAYER = Layer(
                     Direction.TOP to Action.Text(
                         "\u200C", //ZWNJ
                         visualOverride = ActionVisual.Label("‹›"),
-                    ),                    
+                    ),
                     Direction.LEFT to Action.Text("؟"),
                     Direction.RIGHT to Action.Text("ئ"),
                     Direction.BOTTOM_LEFT to Action.Text("*"),

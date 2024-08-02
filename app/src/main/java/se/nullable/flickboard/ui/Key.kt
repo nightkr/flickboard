@@ -353,16 +353,20 @@ fun KeyActionIndicator(
                             alignment = LineHeightStyle.Alignment.Center,
                             trim = LineHeightStyle.Trim.Both
                         ),
-                        textDirection = when (layoutTextDirection) {
+                        textDirection = when (actionVisual.directionOverride) {
                             TextDirection.LeftToRight -> androidx.compose.ui.text.style.TextDirection.Ltr
-                            TextDirection.RightToLeft ->
-                                when {
-                                    LocalAppSettings.current.noReverseRtlBrackets.state.value ->
-                                        androidx.compose.ui.text.style.TextDirection.Content
+                            TextDirection.RightToLeft -> androidx.compose.ui.text.style.TextDirection.Rtl
+                            else -> when (layoutTextDirection) {
+                                TextDirection.LeftToRight -> androidx.compose.ui.text.style.TextDirection.Ltr
+                                TextDirection.RightToLeft ->
+                                    when {
+                                        LocalAppSettings.current.noReverseRtlBrackets.state.value ->
+                                            androidx.compose.ui.text.style.TextDirection.Content
 
-                                    else ->
-                                        androidx.compose.ui.text.style.TextDirection.Rtl
-                                }
+                                        else ->
+                                            androidx.compose.ui.text.style.TextDirection.Rtl
+                                    }
+                            }
                         }
                     ),
                 )

@@ -369,7 +369,11 @@ enum class ActionClass {
 
 sealed class ActionVisual {
     data class Icon(val resource: Int) : ActionVisual()
-    data class Label(val label: String) : ActionVisual()
+    data class Label(
+        val label: String,
+        val directionOverride: TextDirection? = null
+    ) : ActionVisual()
+
     data object None : ActionVisual()
 }
 
