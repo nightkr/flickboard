@@ -1,6 +1,8 @@
 package se.nullable.flickboard.model
 
 import se.nullable.flickboard.R
+import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
+import se.nullable.flickboard.model.layouts.MINI_NUMBERS_SYMBOLS_LAYER
 import se.nullable.flickboard.util.HardLineBreakIterator
 import se.nullable.flickboard.util.flipIfBracket
 import java.text.BreakIterator
@@ -9,6 +11,8 @@ data class Layout(
     val mainLayer: Layer,
     val shiftLayer: Layer = mainLayer.autoShift(),
     val controlLayer: Layer? = null,
+    val symbolLayer: Layer = MESSAGEASE_SYMBOLS_LAYER,
+    val miniSymbolLayer: Layer = MINI_NUMBERS_SYMBOLS_LAYER,
     val digits: String = "0123456789",
     val textDirection: TextDirection = TextDirection.LeftToRight,
 )
@@ -365,7 +369,11 @@ enum class ActionClass {
 
 sealed class ActionVisual {
     data class Icon(val resource: Int) : ActionVisual()
-    data class Label(val label: String) : ActionVisual()
+    data class Label(
+        val label: String,
+        val directionOverride: TextDirection? = null
+    ) : ActionVisual()
+
     data object None : ActionVisual()
 }
 
