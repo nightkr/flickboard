@@ -26,9 +26,14 @@ data class Layer(val keyRows: List<List<KeyM>>) {
         })
 
 
-    fun mergeFallback(fallback: Layer?): Layer =
+    fun mergeFallback(fallback: Layer?, holdForFallback: Boolean = false): Layer =
         if (fallback != null) {
-            zipKeys(fallback) { thisKey, fallbackKey -> thisKey.mergeFallback(fallbackKey) }
+            zipKeys(fallback) { thisKey, fallbackKey ->
+                thisKey.mergeFallback(
+                    fallbackKey,
+                    holdForFallback = holdForFallback
+                )
+            }
         } else {
             this
         }
@@ -72,19 +77,24 @@ data class KeyM(
     val shift: KeyM? = null,
     val transientShift: KeyM? = null
 ) {
-    fun mergeFallback(fallback: KeyM): KeyM = copy(
+    fun mergeFallback(fallback: KeyM, holdForFallback: Boolean): KeyM = copy(
         actions = fallback.actions + actions,
         shift = when {
             shift == null -> fallback.shift
             fallback.shift == null -> shift
-            else -> shift.mergeFallback(fallback.shift)
+            else -> shift.mergeFallback(fallback.shift, holdForFallback = holdForFallback)
         },
-        holdAction = this.holdAction ?: fallback.holdAction ?: fallback.actions[Direction.CENTER],
+        holdAction = this.holdAction ?: fallback.holdAction ?: when {
+            holdForFallback -> fallback.actions[Direction.CENTER]
+            else -> null
+        },
         transientShift = this.transientShift ?: fallback.transientShift
     )
 
     fun autoShift(): KeyM = (shift ?: this).copy(
         actions = actions.mapValues { it.value.shift() } + (shift?.actions ?: emptyMap()),
+        fastActions = fastActions.mapValues { it.value.shift() } + (shift?.fastActions
+            ?: emptyMap())
     )
 
     fun filterActions(shownActionClasses: Set<ActionClass>, enableHiddenActions: Boolean) =
@@ -153,11 +163,16 @@ sealed class Action {
         override fun shift(): Action = copy(boundary = TextBoundary.Word)
     }
 
-    data class FastDelete(val direction: SearchDirection) : Action() {
+    data class FastDelete(
+        val direction: SearchDirection,
+        val boundary: TextBoundary = TextBoundary.Character
+    ) : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_backspace_24)
 
         override val fastActionType: FastActionType = FastActionType.Delete
+
+        override fun shift(): Action = copy(boundary = TextBoundary.Word)
     }
 
     data object BeginFastAction : Action() {

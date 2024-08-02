@@ -126,14 +126,18 @@ fun Keyboard(
             }
             val shift = layoutState.value.shiftLayer
                 .mergeFallback(
-                    OVERLAY_MESSAGEASE_LAYER.mergeFallback(mergedFullSizedNumericLayer.value)
+                    OVERLAY_MESSAGEASE_LAYER.mergeFallback(
+                        mergedFullSizedNumericLayer.value,
+                        holdForFallback = true
+                    )
                         .autoShift()
                 )
             mapOf(
                 ShiftState.Normal to mainLayer
                     .mergeFallback(
                         OVERLAY_MESSAGEASE_LAYER.mergeFallback(
-                            mergedFullSizedNumericLayer.value
+                            mergedFullSizedNumericLayer.value,
+                            holdForFallback = true
                         )
                     )
                     .setShift(shift),
@@ -145,7 +149,10 @@ fun Keyboard(
                     .mergeFallback(
                         OVERLAY_MESSAGEASE_LAYER
                             .autoShift()
-                            .mergeFallback(mergedFullSizedNumericLayer.value)
+                            .mergeFallback(
+                                mergedFullSizedNumericLayer.value,
+                                holdForFallback = true
+                            )
                     ),
             ).mapValues {
                 it.value.filterActions(
@@ -153,6 +160,11 @@ fun Keyboard(
                     enableHiddenActions = enableHiddenActions.value,
                 )
             }
+        }
+    }
+    val controlLayer = remember {
+        derivedStateOf {
+            layoutState.value.controlLayer?.let { it.setShift(it.autoShift()) }
         }
     }
     val layer by remember {
@@ -171,7 +183,10 @@ fun Keyboard(
 
                     else -> null
                 },
-                layoutState.value.controlLayer?.let { it.setShift(it.autoShift()) },
+                when {
+                    modifierState.shift.isShifted -> controlLayer.value?.autoShift()
+                    else -> controlLayer.value
+                },
                 when (enabledLayers.value) {
                     EnabledLayers.AllMiniNumbersMiddle -> mergedMiniNumericLayer.value
                     else -> null
@@ -323,8 +338,7 @@ fun Keyboard(
                                             Action.ToggleAlt -> modifierState.copy(alt = !modifierState.alt)
                                             Action.ToggleZalgo -> modifierState.copy(zalgo = !modifierState.zalgo)
                                             Action.ToggleSelect -> modifierState.copy(select = !modifierState.select)
-                                            is Action.Jump -> modifierState.next()
-                                                .copy(select = modifierState.select)
+                                            is Action.Jump, is Action.JumpLineKeepPos, is Action.FastDelete -> modifierState
 
                                             else -> when {
                                                 action.isHiddenAction -> modifierState

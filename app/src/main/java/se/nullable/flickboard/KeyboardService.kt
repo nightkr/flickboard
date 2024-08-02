@@ -87,10 +87,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
             }, 0)?.let { it.selectionStart..it.selectionEnd }
         }
 
-        else -> {
-            println("aaaa ${currentCursor.selectionStart} ${currentCursor.selectionEnd}")
-            currentCursor.selectionStart..currentCursor.selectionEnd
-        }
+        else -> currentCursor.selectionStart..currentCursor.selectionEnd
     }
 
     private var activeModifiers = ModifierState()
@@ -264,11 +261,31 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 }
                             }
 
-                            fun moveSelection(direction: SearchDirection): Boolean {
+                            fun moveSelection(
+                                direction: SearchDirection,
+                                boundary: TextBoundary
+                            ): Boolean {
                                 val range = selection() ?: return false
+                                val movingSide = when {
+                                    range.first == range.last -> {
+                                        gestureBeginPosition = range.first
+                                        direction
+                                    }
+
+                                    range.last == gestureBeginPosition -> SearchDirection.Backwards
+                                    else -> SearchDirection.Forwards
+                                }
+                                val distance = findBoundary(
+                                    boundary,
+                                    direction,
+                                    coalesce = true,
+                                    includeSelection = movingSide != direction,
+                                ) * direction.factor
                                 currentInputConnection.setSelection(
-                                    range.first + direction.factor * (range.last == gestureBeginPosition && range.first != gestureBeginPosition),
-                                    range.last + direction.factor * (range.first == gestureBeginPosition),
+                                    (range.first + distance * (movingSide == SearchDirection.Backwards))
+                                        .coerceAtMost(range.last),
+                                    (range.last + distance * (movingSide == SearchDirection.Forwards))
+                                        .coerceAtLeast(range.first),
                                 )
                                 return true
                             }
@@ -296,7 +313,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                 is Action.FastDelete -> {
                                     // Let user select text, which is then deleted when FastActionDone is fired
-                                    actionSuccessful = moveSelection(action.direction)
+                                    actionSuccessful =
+                                        moveSelection(action.direction, action.boundary)
                                 }
 
                                 is Action.Delete -> {
@@ -388,7 +406,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 is Action.Jump -> {
                                     when {
                                         activeModifiers.select -> actionSuccessful =
-                                            moveSelection(action.direction)
+                                            moveSelection(action.direction, action.boundary)
 
                                         else -> {
                                             when (val currentPos =
@@ -746,25 +764,30 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         direction: SearchDirection,
         skipBoundaries: Int = 0,
         coalesce: Boolean = false,
+        includeSelection: Boolean = false,
         endOfBufferOffset: Int = 0,
     ): Int {
         val searchBufferSize = when (boundary) {
             TextBoundary.Character -> 40
             else -> 1000
         }
+        val selectedText = when {
+            includeSelection -> currentInputConnection.getSelectedText(0) ?: ""
+            else -> ""
+        }
         val searchBuffer = when (direction) {
-            SearchDirection.Backwards -> currentInputConnection.getTextBeforeCursor(
+            SearchDirection.Backwards -> (currentInputConnection.getTextBeforeCursor(
                 searchBufferSize,
                 0
-            )
+            ) ?: "").toString() + selectedText
 
-            SearchDirection.Forwards -> currentInputConnection.getTextAfterCursor(
+            SearchDirection.Forwards -> selectedText.toString() + (currentInputConnection.getTextAfterCursor(
                 searchBufferSize,
                 0
-            )
-        } ?: ""
+            ) ?: "")
+        }
         val breakIterator = boundary.breakIterator()
-        breakIterator.setText(searchBuffer.toString())
+        breakIterator.setText(searchBuffer)
         if (direction == SearchDirection.Backwards) {
             breakIterator.last()
         }

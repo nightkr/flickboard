@@ -1090,9 +1090,16 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::angle
     )
 
-    val enableHapticFeedback = Setting.Bool(
+    val enableHapticFeedbackOnGestureStart = Setting.Bool(
+        key = "enableHapticFeedbackOnGestureStart",
+        label = "Vibrate on gesture start",
+        defaultValue = false,
+        ctx = ctx
+    )
+
+    val enableHapticFeedbackOnGestureSuccess = Setting.Bool(
         key = "enableHapticFeedback",
-        label = "Vibrate on key input",
+        label = "Vibrate on gesture finish",
         defaultValue = true,
         ctx = ctx
     )
@@ -1225,7 +1232,8 @@ class AppSettings(val ctx: SettingsContext) {
             SettingsSection(
                 key = "feedback", label = "Feedback", icon = R.drawable.baseline_vibration_24,
                 settings = listOf(
-                    enableHapticFeedback,
+                    enableHapticFeedbackOnGestureStart,
+                    enableHapticFeedbackOnGestureSuccess,
                     enableVisualFeedback,
                 ),
             ),
