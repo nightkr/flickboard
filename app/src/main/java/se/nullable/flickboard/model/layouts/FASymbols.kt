@@ -88,15 +88,15 @@ val FA_SYMBOLS_LAYER = Layer(
                 actions = mapOf(
                     Direction.TOP_LEFT to Action.Text(
                         "ُ",
-                        visualOverride = ActionVisual.Label("ـُ")
+                        visualOverride = ActionVisual.Label(" ـُ")
                     ),
                     Direction.TOP_RIGHT to Action.Text(
                         "َ",
-                        visualOverride = ActionVisual.Label("ـَ")
+                        visualOverride = ActionVisual.Label(" ـَ")
                     ),
                     Direction.BOTTOM to Action.Text(
                         "ِ",
-                        visualOverride = ActionVisual.Label("ـِ")
+                        visualOverride = ActionVisual.Label(" ـِ")
                     )
                 )
             ),
