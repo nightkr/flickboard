@@ -18,13 +18,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import se.nullable.flickboard.ui.BetaMenu
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.SettingsHomePage
@@ -35,6 +38,15 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        @Composable
+        fun NavigateUpIcon(navController: NavController) {
+            IconButton(onClick = { navController.navigateUp() }) {
+                Icon(
+                    Icons.AutoMirrored.Default.ArrowBack,
+                    "Up"
+                )
+            }
+        }
         setContent {
             FlickBoardParent {
                 val navController = rememberNavController()
@@ -84,6 +96,18 @@ class MainActivity : ComponentActivity() {
                                                 navController.navigate("settings/${section.key}")
                                             },
                                             onNavigateToTutorial = { navController.navigate("tutorial") },
+                                            onNavigateToBetaMenu = { navController.navigate("beta-menu") },
+                                            modifier = Modifier.padding(padding)
+                                        )
+                                    }
+                                }
+                                composable("beta-menu") {
+                                    Scaffold(topBar = {
+                                        TopAppBar(
+                                            title = { Text("Beta Options") },
+                                            navigationIcon = { NavigateUpIcon(navController) })
+                                    }) { padding ->
+                                        BetaMenu(
                                             modifier = Modifier.padding(padding)
                                         )
                                     }
@@ -93,14 +117,7 @@ class MainActivity : ComponentActivity() {
                                         Scaffold(topBar = {
                                             TopAppBar(
                                                 title = { Text(settingsSection.label) },
-                                                navigationIcon = {
-                                                    IconButton(onClick = { navController.navigateUp() }) {
-                                                        Icon(
-                                                            Icons.AutoMirrored.Default.ArrowBack,
-                                                            "Up"
-                                                        )
-                                                    }
-                                                })
+                                                navigationIcon = { NavigateUpIcon(navController) })
                                         }) { padding ->
                                             SettingsSectionPage(
                                                 section = settingsSection,

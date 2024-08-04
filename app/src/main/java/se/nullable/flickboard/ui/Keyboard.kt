@@ -39,6 +39,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import kotlinx.coroutines.delay
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
@@ -451,7 +452,9 @@ fun PlayKeyboardPreview() {
         Surface {
             val appSettings = LocalAppSettings.current
             AppSettingsProvider(prefs = MockedSharedPreferences(appSettings.ctx.prefs).also {
-                appSettings.keyHeight.writeTo(it, 128F)
+                it.edit {
+                    appSettings.keyHeight.writeTo(this, 128F)
+                }
             }) {
                 ConfiguredKeyboard(onAction = {
                     lastAction = it

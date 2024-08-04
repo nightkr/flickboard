@@ -376,13 +376,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 is Action.Enter -> {
                                     val editorInfo = editorInfo.value
                                     val imeOptions = editorInfo?.imeOptions ?: 0
-                                    println(action)
                                     if (activeModifiers.useRawKeyEvent ||
                                         activeModifiers.shift.isShift ||
                                         action.shift ||
                                         imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0
                                     ) {
-                                        println("aaa")
                                         typeText(
                                             "\n",
                                             forceRawKeyEvent = activeModifiers.shift.isShift || action.shift,

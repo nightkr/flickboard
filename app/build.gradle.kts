@@ -72,6 +72,9 @@ android {
         create("plain") {
             dimension = "purpose"
         }
+        create("beta") {
+            dimension = "purpose"
+        }
         create("screengrab") {
             dimension = "purpose"
             applicationIdSuffix = ".screengrab"

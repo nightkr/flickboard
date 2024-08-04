@@ -4,6 +4,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
+import android.util.JsonReader
+import android.util.JsonToken
+import android.util.JsonWriter
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -49,6 +53,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -62,14 +67,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
@@ -122,6 +125,7 @@ import se.nullable.flickboard.ui.theme.Typography
 import se.nullable.flickboard.ui.util.isSamsungDevice
 import se.nullable.flickboard.util.Boxed
 import se.nullable.flickboard.util.MaterialToneMode
+import se.nullable.flickboard.util.orNull
 import java.io.FileOutputStream
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -131,6 +135,7 @@ import kotlin.random.Random
 fun SettingsHomePage(
     onNavigateToSection: (SettingsSection) -> Unit,
     onNavigateToTutorial: () -> Unit,
+    onNavigateToBetaMenu: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val appSettings = LocalAppSettings.current
@@ -176,14 +181,42 @@ fun SettingsHomePage(
             item {
                 SettingsTitle("About")
                 val variant = when {
-                    BuildConfig.BUILD_TYPE == "release" -> ""
-                    BuildConfig.FLAVOR == "screengrab" -> ""
+                    BuildConfig.BUILD_TYPE == "release" && (BuildConfig.FLAVOR == "plain" || BuildConfig.FLAVOR == "screengrab") -> ""
                     else -> " (${BuildConfig.BUILD_TYPE})"
                 }
-                Text(
-                    "FlickBoard v${BuildConfig.VERSION_NAME}$variant",
-                    modifier = Modifier.padding(8.dp)
-                )
+                val hiddenBetaTaps = remember { mutableIntStateOf(0) }
+                val betaMenuHintToast = remember { Toast.makeText(context, "", Toast.LENGTH_SHORT) }
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            val tapsToOpenBetaMenu = 7
+                            when (val taps = ++hiddenBetaTaps.intValue) {
+                                tapsToOpenBetaMenu -> {
+                                    hiddenBetaTaps.intValue = 0
+                                    betaMenuHintToast.cancel()
+                                    onNavigateToBetaMenu()
+                                }
+
+                                in 4..tapsToOpenBetaMenu -> {
+                                    betaMenuHintToast.cancel()
+                                    betaMenuHintToast.setText("${tapsToOpenBetaMenu - taps} more taps to open the seeeecret beta menu")
+                                    betaMenuHintToast.show()
+                                }
+                            }
+                        }) {
+                    Text(
+                        "FlickBoard v${BuildConfig.VERSION_NAME}$variant",
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+                if (BuildConfig.FLAVOR == "beta") {
+                    MenuPageLink(
+                        onClick = { onNavigateToBetaMenu() },
+                        icon = painterResource(R.drawable.baseline_bug_report_24),
+                        label = "Beta Options",
+                    )
+                }
                 MenuPageLink(
                     onClick = { openUri(Uri.parse("https://discord.gg/tVp8MGaeUr")) },
                     icon = painterResource(R.drawable.baseline_chat_24),
@@ -387,8 +420,8 @@ fun <T : Labeled> EnumListSetting(setting: Setting.EnumList<T>) {
         optionIsSelected = List<T>::contains,
         onOptionSelected = { toggleOption(it) },
         collapseOnOptionSelected = false,
-        writePreviewSettings = { prefs, option ->
-            setting.writePreviewSettings(prefs)
+        writePreviewSettings = { readPrefs, prefs, option ->
+            setting.writePreviewSettings(readPrefs, prefs)
             setting.writeTo(prefs, listOf(option))
         },
         previewOverride = null,
@@ -408,8 +441,8 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
         optionIsSelected = { selected, option -> option == selected },
         onOptionSelected = { setting.currentValue = it },
         collapseOnOptionSelected = true,
-        writePreviewSettings = { prefs, option ->
-            setting.writePreviewSettings(prefs)
+        writePreviewSettings = { readPrefs, prefs, option ->
+            setting.writePreviewSettings(readPrefs, prefs)
             setting.writeTo(prefs, option)
         },
         previewOverride = setting.previewOverride,
@@ -520,7 +553,7 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
     optionIsSelected: (V, T) -> Boolean,
     onOptionSelected: (T) -> Unit,
     collapseOnOptionSelected: Boolean,
-    writePreviewSettings: (SharedPreferences, T) -> Unit,
+    writePreviewSettings: (SharedPreferences, SharedPreferences.Editor, T) -> Unit,
     previewOverride: (@Composable (T) -> Unit)?,
     previewForceLandscape: Boolean,
 ) {
@@ -591,7 +624,7 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
                                 }
                                 val prefs = remember(appSettings, setting, option) {
                                     MockedSharedPreferences(appSettings.ctx.prefs)
-                                        .also { writePreviewSettings(it, option) }
+                                        .also { it.edit { writePreviewSettings(it, this, option) } }
                                 }
                                 AppSettingsProvider(prefs) {
                                     ProvideDisplayLimits(DisplayLimits.calculateCurrent().let {
@@ -656,6 +689,7 @@ fun SettingsHomePreview() {
             SettingsHomePage(
                 onNavigateToSection = {},
                 onNavigateToTutorial = {},
+                onNavigateToBetaMenu = {},
             )
         }
     }
@@ -684,7 +718,7 @@ fun AppSettingsProvider(prefs: SharedPreferences? = null, content: @Composable (
                     "flickboard",
                     Context.MODE_PRIVATE
                 ),
-                coroutineScope = LocalLifecycleOwner.current.lifecycleScope
+                coroutineScope = rememberCoroutineScope()
             )
         )
     ) {
@@ -709,8 +743,8 @@ class AppSettings(val ctx: SettingsContext) {
         options = LetterLayerOption.entries,
         fromString = LetterLayerOption::valueOf,
         ctx = ctx,
-        writePreviewSettings = { prefs ->
-            if (enabledLayers.readFrom(prefs) == EnabledLayers.Numbers) {
+        writePreviewSettings = { readPrefs, prefs ->
+            if (enabledLayers.readFrom(readPrefs) == EnabledLayers.Numbers) {
                 enabledLayers.writeTo(prefs, EnabledLayers.Letters)
             }
         }
@@ -732,7 +766,7 @@ class AppSettings(val ctx: SettingsContext) {
         options = LetterLayerOption.entries,
         fromString = LetterLayerOption::valueOf,
         ctx = ctx,
-        writePreviewSettings = { prefs ->
+        writePreviewSettings = { _, prefs ->
             enabledLayers.writeTo(prefs, EnabledLayers.DoubleLetters)
         }
     )
@@ -744,8 +778,8 @@ class AppSettings(val ctx: SettingsContext) {
         options = NumericLayerOption.entries,
         fromString = NumericLayerOption::valueOf,
         ctx = ctx,
-        writePreviewSettings = { prefs ->
-            if (enabledLayers.readFrom(prefs) == EnabledLayers.Letters) {
+        writePreviewSettings = { readPrefs, prefs ->
+            if (enabledLayers.readFrom(readPrefs) == EnabledLayers.Letters) {
                 enabledLayers.writeTo(prefs, EnabledLayers.Numbers)
             }
         }
@@ -1393,16 +1427,27 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
 
     var currentValue: T
         get() = readFrom(ctx.prefs)
-        set(value) = writeTo(ctx.prefs, value)
+        set(value) = ctx.prefs.edit { writeTo(this, value) }
 
     fun resetToDefault() {
-        resetIn(ctx.prefs)
+        ctx.prefs.edit { resetIn(this) }
     }
 
     abstract fun readFrom(prefs: SharedPreferences): T
-    abstract fun writeTo(prefs: SharedPreferences, value: T)
-    fun resetIn(prefs: SharedPreferences) {
-        prefs.edit { remove(key) }
+    abstract fun writeTo(prefs: SharedPreferences.Editor, value: T)
+    fun resetIn(prefs: SharedPreferences.Editor) {
+        prefs.remove(key)
+    }
+
+    abstract fun readFromJson(json: JsonReader): T?
+    abstract fun writeToJson(json: JsonWriter, value: T)
+
+    fun exportToJson(prefs: SharedPreferences, json: JsonWriter) {
+        writeToJson(json, readFrom(prefs))
+    }
+
+    fun importFromJson(prefs: SharedPreferences.Editor, json: JsonReader) {
+        readFromJson(json)?.let { writeTo(prefs, it) }
     }
 
     private var lastCachedValue: Boxed<T>? = null
@@ -1433,7 +1478,14 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         awaitClose { ctx.prefs.unregisterOnSharedPreferenceChangeListener(listener) }
     }
         .conflate()
-        .shareIn(ctx.coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+        .shareIn(
+            ctx.coroutineScope,
+            // If the Flow is stopped once cachedValue is loaded then updates may be missed
+            // Instead, make sure to constrain coroutineScope to the lifetime of the setting to
+            // avoid leaks
+            SharingStarted.Lazily,
+            replay = 1
+        )
 
     val state: State<T>
         @Composable
@@ -1450,9 +1502,14 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         override fun readFrom(prefs: SharedPreferences): Boolean =
             prefs.getBoolean(key, defaultValue)
 
-        override fun writeTo(prefs: SharedPreferences, value: Boolean) {
+        override fun writeTo(prefs: SharedPreferences.Editor, value: Boolean) {
             onChange(value)
-            prefs.edit { putBoolean(key, value) }
+            prefs.putBoolean(key, value)
+        }
+
+        override fun readFromJson(json: JsonReader): Boolean = json.nextBoolean()
+        override fun writeToJson(json: JsonWriter, value: Boolean) {
+            json.value(value)
         }
     }
 
@@ -1463,11 +1520,15 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         ctx: SettingsContext,
         override val description: String? = null,
     ) : Setting<Int>(ctx) {
-        override fun readFrom(prefs: SharedPreferences): Int =
-            prefs.getInt(key, defaultValue)
+        override fun readFrom(prefs: SharedPreferences): Int = prefs.getInt(key, defaultValue)
+        override fun writeTo(prefs: SharedPreferences.Editor, value: Int) {
+            prefs.putInt(key, value)
+        }
 
-        override fun writeTo(prefs: SharedPreferences, value: Int) =
-            prefs.edit { putInt(key, value) }
+        override fun readFromJson(json: JsonReader): Int = json.nextInt()
+        override fun writeToJson(json: JsonWriter, value: Int) {
+            json.value(value)
+        }
     }
 
     class Text(
@@ -1481,8 +1542,14 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         override fun readFrom(prefs: SharedPreferences): String =
             prefs.getString(key, defaultValue) ?: defaultValue
 
-        override fun writeTo(prefs: SharedPreferences, value: String) =
-            prefs.edit { putString(key, value) }
+        override fun writeTo(prefs: SharedPreferences.Editor, value: String) {
+            prefs.putString(key, value)
+        }
+
+        override fun readFromJson(json: JsonReader): String = json.nextString()
+        override fun writeToJson(json: JsonWriter, value: String) {
+            json.value(value)
+        }
     }
 
     class FloatSlider(
@@ -1494,11 +1561,15 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         override val description: String? = null,
         val render: (Float) -> String = { it.roundToInt().toString() },
     ) : Setting<Float>(ctx) {
-        override fun readFrom(prefs: SharedPreferences): Float =
-            prefs.getFloat(key, defaultValue)
+        override fun readFrom(prefs: SharedPreferences): Float = prefs.getFloat(key, defaultValue)
+        override fun writeTo(prefs: SharedPreferences.Editor, value: Float) {
+            prefs.putFloat(key, value.coerceIn(range))
+        }
 
-        override fun writeTo(prefs: SharedPreferences, value: Float) =
-            prefs.edit { putFloat(key, value.coerceIn(range)) }
+        override fun readFromJson(json: JsonReader): Float = json.nextDouble().toFloat()
+        override fun writeToJson(json: JsonWriter, value: Float) {
+            json.value(value)
+        }
 
         companion object {
             fun percentage(x: Float): String = "${(x * 100).roundToInt()}%"
@@ -1514,7 +1585,7 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         val fromString: (String) -> T?,
         ctx: SettingsContext,
         override val description: String? = null,
-        val writePreviewSettings: (SharedPreferences) -> Unit = {},
+        val writePreviewSettings: (SharedPreferences, SharedPreferences.Editor) -> Unit = { _, _ -> },
     ) : Setting<List<T>>(ctx) {
         override fun readFrom(prefs: SharedPreferences): List<T> =
             prefs.getString(key, null)
@@ -1522,8 +1593,25 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
                 ?.mapNotNull { it.takeIf { it.isNotEmpty() }?.let(fromString) }
                 ?: defaultValue
 
-        override fun writeTo(prefs: SharedPreferences, value: List<T>) =
-            prefs.edit { putString(key, value.joinToString(",") { it.toString() }) }
+        override fun writeTo(prefs: SharedPreferences.Editor, value: List<T>) {
+            prefs.putString(key, value.joinToString(",") { it.toString() })
+        }
+
+        override fun readFromJson(json: JsonReader): List<T> = mutableListOf<T>().also { out ->
+            json.beginArray()
+            while (json.peek() != JsonToken.END_ARRAY) {
+                fromString(json.nextString())?.let(out::add)
+            }
+            json.endArray()
+        }
+
+        override fun writeToJson(json: JsonWriter, value: List<T>) {
+            json.beginArray()
+            value.forEach {
+                json.value(it.toString())
+            }
+            json.endArray()
+        }
     }
 
     class Enum<T : Labeled>(
@@ -1534,15 +1622,21 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         val fromString: (String) -> T?,
         ctx: SettingsContext,
         override val description: String? = null,
-        val writePreviewSettings: (SharedPreferences) -> Unit = {},
+        val writePreviewSettings: (SharedPreferences, SharedPreferences.Editor) -> Unit = { _, _ -> },
         val previewOverride: (@Composable (T) -> Unit)? = null,
         val previewForceLandscape: Boolean = false,
     ) : Setting<T>(ctx) {
         override fun readFrom(prefs: SharedPreferences): T =
             prefs.getString(key, null)?.let(fromString) ?: defaultValue
 
-        override fun writeTo(prefs: SharedPreferences, value: T) =
-            prefs.edit { putString(key, value.toString()) }
+        override fun writeTo(prefs: SharedPreferences.Editor, value: T) {
+            prefs.putString(key, value.toString())
+        }
+
+        override fun readFromJson(json: JsonReader): T? = fromString(json.nextString())
+        override fun writeToJson(json: JsonWriter, value: T) {
+            json.value(value.toString())
+        }
     }
 
     class Image(
@@ -1554,8 +1648,16 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         override fun readFrom(prefs: SharedPreferences): Uri? =
             prefs.getString(key, null)?.let(Uri::parse)
 
-        override fun writeTo(prefs: SharedPreferences, value: Uri?) =
-            prefs.edit { putString(key, value?.toString()) }
+        override fun writeTo(prefs: SharedPreferences.Editor, value: Uri?) {
+            prefs.putString(key, value?.toString())
+        }
+
+        override fun readFromJson(json: JsonReader): Uri? =
+            json.orNull { nextString() }?.let(Uri::parse)
+
+        override fun writeToJson(json: JsonWriter, value: Uri?) {
+            json.value(value?.toString())
+        }
     }
 
     class Colour(
@@ -1567,8 +1669,16 @@ sealed class Setting<T>(private val ctx: SettingsContext) {
         override fun readFrom(prefs: SharedPreferences): Color? =
             prefs.getInt(key, 0).takeUnless { it == 0 }?.let { Color(it) }
 
-        override fun writeTo(prefs: SharedPreferences, value: Color?) =
-            prefs.edit { putInt(key, value?.toArgb() ?: 0) }
+        override fun writeTo(prefs: SharedPreferences.Editor, value: Color?) {
+            prefs.putInt(key, value?.toArgb() ?: 0)
+        }
+
+        override fun readFromJson(json: JsonReader): Color? =
+            json.nextInt().takeUnless { it == 0 }?.let { Color(it) }
+
+        override fun writeToJson(json: JsonWriter, value: Color?) {
+            json.value(value?.toArgb() ?: 0)
+        }
     }
 }
 
