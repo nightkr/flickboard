@@ -599,7 +599,10 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
                                     }) {
                                         when {
                                             previewOverride != null -> previewOverride(option)
-                                            else -> ConfiguredKeyboard(onAction = null)
+                                            else -> ConfiguredKeyboard(
+                                                onAction = null,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
                                         }
                                     }
                                 }
