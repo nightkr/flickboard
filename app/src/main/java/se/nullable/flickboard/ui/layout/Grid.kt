@@ -4,13 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Measurable
-import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.node.ParentDataModifierNode
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 /**
  * Lays out a fixed grid of items. Compared to a row of columns, it enforces a uniform width between
@@ -35,27 +35,29 @@ fun Grid(
         }
         val gaplessTotalWidth =
             (constraints.maxWidth - totalFixedWidth - (columnGapPx * (columns - 1)))
-        val columnWidth = gaplessTotalWidth / columns
+        val columnWidth = gaplessTotalWidth.toFloat() / columns
         var totalHeight = (measurables.size - 1) * rowGapPx
-        val xPositions = mutableMapOf<Placeable, Int>()
         val placeableRows = measurables.map { measurableRow ->
             var x = 0F
             measurableRow.map { measurable ->
                 val parentData = measurable.gridParentData()
                 val width = when {
-                    parentData.fixedWidth != null -> parentData.fixedWidth.roundToPx().toFloat()
-                        .coerceAtLeast(0F)
+                    parentData.fixedWidth != null -> parentData.fixedWidth.roundToPx()
+                        .coerceAtLeast(0)
+                        .toFloat()
 
-                    else -> (columnWidth.toFloat() * parentData.colspan +
+                    else -> (columnWidth * parentData.colspan +
                             columnGapPx * (parentData.colspan - 1))
                         .coerceAtLeast(0F)
                 }
+                // Carry over rounding errors when rounding, otherwise
+                // colspan 3 will not line up with colspan 1+1+1 if columnWidth
+                // is not divisible by 3
+                val roundedWidth = (x + width).roundToInt() - x.roundToInt()
+                x += width
                 val columnConstraints =
-                    constraints.copy(minWidth = width.toInt(), maxWidth = width.toInt())
-                measurable.measure(columnConstraints).also {
-                    xPositions[it] = x.toInt()
-                    x += width + columnGapPx
-                }
+                    constraints.copy(minWidth = roundedWidth, maxWidth = roundedWidth)
+                measurable.measure(columnConstraints)
             }.also { placeableRow -> totalHeight += placeableRow.maxOf { it.height } }
         }
 
@@ -63,9 +65,11 @@ fun Grid(
             var yPosition = 0
             placeableRows.forEach { placeableRow ->
                 var rowHeight = 0
+                var xPosition = 0
                 placeableRow.forEach { placeable ->
-                    placeable.place(x = xPositions[placeable]!!, y = yPosition)
+                    placeable.place(x = xPosition, y = yPosition)
                     rowHeight = max(rowHeight, placeable.height)
+                    xPosition += placeable.width + columnGapPx
                 }
                 yPosition += rowHeight + rowGapPx
             }
