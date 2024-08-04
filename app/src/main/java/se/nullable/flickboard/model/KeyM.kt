@@ -312,6 +312,11 @@ sealed class Action {
             ActionVisual.Icon(R.drawable.baseline_keyboard_24)
     }
 
+    data object SwitchSystemKeyboard : Action() {
+        override fun visual(modifier: ModifierState?): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_keyboard_24)
+    }
+
     /**
      * Toggles which layer is "active"
      *

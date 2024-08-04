@@ -109,6 +109,12 @@ val CONTROL_MESSAGEASE_LAYER =
                         Direction.BOTTOM to Action.AdjustCellHeight(amount = -1F),
                         Direction.BOTTOM_RIGHT to Action.SwitchLetterLayer(SearchDirection.Forwards),
                     ),
+                    shift = KeyM(
+                        actions = mapOf(
+                            Direction.BOTTOM_LEFT to Action.SwitchSystemKeyboard,
+                            Direction.BOTTOM_RIGHT to Action.SwitchSystemKeyboard,
+                        )
+                    )
                 )
             ),
             // clipboard

@@ -613,6 +613,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             .mod(appSettings.letterLayers.currentValue.size)
                                 }
 
+                                is Action.SwitchSystemKeyboard -> {
+                                    getSystemService<InputMethodManager>()?.showInputMethodPicker()
+                                }
+
                                 Action.ToggleActiveLayer -> {
                                     var hasToggled = false
                                     val enabledLayersLandscape =
