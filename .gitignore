@@ -16,4 +16,5 @@
 local.properties
 /app/release
 /app/plain/release
+/app/beta/release
 /fastlane/report.xml
