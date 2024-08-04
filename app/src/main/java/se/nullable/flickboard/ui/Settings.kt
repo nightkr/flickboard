@@ -858,11 +858,14 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::percentage
     )
 
-    val landscapeDoubleControl = Setting.Bool(
-        key = "landscapeDoubleControl",
-        label = "Double control section in landscape",
-        defaultValue = false,
-        ctx = ctx
+    val landscapeControlSection = Setting.Enum<ControlSectionOption>(
+        key = "landscapeControlSection",
+        label = "Control section mode in landscape",
+        defaultValue = ControlSectionOption.Single,
+        options = ControlSectionOption.entries,
+        fromString = ControlSectionOption::valueOf,
+        ctx = ctx,
+        previewForceLandscape = true,
     )
 
     val portraitLocation = Setting.FloatSlider(
@@ -1240,7 +1243,7 @@ class AppSettings(val ctx: SettingsContext) {
                     landscapeLocation,
                     landscapeScale,
                     landscapeSplit,
-                    landscapeDoubleControl,
+                    landscapeControlSection,
                     portraitLocation,
                     portraitScale,
                 )
@@ -1416,6 +1419,12 @@ enum class NumericLayerOption(
         fullSizedLayer = { messageaseNumericCalculatorLayer(it.digits) },
         miniLayer = { miniNumbersCalculatorLayer(it.digits) },
     ),
+}
+
+enum class ControlSectionOption(override val label: String) : Labeled {
+    Single("Single"),
+    DoubleInside("Double (inside)"),
+    DoubleOutside("Double (outside)"),
 }
 
 class SettingsContext(val prefs: SharedPreferences, val coroutineScope: CoroutineScope)

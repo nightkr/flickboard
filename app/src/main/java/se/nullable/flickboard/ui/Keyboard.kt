@@ -82,7 +82,7 @@ fun Keyboard(
         }
     }
     val landscapeSplit = appSettings.landscapeSplit.state
-    val landscapeDoubleControl = appSettings.landscapeDoubleControl.state
+    val landscapeControlSection = appSettings.landscapeControlSection.state
     val numericLayer = appSettings.numericLayer.state
     val secondaryLetterLayer = appSettings.secondaryLetterLayer.state
     val handedness = appSettings.handedness.state
@@ -247,20 +247,25 @@ fun Keyboard(
                     modifierState.shift.isShifted -> controlLayer.value?.autoShift()
                     else -> controlLayer.value
                 }
+                val controlSection = when {
+                    isLandscape.value -> landscapeControlSection.value
+                    else -> ControlSectionOption.Single
+                }
                 listOfNotNull(
+                    activeControlLayer.takeIf { controlSection == ControlSectionOption.DoubleOutside },
                     when (enabledLayers.value) {
                         EnabledLayers.All -> mergedFullSizedNumericLayer.value
                         EnabledLayers.AllMiniNumbers -> mergedMiniNumericLayer.value
                         EnabledLayers.DoubleLetters -> secondaryLettersLayersByShiftState.value[modifierState.shift]!!
                         else -> null
                     },
-                    activeControlLayer.takeIf { isLandscape.value && landscapeDoubleControl.value },
+                    activeControlLayer.takeIf { controlSection == ControlSectionOption.DoubleInside },
                     when {
                         !isLandscape.value -> null
                         splitWidth.value > 0.01.dp -> spacer(splitWidth.value)
                         else -> null
                     },
-                    activeControlLayer,
+                    activeControlLayer.takeUnless { controlSection == ControlSectionOption.DoubleOutside },
                     when (enabledLayers.value) {
                         EnabledLayers.AllMiniNumbersMiddle -> mergedMiniNumericLayer.value
                         else -> null
@@ -275,6 +280,7 @@ fun Keyboard(
                         EnabledLayers.AllMiniNumbersOpposite -> mergedMiniNumericLayer.value
                         else -> null
                     },
+                    activeControlLayer.takeIf { controlSection == ControlSectionOption.DoubleOutside },
                 )
                     .let {
                         when (handedness.value) {
