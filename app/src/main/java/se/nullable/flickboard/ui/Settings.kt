@@ -821,6 +821,13 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::percentage
     )
 
+    val landscapeDoubleControl = Setting.Bool(
+        key = "landscapeDoubleControl",
+        label = "Double control section in landscape",
+        defaultValue = false,
+        ctx = ctx
+    )
+
     val portraitLocation = Setting.FloatSlider(
         key = "portraitLocation",
         label = "Portrait location",
@@ -1196,6 +1203,7 @@ class AppSettings(val ctx: SettingsContext) {
                     landscapeLocation,
                     landscapeScale,
                     landscapeSplit,
+                    landscapeDoubleControl,
                     portraitLocation,
                     portraitScale,
                 )

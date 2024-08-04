@@ -81,6 +81,7 @@ fun Keyboard(
         }
     }
     val landscapeSplit = appSettings.landscapeSplit.state
+    val landscapeDoubleControl = appSettings.landscapeDoubleControl.state
     val numericLayer = appSettings.numericLayer.state
     val secondaryLetterLayer = appSettings.secondaryLetterLayer.state
     val handedness = appSettings.handedness.state
@@ -231,6 +232,10 @@ fun Keyboard(
         val layer by remember {
             derivedStateOf {
                 val activeLayer = layersByShiftState.value[modifierState.shift]!!
+                val activeControlLayer = when {
+                    modifierState.shift.isShifted -> controlLayer.value?.autoShift()
+                    else -> controlLayer.value
+                }
                 listOfNotNull(
                     when (enabledLayers.value) {
                         EnabledLayers.All -> mergedFullSizedNumericLayer.value
@@ -244,15 +249,13 @@ fun Keyboard(
 
                         else -> null
                     },
+                    activeControlLayer.takeIf { isLandscape.value && landscapeDoubleControl.value },
                     when {
                         !isLandscape.value -> null
                         splitWidth.value > 0.01.dp -> spacer(splitWidth.value)
                         else -> null
                     },
-                    when {
-                        modifierState.shift.isShifted -> controlLayer.value?.autoShift()
-                        else -> controlLayer.value
-                    },
+                    activeControlLayer,
                     when (enabledLayers.value) {
                         EnabledLayers.AllMiniNumbersMiddle -> mergedMiniNumericLayer.value
                         else -> null
