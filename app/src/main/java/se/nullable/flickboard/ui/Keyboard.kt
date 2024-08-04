@@ -37,8 +37,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
 import kotlinx.coroutines.delay
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
@@ -50,6 +50,7 @@ import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER
+import se.nullable.flickboard.model.layouts.spacer
 import se.nullable.flickboard.ui.layout.Grid
 import se.nullable.flickboard.util.toOnAccentContainer
 import java.io.IOException
@@ -79,6 +80,7 @@ fun Keyboard(
             }
         }
     }
+    val landscapeSplit = appSettings.landscapeSplit.state
     val numericLayer = appSettings.numericLayer.state
     val secondaryLetterLayer = appSettings.secondaryLetterLayer.state
     val handedness = appSettings.handedness.state
@@ -167,59 +169,7 @@ fun Keyboard(
             layoutState.value.controlLayer?.let { it.setShift(it.autoShift()) }
         }
     }
-    val layer by remember {
-        derivedStateOf {
-            val activeLayer = layersByShiftState.value[modifierState.shift]!!
-            listOfNotNull(
-                when (enabledLayers.value) {
-                    EnabledLayers.All -> mergedFullSizedNumericLayer.value
-                    EnabledLayers.AllMiniNumbers -> mergedMiniNumericLayer.value
-
-                    EnabledLayers.DoubleLetters -> when {
-                        modifierState.shift.isShifted -> secondaryLetterLayer.value.layout.shiftLayer
-                        else -> secondaryLetterLayer.value.layout.mainLayer
-                            .setShift(secondaryLetterLayer.value.layout.shiftLayer)
-                    }.mergeFallback(mergedFullSizedNumericLayer.value)
-
-                    else -> null
-                },
-                when {
-                    modifierState.shift.isShifted -> controlLayer.value?.autoShift()
-                    else -> controlLayer.value
-                },
-                when (enabledLayers.value) {
-                    EnabledLayers.AllMiniNumbersMiddle -> mergedMiniNumericLayer.value
-                    else -> null
-                },
-                when (enabledLayers.value) {
-                    EnabledLayers.Numbers -> mergedFullSizedNumericLayer.value
-                    EnabledLayers.Letters, EnabledLayers.DoubleLetters, EnabledLayers.All,
-                    EnabledLayers.AllMiniNumbers, EnabledLayers.AllMiniNumbersMiddle,
-                    EnabledLayers.AllMiniNumbersOpposite -> activeLayer
-                },
-                when (enabledLayers.value) {
-                    EnabledLayers.AllMiniNumbersOpposite -> mergedMiniNumericLayer.value
-                    else -> null
-                },
-            )
-                .let {
-                    when (handedness.value) {
-                        Handedness.RightHanded -> it
-                        Handedness.LeftHanded -> it.asReversed()
-                    }
-                }
-                .fold(Layer.empty, Layer::chain)
-                .let {
-                    when (layoutState.value.textDirection) {
-                        TextDirection.LeftToRight -> it
-                        TextDirection.RightToLeft -> when {
-                            noReverseRtlBrackets.value -> it
-                            else -> it.flipBrackets()
-                        }
-                    }
-                }
-        }
-    }
+    val isLandscape = rememberUpdatedState(LocalDisplayLimits.current?.isLandscape ?: false)
     var globalPosition: Offset by remember { mutableStateOf(Offset.Zero) }
     var activeKeyPosition: State<Offset> by remember { mutableStateOf(mutableStateOf(Offset.Zero)) }
     var pointerTrailRelativeToActiveKey: List<Offset> by remember {
@@ -262,12 +212,81 @@ fun Keyboard(
                 this.contentDescription = "FlickBoard keyboard"
             }
     ) {
-        var thisWidth = maxWidth
+        var desiredWidth = maxWidth
         LocalDisplayLimits.current?.let { limits ->
+            val maxMargin = (desiredWidth - limits.portraitWidth).coerceAtLeast(0.dp)
             // Enforce portrait aspect ratio in landscape mode
-            thisWidth = min(thisWidth, limits.portraitWidth)
+            desiredWidth -= maxMargin
         }
-        thisWidth *= appSettings.currentScale
+        desiredWidth *= appSettings.currentScale
+        val splitScale = when {
+            isLandscape.value -> landscapeSplit.value
+            else -> 0F
+        }
+        val excessWidth = maxWidth - desiredWidth
+        val splitWidth = rememberUpdatedState(excessWidth * splitScale)
+        val sideMargin = excessWidth - splitWidth.value
+        val thisWidth = maxWidth - sideMargin
+
+        val layer by remember {
+            derivedStateOf {
+                val activeLayer = layersByShiftState.value[modifierState.shift]!!
+                listOfNotNull(
+                    when (enabledLayers.value) {
+                        EnabledLayers.All -> mergedFullSizedNumericLayer.value
+                        EnabledLayers.AllMiniNumbers -> mergedMiniNumericLayer.value
+
+                        EnabledLayers.DoubleLetters -> when {
+                            modifierState.shift.isShifted -> secondaryLetterLayer.value.layout.shiftLayer
+                            else -> secondaryLetterLayer.value.layout.mainLayer
+                                .setShift(secondaryLetterLayer.value.layout.shiftLayer)
+                        }.mergeFallback(mergedFullSizedNumericLayer.value)
+
+                        else -> null
+                    },
+                    when {
+                        !isLandscape.value -> null
+                        splitWidth.value > 0.01.dp -> spacer(splitWidth.value)
+                        else -> null
+                    },
+                    when {
+                        modifierState.shift.isShifted -> controlLayer.value?.autoShift()
+                        else -> controlLayer.value
+                    },
+                    when (enabledLayers.value) {
+                        EnabledLayers.AllMiniNumbersMiddle -> mergedMiniNumericLayer.value
+                        else -> null
+                    },
+                    when (enabledLayers.value) {
+                        EnabledLayers.Numbers -> mergedFullSizedNumericLayer.value
+                        EnabledLayers.Letters, EnabledLayers.DoubleLetters, EnabledLayers.All,
+                        EnabledLayers.AllMiniNumbers, EnabledLayers.AllMiniNumbersMiddle,
+                        EnabledLayers.AllMiniNumbersOpposite -> activeLayer
+                    },
+                    when (enabledLayers.value) {
+                        EnabledLayers.AllMiniNumbersOpposite -> mergedMiniNumericLayer.value
+                        else -> null
+                    },
+                )
+                    .let {
+                        when (handedness.value) {
+                            Handedness.RightHanded -> it
+                            Handedness.LeftHanded -> it.asReversed()
+                        }
+                    }
+                    .fold(Layer.empty, Layer::chain)
+                    .let {
+                        when (layoutState.value.textDirection) {
+                            TextDirection.LeftToRight -> it
+                            TextDirection.RightToLeft -> when {
+                                noReverseRtlBrackets.value -> it
+                                else -> it.flipBrackets()
+                            }
+                        }
+                    }
+            }
+        }
+
         val backgroundColor = toneConfig.value.surfaceColour
         val backgroundImagePainter = remember {
             derivedStateOf {
@@ -349,8 +368,10 @@ fun Keyboard(
                                     }
                                 },
                                 modifierState = modifierState.takeUnless { showAllModifiers },
-                                modifier = Modifier
-                                    .colspan(key.colspan)
+                                modifier = when {
+                                    key.fixedWidth != null -> Modifier.fixedWidth(key.fixedWidth)
+                                    else -> Modifier.colspan(key.colspan)
+                                }
                                     .onGloballyPositioned {
                                         keyPosition.value = it.positionInRoot() - globalPosition
                                     },
