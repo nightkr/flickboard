@@ -118,51 +118,61 @@ fun Keyboard(
                     .let { it.setShift(it.autoShift()) }
             }
         }
-    val layersByShiftState = remember {
-        derivedStateOf {
-            var mainLayer = layoutState.value.mainLayer
-            if (enableAdvancedModifiers.value) {
-                mainLayer = mainLayer.mergeFallback(OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER)
-            }
-            if (enableToggleShowSymbols.value) {
-                mainLayer = mainLayer.mergeFallback(OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER)
-            }
-            val shift = layoutState.value.shiftLayer
+
+    fun letterLayerByShiftState(layout: Layout): Map<ShiftState, Layer> {
+        var mainLayer = layout.mainLayer
+        if (enableAdvancedModifiers.value) {
+            mainLayer = mainLayer.mergeFallback(OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER)
+        }
+        if (enableToggleShowSymbols.value) {
+            mainLayer = mainLayer.mergeFallback(OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER)
+        }
+        val shift = layout.shiftLayer
+            .mergeFallback(
+                OVERLAY_MESSAGEASE_LAYER.mergeFallback(
+                    mergedFullSizedNumericLayer.value,
+                    holdForFallback = true
+                )
+                    .autoShift()
+            )
+        return mapOf(
+            ShiftState.Normal to mainLayer
                 .mergeFallback(
                     OVERLAY_MESSAGEASE_LAYER.mergeFallback(
                         mergedFullSizedNumericLayer.value,
                         holdForFallback = true
                     )
-                        .autoShift()
                 )
-            mapOf(
-                ShiftState.Normal to mainLayer
-                    .mergeFallback(
-                        OVERLAY_MESSAGEASE_LAYER.mergeFallback(
+                .setShift(shift),
+
+            ShiftState.Shift to shift,
+
+            // Don't shift numeric layer in caps lock
+            ShiftState.CapsLock to layout.shiftLayer
+                .mergeFallback(
+                    OVERLAY_MESSAGEASE_LAYER
+                        .autoShift()
+                        .mergeFallback(
                             mergedFullSizedNumericLayer.value,
                             holdForFallback = true
                         )
-                    )
-                    .setShift(shift),
+                ),
+        ).mapValues {
+            it.value.filterActions(
+                shownActionClasses = shownActionClasses.value,
+                enableHiddenActions = enableHiddenActions.value,
+            )
+        }
+    }
 
-                ShiftState.Shift to shift,
-
-                // Don't shift numeric layer in caps lock
-                ShiftState.CapsLock to layoutState.value.shiftLayer
-                    .mergeFallback(
-                        OVERLAY_MESSAGEASE_LAYER
-                            .autoShift()
-                            .mergeFallback(
-                                mergedFullSizedNumericLayer.value,
-                                holdForFallback = true
-                            )
-                    ),
-            ).mapValues {
-                it.value.filterActions(
-                    shownActionClasses = shownActionClasses.value,
-                    enableHiddenActions = enableHiddenActions.value,
-                )
-            }
+    val layersByShiftState = remember {
+        derivedStateOf {
+            letterLayerByShiftState(layoutState.value)
+        }
+    }
+    val secondaryLettersLayersByShiftState = remember {
+        derivedStateOf {
+            letterLayerByShiftState(secondaryLetterLayer.value.layout)
         }
     }
     val controlLayer = remember {
@@ -240,13 +250,7 @@ fun Keyboard(
                     when (enabledLayers.value) {
                         EnabledLayers.All -> mergedFullSizedNumericLayer.value
                         EnabledLayers.AllMiniNumbers -> mergedMiniNumericLayer.value
-
-                        EnabledLayers.DoubleLetters -> when {
-                            modifierState.shift.isShifted -> secondaryLetterLayer.value.layout.shiftLayer
-                            else -> secondaryLetterLayer.value.layout.mainLayer
-                                .setShift(secondaryLetterLayer.value.layout.shiftLayer)
-                        }.mergeFallback(mergedFullSizedNumericLayer.value)
-
+                        EnabledLayers.DoubleLetters -> secondaryLettersLayersByShiftState.value[modifierState.shift]!!
                         else -> null
                     },
                     activeControlLayer.takeIf { isLandscape.value && landscapeDoubleControl.value },
