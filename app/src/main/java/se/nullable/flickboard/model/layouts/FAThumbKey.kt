@@ -38,7 +38,7 @@ val FA_THUMBKEY_MAIN_LAYER = Layer(
                         "\u200F", //RLM
                         visualOverride = ActionVisual.Label(
                             "¶‹",
-                            directionOverride = TextDirection.RightToLeft
+                            directionOverride = TextDirection.LeftToRight
                         ),
                     ),
                     Direction.BOTTOM_LEFT to Action.Text("ع"),

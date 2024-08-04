@@ -16,7 +16,7 @@ val FA_SYMBOLS_LAYER = Layer(
                     Direction.BOTTOM to Action.Text("٫"),
                     Direction.RIGHT to Action.Text(
                         "ّ",
-                        visualOverride = ActionVisual.Label("ـّ")
+                        visualOverride = ActionVisual.Label(" ـّ")
                     )                    
                 ),
                 shift = KeyM(
@@ -125,7 +125,7 @@ val FA_SYMBOLS_LAYER = Layer(
                     Direction.TOP_LEFT to Action.Text("~"), 
                     Direction.TOP_RIGHT to Action.Text(
                         "ً",
-                        visualOverride = ActionVisual.Label("ـً")
+                        visualOverride = ActionVisual.Label(" ـً")
                     ),                                       
                     Direction.LEFT to Action.Text("«"),
                     Direction.BOTTOM_LEFT to Action.Text("<"),
