@@ -33,24 +33,29 @@ fun Grid(
         val columns = measurables.maxOf { row ->
             row.sumOf { it.gridParentData().colspan.toDouble() }.toFloat()
         }
+        val totalFixedWidth = measurables.maxOf { rows ->
+            rows.sumOf { (it.gridParentData().fixedWidth?.roundToPx() ?: 0) }
+        }
         val wholeColumns = columns.roundToInt()
-        val gaplessTotalWidth = (constraints.maxWidth - (columnGapPx * (wholeColumns - 1)))
+        val gaplessTotalWidth =
+            (constraints.maxWidth - totalFixedWidth - (columnGapPx * (wholeColumns - 1)))
         val columnWidth = gaplessTotalWidth / columns
         var totalHeight = (measurables.size - 1) * rowGapPx
         val xPositions = mutableMapOf<Placeable, Int>()
         val placeableRows = measurables.map { measurableRow ->
-            var measuredColumns = 0F
             var x = 0F
             measurableRow.map { measurable ->
                 val parentData = measurable.gridParentData()
-                val width = columnWidth * parentData.colspan +
-                        columnGapPx * (parentData.colspan - 1).coerceAtLeast(0F)
+                val width = when {
+                    parentData.fixedWidth != null -> parentData.fixedWidth.roundToPx().toFloat()
+                        .coerceAtLeast(0F)
+
+                    else -> (columnWidth * parentData.colspan +
+                            columnGapPx * (parentData.colspan - 1))
+                        .coerceAtLeast(0F)
+                }
                 val columnConstraints =
-                    constraints.copy(
-                        minWidth = width.toInt(),
-                        maxWidth = width.toInt(),
-                    )
-                measuredColumns += parentData.colspan
+                    constraints.copy(minWidth = width.toInt(), maxWidth = width.toInt())
                 measurable.measure(columnConstraints).also {
                     xPositions[it] = x.toInt()
                     x += width + columnGapPx
@@ -74,9 +79,11 @@ fun Grid(
 
 class GridRowScope {
     fun Modifier.colspan(colspan: Float) = this then GridColspanElement(colspan = colspan)
+    fun Modifier.fixedWidth(fixedWidth: Dp) =
+        this then GridFixedWidthElement(fixedWidth = fixedWidth)
 }
 
-private data class GridParentData(val colspan: Float = 1F) {
+private data class GridParentData(val colspan: Float = 1F, val fixedWidth: Dp? = null) {
     companion object {
         val Default = GridParentData()
     }
@@ -92,4 +99,19 @@ private data class GridColspanElement(val colspan: Float) : ModifierNodeElement<
 private class GridColspanNode(var colspan: Float) : ParentDataModifierNode, Modifier.Node() {
     override fun Density.modifyParentData(parentData: Any?): Any =
         ((parentData as GridParentData?) ?: GridParentData.Default).copy(colspan = colspan)
+}
+
+private data class GridFixedWidthElement(val fixedWidth: Dp) :
+    ModifierNodeElement<GridFixedWidthNode>() {
+    override fun create(): GridFixedWidthNode = GridFixedWidthNode(fixedWidth = fixedWidth)
+    override fun update(node: GridFixedWidthNode) {
+        node.fixedWidth = fixedWidth
+    }
+}
+
+private class GridFixedWidthNode(var fixedWidth: Dp) : ParentDataModifierNode,
+    Modifier.Node() {
+    override fun Density.modifyParentData(parentData: Any?): Any =
+        ((parentData as GridParentData?) ?: GridParentData.Default)
+            .copy(fixedWidth = fixedWidth, colspan = 0F)
 }

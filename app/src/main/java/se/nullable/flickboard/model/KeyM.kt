@@ -1,5 +1,6 @@
 package se.nullable.flickboard.model
 
+import androidx.compose.ui.unit.Dp
 import se.nullable.flickboard.R
 import se.nullable.flickboard.model.layouts.MESSAGEASE_SYMBOLS_LAYER
 import se.nullable.flickboard.model.layouts.MINI_NUMBERS_SYMBOLS_LAYER
@@ -74,6 +75,7 @@ data class KeyM(
     val fastActions: Map<Direction, Action> = mapOf(),
     val holdAction: Action? = null,
     val colspan: Float = 1F,
+    val fixedWidth: Dp? = null,
     val rendered: Boolean = true,
     val shift: KeyM? = null,
     val transientShift: KeyM? = null

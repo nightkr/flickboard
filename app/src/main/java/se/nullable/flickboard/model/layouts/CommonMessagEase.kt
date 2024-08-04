@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.CaseChangeDirection
@@ -30,8 +31,8 @@ val SPACE = KeyM(
     colspan = 3F
 )
 
-fun spacer(colspan: Float) =
-    listOf(KeyM(actions = emptyMap(), colspan = colspan, rendered = false)).let { row ->
+fun spacer(width: Dp) =
+    listOf(KeyM(actions = emptyMap(), fixedWidth = width, rendered = false)).let { row ->
         Layer(
             keyRows = listOf(row, row, row, row)
         )
