@@ -37,8 +37,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
 import kotlinx.coroutines.delay
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.Layer
@@ -50,6 +50,7 @@ import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER
+import se.nullable.flickboard.model.layouts.spacer
 import se.nullable.flickboard.ui.layout.Grid
 import se.nullable.flickboard.util.toOnAccentContainer
 import java.io.IOException
@@ -79,6 +80,8 @@ fun Keyboard(
             }
         }
     }
+    val landscapeSideMarginScale = appSettings.landscapeSideMarginScale.state
+    val landscapeSplit = appSettings.landscapeSplit.state
     val numericLayer = appSettings.numericLayer.state
     val secondaryLetterLayer = appSettings.secondaryLetterLayer.state
     val handedness = appSettings.handedness.state
@@ -167,6 +170,7 @@ fun Keyboard(
             layoutState.value.controlLayer?.let { it.setShift(it.autoShift()) }
         }
     }
+    val isLandscape = rememberUpdatedState(LocalDisplayLimits.current?.isLandscape ?: false)
     val layer by remember {
         derivedStateOf {
             val activeLayer = layersByShiftState.value[modifierState.shift]!!
@@ -181,6 +185,11 @@ fun Keyboard(
                             .setShift(secondaryLetterLayer.value.layout.shiftLayer)
                     }.mergeFallback(mergedFullSizedNumericLayer.value)
 
+                    else -> null
+                },
+                when {
+                    !isLandscape.value -> null
+                    landscapeSplit.value > 0.01 -> spacer(landscapeSplit.value)
                     else -> null
                 },
                 when {
@@ -262,12 +271,18 @@ fun Keyboard(
                 this.contentDescription = "FlickBoard keyboard"
             }
     ) {
-        var thisWidth = maxWidth
+        var desiredWidth = maxWidth
         LocalDisplayLimits.current?.let { limits ->
+            val maxMargin = (desiredWidth - limits.portraitWidth).coerceAtLeast(0.dp)
             // Enforce portrait aspect ratio in landscape mode
-            thisWidth = min(thisWidth, limits.portraitWidth)
+            desiredWidth -= maxMargin
         }
-        thisWidth *= appSettings.currentScale
+        desiredWidth *= appSettings.currentScale
+        val sideMarginScale = when {
+            isLandscape.value -> landscapeSideMarginScale.value
+            else -> 1F
+        }
+        val thisWidth = maxWidth - (maxWidth - desiredWidth) * sideMarginScale
         val backgroundColor = toneConfig.value.surfaceColour
         val backgroundImagePainter = remember {
             derivedStateOf {

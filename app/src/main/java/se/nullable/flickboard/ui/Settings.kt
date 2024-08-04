@@ -812,6 +812,23 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::percentage
     )
 
+    val landscapeSideMarginScale = Setting.FloatSlider(
+        key = "landscapeSideMarginScale",
+        label = "Landscape side margin scale",
+        defaultValue = 1F,
+        range = 0F..1F,
+        ctx = ctx,
+        render = Setting.FloatSlider::percentage
+    )
+
+    val landscapeSplit = Setting.FloatSlider(
+        key = "landscapeSplit",
+        label = "Landscape split",
+        defaultValue = 0F,
+        range = 0F..20F,
+        ctx = ctx,
+    )
+
     val portraitLocation = Setting.FloatSlider(
         key = "portraitLocation",
         label = "Portrait location",
@@ -1186,6 +1203,8 @@ class AppSettings(val ctx: SettingsContext) {
                     keyHeight,
                     landscapeLocation,
                     landscapeScale,
+                    landscapeSideMarginScale,
+                    landscapeSplit,
                     portraitLocation,
                     portraitScale,
                 )

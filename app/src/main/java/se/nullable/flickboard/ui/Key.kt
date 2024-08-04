@@ -101,6 +101,11 @@ fun Key(
     keyPointerTrailListener: State<KeyPointerTrailListener?> = remember { mutableStateOf(null) },
     layoutTextDirection: TextDirection,
 ) {
+    if (!key.rendered) {
+        Box(modifier)
+        return
+    }
+
     val haptic = LocalHapticFeedback.current
     val settings = LocalAppSettings.current
     val actionVisualScale = settings.actionVisualScale.state

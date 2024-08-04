@@ -27,8 +27,15 @@ val SPACE = KeyM(
         Direction.LEFT to Action.Jump(direction = SearchDirection.Backwards),
         Direction.RIGHT to Action.Jump(direction = SearchDirection.Forwards),
     ),
-    colspan = 3
+    colspan = 3F
 )
+
+fun spacer(colspan: Float) =
+    listOf(KeyM(actions = emptyMap(), colspan = colspan, rendered = false)).let { row ->
+        Layer(
+            keyRows = listOf(row, row, row, row)
+        )
+    }
 
 val OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER =
     Layer(

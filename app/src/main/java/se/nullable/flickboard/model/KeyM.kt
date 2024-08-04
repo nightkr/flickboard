@@ -73,7 +73,8 @@ data class KeyM(
     // Fast actions are performed immediately when detected, rather than when the finger is released.
     val fastActions: Map<Direction, Action> = mapOf(),
     val holdAction: Action? = null,
-    val colspan: Int = 1,
+    val colspan: Float = 1F,
+    val rendered: Boolean = true,
     val shift: KeyM? = null,
     val transientShift: KeyM? = null
 ) {
