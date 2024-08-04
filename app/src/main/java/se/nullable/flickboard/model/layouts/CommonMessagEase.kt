@@ -28,7 +28,7 @@ val SPACE = KeyM(
         Direction.LEFT to Action.Jump(direction = SearchDirection.Backwards),
         Direction.RIGHT to Action.Jump(direction = SearchDirection.Forwards),
     ),
-    colspan = 3F
+    colspan = 3
 )
 
 fun spacer(width: Dp) =

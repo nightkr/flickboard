@@ -187,8 +187,8 @@ val FA_SYMBOLS_LAYER = Layer(
             ),
         ),
         listOf(
-            KeyM(actions = mapOf(), colspan = 2F),
-            SPACE.copy(colspan = 1F)
+            KeyM(actions = mapOf(), colspan = 2),
+            SPACE.copy(colspan = 1)
         )
     )
 )
