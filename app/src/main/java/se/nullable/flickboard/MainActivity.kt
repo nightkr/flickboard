@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -37,6 +38,7 @@ import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.SettingsHomePage
 import se.nullable.flickboard.ui.SettingsSectionPage
 import se.nullable.flickboard.ui.TutorialPage
+import se.nullable.flickboard.ui.consumeExcludedInsets
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -59,6 +61,8 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
+                        .windowInsetsPadding(WindowInsets.navigationBars)
+                        .consumeExcludedInsets()
                         .windowInsetsPadding(WindowInsets.safeContent),
                     color = MaterialTheme.colorScheme.background
                 ) {

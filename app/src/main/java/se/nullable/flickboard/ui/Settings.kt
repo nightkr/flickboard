@@ -313,7 +313,7 @@ fun SettingsKeyboardPreview() {
                             .rotate(hideIconAngle.value)
                     )
                 }
-                AnimatedVisibility(enableState.value) {
+                AnimatedVisibility(enableState.value, Modifier.excludeFromBottomInset()) {
                     ProvideDisplayLimits {
                         ConfiguredKeyboard(
                             onAction = { true }, // Keyboard provides internal visual feedback if enabled
