@@ -18,9 +18,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeGesturesPadding
 import androidx.compose.foundation.layout.size
@@ -67,6 +70,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -275,6 +279,7 @@ fun SettingsSectionPage(section: SettingsSection, modifier: Modifier = Modifier)
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsKeyboardPreview() {
     val enable = LocalAppSettings.current.enableKeyboardPreview
@@ -282,36 +287,59 @@ fun SettingsKeyboardPreview() {
     Box {
         Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
             Column {
+                val realKeyboardVisible = WindowInsets.isImeVisible
+                val softwareKeyboardController = LocalSoftwareKeyboardController.current
                 Row(
                     Modifier
                         .fillMaxWidth()
                         .clickable {
-                            enable.currentValue = !enable.currentValue
+                            when {
+                                realKeyboardVisible -> softwareKeyboardController?.hide()
+                                else -> enable.currentValue = !enable.currentValue
+                            }
                         },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Preview keyboard",
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                    val hideIconAngle = animateFloatAsState(
-                        when {
-                            enableState.value -> 0F
-                            else -> 180F
-                        }, label = "hideIconAngle"
-                    )
-                    Icon(
-                        painterResource(R.drawable.baseline_arrow_drop_down_24),
-                        when {
-                            enableState.value -> "hide"
-                            else -> "show"
-                        },
-                        Modifier
-                            .padding(8.dp)
-                            .rotate(hideIconAngle.value)
-                    )
+                    when {
+                        realKeyboardVisible -> {
+                            Text(
+                                text = "Keyboard active",
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                            Icon(
+                                painterResource(R.drawable.baseline_keyboard_hide_24),
+                                "close",
+                                Modifier
+                                    .padding(8.dp)
+                            )
+                        }
+
+                        else -> {
+                            Text(
+                                text = "Preview keyboard",
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                            val hideIconAngle = animateFloatAsState(
+                                when {
+                                    enableState.value -> 0F
+                                    else -> 180F
+                                }, label = "hideIconAngle"
+                            )
+                            Icon(
+                                painterResource(R.drawable.baseline_arrow_drop_down_24),
+                                when {
+                                    enableState.value -> "hide"
+                                    else -> "show"
+                                },
+                                Modifier
+                                    .padding(8.dp)
+                                    .rotate(hideIconAngle.value)
+                            )
+                        }
+                    }
                 }
                 AnimatedVisibility(enableState.value, Modifier.excludeFromBottomInset()) {
                     ProvideDisplayLimits {
