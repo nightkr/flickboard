@@ -14,7 +14,9 @@ import android.view.inputmethod.ExtractedTextRequest
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
@@ -24,7 +26,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.core.content.getSystemService
@@ -143,6 +147,15 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
     // Tracked variant of currentInputEditorInfo
     private val editorInfo = mutableStateOf<EditorInfo?>(null)
 
+    // Invisible area "occupied by" the view
+    private var topPaddingHeight: Int = 0 // Set once view is measured
+
+    override fun onComputeInsets(outInsets: Insets) {
+        super.onComputeInsets(outInsets)
+        outInsets.contentTopInsets = topPaddingHeight
+        outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_CONTENT
+    }
+
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         editorInfo.value = attribute
@@ -170,258 +183,338 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         }
         return ComposeView(this).also { view ->
             view.setContent {
-                FlickBoardParent {
-                    ProvideDisplayLimits {
-                        var emojiMode by remember { mutableStateOf(false) }
-                        val warningMessageScope = rememberCoroutineScope()
-                        val warningSnackbarHostState = remember { SnackbarHostState() }
-                        val appSettings = LocalAppSettings.current
-                        val periodOnDoubleSpace = appSettings.periodOnDoubleSpace.state
-                        val disabledDeadkeys = appSettings.disabledDeadkeys.state
-                        val displayLimits = LocalDisplayLimits.current
-                        val onAction: (Action) -> Boolean = { action ->
-                            warningMessageScope.launch {
-                                warningSnackbarHostState.currentSnackbarData?.dismiss()
-                            }
-                            fun typeText(
-                                text: String,
-                                forceRawKeyEvent: Boolean = false,
-                                forceShift: Boolean = false
-                            ) {
-                                var char = text
-                                val rawKeyCode = when {
-                                    forceRawKeyEvent || activeModifiers.useRawKeyEvent -> char.singleOrNull()
-                                        ?.let(keycodeMapper::keycodeForChar)
-                                        ?: KeyEvent.KEYCODE_UNKNOWN
+                BoxWithConstraints(contentAlignment = Alignment.BottomCenter) {
+                    // Android clips ongoing touch events at the border between the keyboard and app.
+                    // As a workaround, we claim a transparent whole-screen box, and then
+                    // use an inset to limit the content region (for touch input and app resizing)
+                    // to the region we actually occupy.
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(maxHeight)
+                    )
+                    val density = LocalDensity.current
+                    Box(Modifier.onSizeChanged { size ->
+                        density.apply {
+                            topPaddingHeight = maxHeight.roundToPx() - size.height
+                        }
+                    }) {
+                        FlickBoardParent {
+                            ProvideDisplayLimits {
+                                var emojiMode by remember { mutableStateOf(false) }
+                                val warningMessageScope = rememberCoroutineScope()
+                                val warningSnackbarHostState = remember { SnackbarHostState() }
+                                val appSettings = LocalAppSettings.current
+                                val periodOnDoubleSpace = appSettings.periodOnDoubleSpace.state
+                                val disabledDeadkeys = appSettings.disabledDeadkeys.state
+                                val displayLimits = LocalDisplayLimits.current
+                                val onAction: (Action) -> Boolean = { action ->
+                                    warningMessageScope.launch {
+                                        warningSnackbarHostState.currentSnackbarData?.dismiss()
+                                    }
+                                    fun typeText(
+                                        text: String,
+                                        forceRawKeyEvent: Boolean = false,
+                                        forceShift: Boolean = false
+                                    ) {
+                                        var char = text
+                                        val rawKeyCode = when {
+                                            forceRawKeyEvent || activeModifiers.useRawKeyEvent -> char.singleOrNull()
+                                                ?.let(keycodeMapper::keycodeForChar)
+                                                ?: KeyEvent.KEYCODE_UNKNOWN
 
-                                    else -> KeyEvent.KEYCODE_UNKNOWN
-                                }
-                                when {
-                                    rawKeyCode != KeyEvent.KEYCODE_UNKNOWN ->
-                                        sendKeyPressEvents(
-                                            rawKeyCode, extraModifiers = when {
-                                                forceShift -> KeyEvent.normalizeMetaState(KeyEvent.META_SHIFT_LEFT_ON)
-                                                else -> 0
-                                            }
-                                        )
-
-                                    else -> {
-                                        val combiner = when {
-                                            activeModifiers.zalgo ->
-                                                lastTyped?.tryCombineWith(
-                                                    char,
-                                                    periodOnDoubleSpace = false,
-                                                    tryHarder = true
-                                                ) ?: char.asCombiningMarkOrNull()
-                                                    ?.let {
-                                                        LastTypedData.Combiner(
-                                                            original = char,
-                                                            combinedReplacement = it,
-                                                            baseCharLength = 0
+                                            else -> KeyEvent.KEYCODE_UNKNOWN
+                                        }
+                                        when {
+                                            rawKeyCode != KeyEvent.KEYCODE_UNKNOWN ->
+                                                sendKeyPressEvents(
+                                                    rawKeyCode, extraModifiers = when {
+                                                        forceShift -> KeyEvent.normalizeMetaState(
+                                                            KeyEvent.META_SHIFT_LEFT_ON
                                                         )
+
+                                                        else -> 0
                                                     }
-
-                                            disabledDeadkeys.value.contains(char) -> null
-
-                                            else -> lastTyped?.tryCombineWith(
-                                                char,
-                                                periodOnDoubleSpace = periodOnDoubleSpace.value,
-                                            )
-                                        }
-                                        if (combiner != null) {
-                                            char = combiner.combinedReplacement
-                                        }
-                                        val codePoint = char.singleCodePointOrNull()
-                                        val positionOfChar =
-                                            currentCursorPosition(SearchDirection.Backwards)
-                                                ?.plus(char.length)
-                                                ?.minus(combiner?.baseCharLength ?: 0)
-                                        lastTyped = when {
-                                            positionOfChar != null -> LastTypedData(
-                                                codePoint = codePoint,
-                                                position = positionOfChar,
-                                                combiner = combiner
-                                            )
-
-                                            else -> null
-                                        }
-                                        currentInputConnection.beginBatchEdit()
-                                        if (combiner != null) {
-                                            currentInputConnection.deleteSurroundingText(
-                                                combiner.baseCharLength,
-                                                0
-                                            )
-                                        }
-                                        currentInputConnection.commitText(
-                                            char,
-                                            1
-                                        )
-                                        currentInputConnection.endBatchEdit()
-                                    }
-                                }
-                            }
-
-                            fun moveSelection(
-                                direction: SearchDirection,
-                                boundary: TextBoundary
-                            ): Boolean {
-                                val range = selection() ?: return false
-                                val movingSide = when {
-                                    range.first == range.last -> {
-                                        gestureBeginPosition = range.first
-                                        direction
-                                    }
-
-                                    range.last == gestureBeginPosition -> SearchDirection.Backwards
-                                    else -> SearchDirection.Forwards
-                                }
-                                val distance = findBoundary(
-                                    boundary,
-                                    direction,
-                                    coalesce = true,
-                                    includeSelection = movingSide != direction,
-                                ) * direction.factor
-                                currentInputConnection.setSelection(
-                                    (range.first + distance * (movingSide == SearchDirection.Backwards))
-                                        .coerceAtMost(range.last),
-                                    (range.last + distance * (movingSide == SearchDirection.Forwards))
-                                        .coerceAtLeast(range.first),
-                                )
-                                return true
-                            }
-
-                            var actionSuccessful = true
-                            when (action) {
-                                is Action.Text -> typeText(
-                                    action.character,
-                                    forceRawKeyEvent = action.forceRawKeyEvent
-                                )
-
-                                is Action.BeginFastAction -> {
-                                    if (!activeModifiers.select) {
-                                        gestureBeginPosition =
-                                            currentCursorPosition(direction = SearchDirection.Backwards)
-                                                ?: 0
-                                    }
-                                }
-
-                                is Action.FastActionDone -> when (action.type) {
-                                    FastActionType.Delete -> {
-                                        currentInputConnection.commitText("", 0)
-                                    }
-                                }
-
-                                is Action.FastDelete -> {
-                                    // Let user select text, which is then deleted when FastActionDone is fired
-                                    actionSuccessful =
-                                        moveSelection(action.direction, action.boundary)
-                                }
-
-                                is Action.Delete -> {
-                                    when {
-                                        activeModifiers.useRawKeyEvent -> sendKeyPressEvents(
-                                            when (action.direction) {
-                                                SearchDirection.Backwards -> KeyEvent.KEYCODE_DEL
-                                                SearchDirection.Forwards -> KeyEvent.KEYCODE_FORWARD_DEL
-                                            }
-                                        )
-
-                                        else -> when (selectionSize()) {
-                                            SelectionSize.NonEmpty -> {
-                                                // if selection is non-empty, delete it regardless of the mode requested by the user
-                                                currentInputConnection.commitText("", 0)
-                                            }
-
-                                            SelectionSize.Empty -> {
-                                                val length = findBoundary(
-                                                    action.boundary,
-                                                    action.direction,
-                                                    coalesce = true
                                                 )
-                                                val lastTypedComposed = lastTyped?.combiner
-                                                if (action.direction == SearchDirection.Backwards && lastTypedComposed != null) {
-                                                    currentInputConnection.beginBatchEdit()
-                                                    currentInputConnection.deleteSurroundingText(
-                                                        lastTypedComposed.combinedReplacement.length,
-                                                        0
-                                                    )
-                                                    currentInputConnection.commitText(
-                                                        lastTypedComposed.original,
-                                                        1
-                                                    )
-                                                    currentInputConnection.endBatchEdit()
-                                                    // Clear last-typed data even if we're in a context without
-                                                    // a working requestCursorUpdates
-                                                    lastTyped = null
-                                                } else {
-                                                    currentInputConnection.deleteSurroundingText(
-                                                        if (action.direction == SearchDirection.Backwards) length else 0,
-                                                        if (action.direction == SearchDirection.Forwards) length else 0,
+
+                                            else -> {
+                                                val combiner = when {
+                                                    activeModifiers.zalgo ->
+                                                        lastTyped?.tryCombineWith(
+                                                            char,
+                                                            periodOnDoubleSpace = false,
+                                                            tryHarder = true
+                                                        ) ?: char.asCombiningMarkOrNull()
+                                                            ?.let {
+                                                                LastTypedData.Combiner(
+                                                                    original = char,
+                                                                    combinedReplacement = it,
+                                                                    baseCharLength = 0
+                                                                )
+                                                            }
+
+                                                    disabledDeadkeys.value.contains(char) -> null
+
+                                                    else -> lastTyped?.tryCombineWith(
+                                                        char,
+                                                        periodOnDoubleSpace = periodOnDoubleSpace.value,
                                                     )
                                                 }
+                                                if (combiner != null) {
+                                                    char = combiner.combinedReplacement
+                                                }
+                                                val codePoint = char.singleCodePointOrNull()
+                                                val positionOfChar =
+                                                    currentCursorPosition(SearchDirection.Backwards)
+                                                        ?.plus(char.length)
+                                                        ?.minus(combiner?.baseCharLength ?: 0)
+                                                lastTyped = when {
+                                                    positionOfChar != null -> LastTypedData(
+                                                        codePoint = codePoint,
+                                                        position = positionOfChar,
+                                                        combiner = combiner
+                                                    )
+
+                                                    else -> null
+                                                }
+                                                currentInputConnection.beginBatchEdit()
+                                                if (combiner != null) {
+                                                    currentInputConnection.deleteSurroundingText(
+                                                        combiner.baseCharLength,
+                                                        0
+                                                    )
+                                                }
+                                                currentInputConnection.commitText(
+                                                    char,
+                                                    1
+                                                )
+                                                currentInputConnection.endBatchEdit()
+                                            }
+                                        }
+                                    }
+
+                                    fun moveSelection(
+                                        direction: SearchDirection,
+                                        boundary: TextBoundary
+                                    ): Boolean {
+                                        val range = selection() ?: return false
+                                        val movingSide = when {
+                                            range.first == range.last -> {
+                                                gestureBeginPosition = range.first
+                                                direction
                                             }
 
-                                            SelectionSize.BufferUnavailable -> {
-                                                sendKeyPressEvents(
-                                                    keyCode = when (action.direction) {
+                                            range.last == gestureBeginPosition -> SearchDirection.Backwards
+                                            else -> SearchDirection.Forwards
+                                        }
+                                        val distance = findBoundary(
+                                            boundary,
+                                            direction,
+                                            coalesce = true,
+                                            includeSelection = movingSide != direction,
+                                        ) * direction.factor
+                                        currentInputConnection.setSelection(
+                                            (range.first + distance * (movingSide == SearchDirection.Backwards))
+                                                .coerceAtMost(range.last),
+                                            (range.last + distance * (movingSide == SearchDirection.Forwards))
+                                                .coerceAtLeast(range.first),
+                                        )
+                                        return true
+                                    }
+
+                                    var actionSuccessful = true
+                                    when (action) {
+                                        is Action.Text -> typeText(
+                                            action.character,
+                                            forceRawKeyEvent = action.forceRawKeyEvent
+                                        )
+
+                                        is Action.BeginFastAction -> {
+                                            if (!activeModifiers.select) {
+                                                gestureBeginPosition =
+                                                    currentCursorPosition(direction = SearchDirection.Backwards)
+                                                        ?: 0
+                                            }
+                                        }
+
+                                        is Action.FastActionDone -> when (action.type) {
+                                            FastActionType.Delete -> {
+                                                currentInputConnection.commitText("", 0)
+                                            }
+                                        }
+
+                                        is Action.FastDelete -> {
+                                            // Let user select text, which is then deleted when FastActionDone is fired
+                                            actionSuccessful =
+                                                moveSelection(action.direction, action.boundary)
+                                        }
+
+                                        is Action.Delete -> {
+                                            when {
+                                                activeModifiers.useRawKeyEvent -> sendKeyPressEvents(
+                                                    when (action.direction) {
                                                         SearchDirection.Backwards -> KeyEvent.KEYCODE_DEL
                                                         SearchDirection.Forwards -> KeyEvent.KEYCODE_FORWARD_DEL
                                                     }
                                                 )
+
+                                                else -> when (selectionSize()) {
+                                                    SelectionSize.NonEmpty -> {
+                                                        // if selection is non-empty, delete it regardless of the mode requested by the user
+                                                        currentInputConnection.commitText("", 0)
+                                                    }
+
+                                                    SelectionSize.Empty -> {
+                                                        val length = findBoundary(
+                                                            action.boundary,
+                                                            action.direction,
+                                                            coalesce = true
+                                                        )
+                                                        val lastTypedComposed = lastTyped?.combiner
+                                                        if (action.direction == SearchDirection.Backwards && lastTypedComposed != null) {
+                                                            currentInputConnection.beginBatchEdit()
+                                                            currentInputConnection.deleteSurroundingText(
+                                                                lastTypedComposed.combinedReplacement.length,
+                                                                0
+                                                            )
+                                                            currentInputConnection.commitText(
+                                                                lastTypedComposed.original,
+                                                                1
+                                                            )
+                                                            currentInputConnection.endBatchEdit()
+                                                            // Clear last-typed data even if we're in a context without
+                                                            // a working requestCursorUpdates
+                                                            lastTyped = null
+                                                        } else {
+                                                            currentInputConnection.deleteSurroundingText(
+                                                                if (action.direction == SearchDirection.Backwards) length else 0,
+                                                                if (action.direction == SearchDirection.Forwards) length else 0,
+                                                            )
+                                                        }
+                                                    }
+
+                                                    SelectionSize.BufferUnavailable -> {
+                                                        sendKeyPressEvents(
+                                                            keyCode = when (action.direction) {
+                                                                SearchDirection.Backwards -> KeyEvent.KEYCODE_DEL
+                                                                SearchDirection.Forwards -> KeyEvent.KEYCODE_FORWARD_DEL
+                                                            }
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
-                                    }
-                                }
 
-                                is Action.Enter -> {
-                                    val editorInfo = editorInfo.value
-                                    val imeOptions = editorInfo?.imeOptions ?: 0
-                                    if (activeModifiers.useRawKeyEvent ||
-                                        activeModifiers.shift.isShift ||
-                                        action.shift ||
-                                        imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0
-                                    ) {
-                                        typeText(
-                                            "\n",
-                                            forceRawKeyEvent = activeModifiers.shift.isShift || action.shift,
-                                            forceShift = action.shift
-                                        )
-                                    } else {
-                                        currentInputConnection.performEditorAction(
-                                            when {
-                                                editorInfo?.actionLabel != null -> editorInfo.actionId
-                                                else -> imeOptions and
-                                                        (EditorInfo.IME_ACTION_DONE or
-                                                                EditorInfo.IME_ACTION_GO or
-                                                                EditorInfo.IME_ACTION_NEXT or
-                                                                EditorInfo.IME_ACTION_SEARCH or
-                                                                EditorInfo.IME_ACTION_SEND)
+                                        is Action.Enter -> {
+                                            val editorInfo = editorInfo.value
+                                            val imeOptions = editorInfo?.imeOptions ?: 0
+                                            if (activeModifiers.useRawKeyEvent ||
+                                                activeModifiers.shift.isShift ||
+                                                action.shift ||
+                                                imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0
+                                            ) {
+                                                typeText(
+                                                    "\n",
+                                                    forceRawKeyEvent = activeModifiers.shift.isShift || action.shift,
+                                                    forceShift = action.shift
+                                                )
+                                            } else {
+                                                currentInputConnection.performEditorAction(
+                                                    when {
+                                                        editorInfo?.actionLabel != null -> editorInfo.actionId
+                                                        else -> imeOptions and
+                                                                (EditorInfo.IME_ACTION_DONE or
+                                                                        EditorInfo.IME_ACTION_GO or
+                                                                        EditorInfo.IME_ACTION_NEXT or
+                                                                        EditorInfo.IME_ACTION_SEARCH or
+                                                                        EditorInfo.IME_ACTION_SEND)
+                                                    }
+                                                )
                                             }
-                                        )
-                                    }
-                                }
+                                        }
 
-                                is Action.Jump -> {
-                                    when {
-                                        activeModifiers.select -> actionSuccessful =
-                                            moveSelection(action.direction, action.boundary)
+                                        is Action.Jump -> {
+                                            when {
+                                                activeModifiers.select -> actionSuccessful =
+                                                    moveSelection(action.direction, action.boundary)
 
-                                        else -> {
-                                            when (val currentPos =
-                                                currentCursorPosition(action.direction)) {
+                                                else -> {
+                                                    when (val currentPos =
+                                                        currentCursorPosition(action.direction)) {
+                                                        null -> sendKeyPressEvents(
+                                                            keyCode = when (action.direction) {
+                                                                SearchDirection.Backwards -> KeyEvent.KEYCODE_DPAD_LEFT
+                                                                SearchDirection.Forwards -> KeyEvent.KEYCODE_DPAD_RIGHT
+                                                            }
+                                                        )
+
+                                                        else -> {
+                                                            val newPos = currentPos + findBoundary(
+                                                                action.boundary,
+                                                                action.direction,
+                                                                coalesce = true,
+                                                            ) * action.direction.factor
+                                                            currentInputConnection.setSelection(
+                                                                newPos,
+                                                                newPos
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        is Action.JumpLineKeepPos -> {
+                                            // Yes, this is a horror beyond comprehension.
+                                            // Yes, this should really be the editor's responsibility...
+                                            // How is this different from Action.Jump? Action.Jump jumps to *the boundary*,
+                                            // for TextBoundary.Line this is equivalent to Home/End.
+                                            val currentPos = when {
+                                                action.rawEvent -> null
+                                                else -> currentCursorPosition(action.direction)
+                                            }
+                                            when (currentPos) {
                                                 null -> sendKeyPressEvents(
                                                     keyCode = when (action.direction) {
-                                                        SearchDirection.Backwards -> KeyEvent.KEYCODE_DPAD_LEFT
-                                                        SearchDirection.Forwards -> KeyEvent.KEYCODE_DPAD_RIGHT
+                                                        SearchDirection.Backwards -> KeyEvent.KEYCODE_DPAD_UP
+                                                        SearchDirection.Forwards -> KeyEvent.KEYCODE_DPAD_DOWN
                                                     }
                                                 )
 
                                                 else -> {
-                                                    val newPos = currentPos + findBoundary(
-                                                        action.boundary,
+                                                    // Find our position on the current line
+                                                    val posOnLine = findBoundary(
+                                                        TextBoundary.Line,
+                                                        SearchDirection.Backwards,
+                                                    )
+                                                    val lineSearchSkip = when (action.direction) {
+                                                        // When going backwards, we need to find the linebreak before the current one
+                                                        SearchDirection.Backwards -> 1
+                                                        SearchDirection.Forwards -> 0
+                                                    }
+                                                    // Find the offset to the target line
+                                                    val targetLineOffset = (findBoundary(
+                                                        TextBoundary.Line,
                                                         action.direction,
-                                                        coalesce = true,
-                                                    ) * action.direction.factor
+                                                        skipBoundaries = lineSearchSkip,
+                                                    )) * action.direction.factor
+                                                    // To reconstruct the position on the line, we also need to clamp
+                                                    // to the length of the new line, if it is shorter than the current one
+                                                    val targetLineLength = when (action.direction) {
+                                                        // When jumping backwards, we already know the length of the
+                                                        // line since we're jumping into it
+                                                        SearchDirection.Backwards -> -targetLineOffset - posOnLine - 1
+                                                        // When jumping forwards.. search for the next newline after the current one
+                                                        SearchDirection.Forwards -> findBoundary(
+                                                            TextBoundary.Line,
+                                                            action.direction,
+                                                            skipBoundaries = 1,
+                                                            endOfBufferOffset = 1,
+                                                        ) - targetLineOffset - 1
+                                                    }
+                                                    val newPos = (currentPos + targetLineOffset +
+                                                            posOnLine.coerceAtMost(targetLineLength))
+                                                        .coerceAtLeast(0)
                                                     currentInputConnection.setSelection(
                                                         newPos,
                                                         newPos
@@ -429,329 +522,275 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 }
                                             }
                                         }
-                                    }
-                                }
 
-                                is Action.JumpLineKeepPos -> {
-                                    // Yes, this is a horror beyond comprehension.
-                                    // Yes, this should really be the editor's responsibility...
-                                    // How is this different from Action.Jump? Action.Jump jumps to *the boundary*,
-                                    // for TextBoundary.Line this is equivalent to Home/End.
-                                    val currentPos = when {
-                                        action.rawEvent -> null
-                                        else -> currentCursorPosition(action.direction)
-                                    }
-                                    when (currentPos) {
-                                        null -> sendKeyPressEvents(
-                                            keyCode = when (action.direction) {
-                                                SearchDirection.Backwards -> KeyEvent.KEYCODE_DPAD_UP
-                                                SearchDirection.Forwards -> KeyEvent.KEYCODE_DPAD_DOWN
-                                            }
-                                        )
+                                        is Action.ToggleWordCase -> {
+                                            selection()?.let { currentSelection ->
+                                                currentInputConnection.beginBatchEdit()
 
-                                        else -> {
-                                            // Find our position on the current line
-                                            val posOnLine = findBoundary(
-                                                TextBoundary.Line,
-                                                SearchDirection.Backwards,
-                                            )
-                                            val lineSearchSkip = when (action.direction) {
-                                                // When going backwards, we need to find the linebreak before the current one
-                                                SearchDirection.Backwards -> 1
-                                                SearchDirection.Forwards -> 0
-                                            }
-                                            // Find the offset to the target line
-                                            val targetLineOffset = (findBoundary(
-                                                TextBoundary.Line,
-                                                action.direction,
-                                                skipBoundaries = lineSearchSkip,
-                                            )) * action.direction.factor
-                                            // To reconstruct the position on the line, we also need to clamp
-                                            // to the length of the new line, if it is shorter than the current one
-                                            val targetLineLength = when (action.direction) {
-                                                // When jumping backwards, we already know the length of the
-                                                // line since we're jumping into it
-                                                SearchDirection.Backwards -> -targetLineOffset - posOnLine - 1
-                                                // When jumping forwards.. search for the next newline after the current one
-                                                SearchDirection.Forwards -> findBoundary(
-                                                    TextBoundary.Line,
-                                                    action.direction,
-                                                    skipBoundaries = 1,
-                                                    endOfBufferOffset = 1,
-                                                ) - targetLineOffset - 1
-                                            }
-                                            val newPos = (currentPos + targetLineOffset +
-                                                    posOnLine.coerceAtMost(targetLineLength))
-                                                .coerceAtLeast(0)
-                                            currentInputConnection.setSelection(
-                                                newPos,
-                                                newPos
-                                            )
-                                        }
-                                    }
-                                }
+                                                var prefixLength = 0
+                                                var suffixLength = 0
+                                                val word = when {
+                                                    currentSelection.first == currentSelection.last -> {
+                                                        val posInWord = findBoundary(
+                                                            TextBoundary.Word,
+                                                            SearchDirection.Backwards
+                                                        )
+                                                        val textAfterInWord = findBoundary(
+                                                            TextBoundary.Word,
+                                                            SearchDirection.Forwards
+                                                        )
 
-                                is Action.ToggleWordCase -> {
-                                    selection()?.let { currentSelection ->
-                                        currentInputConnection.beginBatchEdit()
+                                                        val prefix =
+                                                            currentInputConnection.getTextBeforeCursor(
+                                                                posInWord,
+                                                                0
+                                                            )?.takeUnless { it.isBlank() }
+                                                                ?.toString()
+                                                                ?: ""
+                                                        val suffix =
+                                                            currentInputConnection.getTextAfterCursor(
+                                                                textAfterInWord,
+                                                                0
+                                                            )?.takeUnless { it.isBlank() }
+                                                                ?.toString()
+                                                                ?: ""
+                                                        prefixLength = prefix.length
+                                                        suffixLength = suffix.length
+                                                        prefix + suffix
+                                                    }
 
-                                        var prefixLength = 0
-                                        var suffixLength = 0
-                                        val word = when {
-                                            currentSelection.first == currentSelection.last -> {
-                                                val posInWord = findBoundary(
-                                                    TextBoundary.Word,
-                                                    SearchDirection.Backwards
+                                                    else -> currentInputConnection.getSelectedText(0)
+                                                        .toString()
+                                                }
+
+                                                fun replaceWord(newWord: String) {
+                                                    currentInputConnection.deleteSurroundingText(
+                                                        prefixLength,
+                                                        suffixLength
+                                                    )
+                                                    currentInputConnection.commitText(newWord, 1)
+                                                }
+
+                                                val lowercase = word.lowercase()
+                                                val titlecase = lowercase.capitalize(Locale.current)
+                                                val uppercase = word.uppercase()
+                                                when (action.direction) {
+                                                    CaseChangeDirection.Up -> when (word) {
+                                                        uppercase -> {}
+                                                        lowercase -> replaceWord(titlecase)
+                                                        else -> replaceWord(uppercase)
+                                                    }
+
+                                                    CaseChangeDirection.Down -> when (word) {
+                                                        lowercase -> {}
+                                                        titlecase -> replaceWord(lowercase)
+                                                        else -> replaceWord(titlecase)
+                                                    }
+                                                }
+
+                                                currentInputConnection.setSelection(
+                                                    currentSelection.first,
+                                                    currentSelection.last
                                                 )
-                                                val textAfterInWord = findBoundary(
-                                                    TextBoundary.Word,
-                                                    SearchDirection.Forwards
+                                                currentInputConnection.endBatchEdit()
+
+                                            }
+                                        }
+
+                                        is Action.ToggleShift, Action.ToggleCtrl, Action.ToggleAlt, Action.ToggleZalgo -> {
+                                            // handled internally in Keyboard
+                                        }
+
+                                        Action.ToggleSelect -> gestureBeginPosition =
+                                            currentCursorPosition(direction = SearchDirection.Backwards)
+                                                ?: 0
+
+                                        Action.Copy -> {
+                                            if (selectionSize() == SelectionSize.Empty) {
+                                                currentInputConnection.performContextMenuAction(
+                                                    android.R.id.selectAll
                                                 )
-
-                                                val prefix =
-                                                    currentInputConnection.getTextBeforeCursor(
-                                                        posInWord,
-                                                        0
-                                                    )?.takeUnless { it.isBlank() }?.toString() ?: ""
-                                                val suffix =
-                                                    currentInputConnection.getTextAfterCursor(
-                                                        textAfterInWord,
-                                                        0
-                                                    )?.takeUnless { it.isBlank() }?.toString() ?: ""
-                                                prefixLength = prefix.length
-                                                suffixLength = suffix.length
-                                                prefix + suffix
                                             }
-
-                                            else -> currentInputConnection.getSelectedText(0)
-                                                .toString()
-                                        }
-
-                                        fun replaceWord(newWord: String) {
-                                            currentInputConnection.deleteSurroundingText(
-                                                prefixLength,
-                                                suffixLength
+                                            currentInputConnection.performContextMenuAction(
+                                                android.R.id.copy
                                             )
-                                            currentInputConnection.commitText(newWord, 1)
                                         }
 
-                                        val lowercase = word.lowercase()
-                                        val titlecase = lowercase.capitalize(Locale.current)
-                                        val uppercase = word.uppercase()
-                                        when (action.direction) {
-                                            CaseChangeDirection.Up -> when (word) {
-                                                uppercase -> {}
-                                                lowercase -> replaceWord(titlecase)
-                                                else -> replaceWord(uppercase)
-                                            }
+                                        Action.Cut ->
+                                            currentInputConnection.performContextMenuAction(
+                                                android.R.id.cut
+                                            )
 
-                                            CaseChangeDirection.Down -> when (word) {
-                                                lowercase -> {}
-                                                titlecase -> replaceWord(lowercase)
-                                                else -> replaceWord(titlecase)
+                                        Action.Paste ->
+                                            currentInputConnection.performContextMenuAction(
+                                                android.R.id.paste
+                                            )
+
+                                        Action.SelectAll ->
+                                            currentInputConnection.performContextMenuAction(
+                                                android.R.id.selectAll
+                                            )
+
+                                        Action.Settings -> startActivity(
+                                            Intent.makeMainActivity(
+                                                ComponentName(
+                                                    this@KeyboardService,
+                                                    MainActivity::class.java
+                                                )
+                                            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        )
+
+                                        is Action.SwitchLetterLayer -> {
+                                            appSettings.activeLetterLayerIndex.currentValue =
+                                                (appSettings.activeLetterLayerIndex.currentValue
+                                                        + action.direction.factor)
+                                                    .mod(appSettings.letterLayers.currentValue.size)
+                                        }
+
+                                        is Action.SwitchSystemKeyboard -> {
+                                            getSystemService<InputMethodManager>()?.showInputMethodPicker()
+                                        }
+
+                                        Action.ToggleActiveLayer -> {
+                                            var hasToggled = false
+                                            val enabledLayersLandscape =
+                                                appSettings.enabledLayersLandscape.currentValue
+                                            when {
+                                                displayLimits?.isLandscape == true &&
+                                                        enabledLayersLandscape is EnabledLayersLandscape.Set -> {
+                                                    enabledLayersLandscape.setting.toggle?.let {
+                                                        hasToggled = true
+                                                        appSettings.enabledLayersLandscape.currentValue =
+                                                            EnabledLayersLandscape.Set(it)
+                                                    }
+                                                }
+
+                                                else -> {
+                                                    appSettings.enabledLayers.currentValue.toggle?.let {
+                                                        hasToggled = true
+                                                        appSettings.enabledLayers.currentValue = it
+                                                    }
+                                                }
+                                            }
+                                            if (!hasToggled) {
+                                                appSettings.handedness.currentValue =
+                                                    !appSettings.handedness.currentValue
                                             }
                                         }
 
-                                        currentInputConnection.setSelection(
-                                            currentSelection.first,
-                                            currentSelection.last
-                                        )
-                                        currentInputConnection.endBatchEdit()
+                                        Action.ToggleHandedness -> {
+                                            appSettings.handedness.currentValue =
+                                                !appSettings.handedness.currentValue
+                                            appSettings.portraitLocation.currentValue =
+                                                -appSettings.portraitLocation.currentValue
+                                            appSettings.landscapeLocation.currentValue =
+                                                -appSettings.landscapeLocation.currentValue
+                                        }
 
+                                        is Action.AdjustCellHeight ->
+                                            appSettings.keyHeight.currentValue += action.amount
+
+                                        Action.ToggleEmojiMode ->
+                                            emojiMode = !emojiMode
+
+                                        Action.ToggleShowSymbols ->
+                                            appSettings.showSymbols.currentValue =
+                                                !appSettings.showSymbols.currentValue
+
+                                        Action.EnableVoiceMode -> {
+                                            val inputManager =
+                                                getSystemService<InputMethodManager>()
+                                            val voiceMethodId = inputManager?.let(::getVoiceInputId)
+                                            if (voiceMethodId != null) {
+                                                // Only works on Android 9+ and when a compatible
+                                                // voice keyboard is installed
+                                                switchInputMethod(voiceMethodId)
+                                            } else {
+                                                warningMessageScope.launch {
+                                                    warningSnackbarHostState
+                                                        .showSnackbar("No voice input method found")
+                                                }
+                                            }
+                                        }
                                     }
+                                    actionSuccessful
                                 }
-
-                                is Action.ToggleShift, Action.ToggleCtrl, Action.ToggleAlt, Action.ToggleZalgo -> {
-                                    // handled internally in Keyboard
-                                }
-
-                                Action.ToggleSelect -> gestureBeginPosition =
-                                    currentCursorPosition(direction = SearchDirection.Backwards)
-                                        ?: 0
-
-                                Action.Copy -> {
-                                    if (selectionSize() == SelectionSize.Empty) {
-                                        currentInputConnection.performContextMenuAction(
-                                            android.R.id.selectAll
-                                        )
-                                    }
-                                    currentInputConnection.performContextMenuAction(
-                                        android.R.id.copy
-                                    )
-                                }
-
-                                Action.Cut ->
-                                    currentInputConnection.performContextMenuAction(
-                                        android.R.id.cut
-                                    )
-
-                                Action.Paste ->
-                                    currentInputConnection.performContextMenuAction(
-                                        android.R.id.paste
-                                    )
-
-                                Action.SelectAll ->
-                                    currentInputConnection.performContextMenuAction(
-                                        android.R.id.selectAll
-                                    )
-
-                                Action.Settings -> startActivity(
-                                    Intent.makeMainActivity(
-                                        ComponentName(
-                                            this,
-                                            MainActivity::class.java
-                                        )
-                                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                )
-
-                                is Action.SwitchLetterLayer -> {
-                                    appSettings.activeLetterLayerIndex.currentValue =
-                                        (appSettings.activeLetterLayerIndex.currentValue
-                                                + action.direction.factor)
-                                            .mod(appSettings.letterLayers.currentValue.size)
-                                }
-
-                                is Action.SwitchSystemKeyboard -> {
-                                    getSystemService<InputMethodManager>()?.showInputMethodPicker()
-                                }
-
-                                Action.ToggleActiveLayer -> {
-                                    var hasToggled = false
-                                    val enabledLayersLandscape =
-                                        appSettings.enabledLayersLandscape.currentValue
+                                Box {
                                     when {
-                                        displayLimits?.isLandscape == true &&
-                                                enabledLayersLandscape is EnabledLayersLandscape.Set -> {
-                                            enabledLayersLandscape.setting.toggle?.let {
-                                                hasToggled = true
-                                                appSettings.enabledLayersLandscape.currentValue =
-                                                    EnabledLayersLandscape.Set(it)
-                                            }
-                                        }
-
+                                        emojiMode -> EmojiKeyboard(onAction = onAction)
                                         else -> {
-                                            appSettings.enabledLayers.currentValue.toggle?.let {
-                                                hasToggled = true
-                                                appSettings.enabledLayers.currentValue = it
-                                            }
+                                            ConfiguredKeyboard(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                onAction = onAction,
+                                                onModifierStateUpdated = { newModifiers ->
+                                                    if (newModifiers != activeModifiers) {
+                                                        fun newKeyEvent(
+                                                            isDown: Boolean,
+                                                            code: Int
+                                                        ): KeyEvent =
+                                                            KeyEvent(
+                                                                0,
+                                                                0,
+                                                                when {
+                                                                    isDown -> KeyEvent.ACTION_DOWN
+                                                                    else -> KeyEvent.ACTION_UP
+                                                                },
+                                                                code,
+                                                                0,
+                                                                newModifiers.androidMetaState,
+                                                                KeyCharacterMap.VIRTUAL_KEYBOARD,
+                                                                0,
+                                                                KeyEvent.FLAG_SOFT_KEYBOARD,
+                                                            )
+                                                        if (newModifiers.shift.isShift != activeModifiers.shift.isShift) {
+                                                            currentInputConnection.sendKeyEvent(
+                                                                newKeyEvent(
+                                                                    newModifiers.shift.isShift,
+                                                                    KeyEvent.KEYCODE_SHIFT_LEFT
+                                                                )
+                                                            )
+                                                        }
+                                                        if (newModifiers.shift.isCapsLock != activeModifiers.shift.isCapsLock) {
+                                                            currentInputConnection.sendKeyEvent(
+                                                                newKeyEvent(
+                                                                    newModifiers.shift.isCapsLock,
+                                                                    KeyEvent.KEYCODE_CAPS_LOCK
+                                                                )
+                                                            )
+                                                        }
+                                                        if (newModifiers.ctrl != activeModifiers.ctrl) {
+                                                            currentInputConnection.sendKeyEvent(
+                                                                newKeyEvent(
+                                                                    newModifiers.ctrl,
+                                                                    KeyEvent.KEYCODE_CTRL_LEFT
+                                                                )
+                                                            )
+                                                        }
+                                                        if (newModifiers.alt != activeModifiers.alt) {
+                                                            currentInputConnection.sendKeyEvent(
+                                                                newKeyEvent(
+                                                                    newModifiers.alt,
+                                                                    KeyEvent.KEYCODE_ALT_LEFT
+                                                                )
+                                                            )
+                                                        }
+                                                        activeModifiers = newModifiers
+                                                    }
+                                                },
+                                                enterKeyLabel = editorInfo.value?.actionLabel?.toString(),
+                                                overrideEnabledLayers = when (editorInfo.value?.let { it.inputType and InputType.TYPE_MASK_CLASS }) {
+                                                    InputType.TYPE_CLASS_NUMBER, InputType.TYPE_CLASS_PHONE -> EnabledLayers.Numbers
+                                                    else -> null
+                                                }
+                                            )
+                                            SnackbarHost(
+                                                warningSnackbarHostState,
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomCenter)
+                                                    .sharePointerInput()
+                                            )
                                         }
                                     }
-                                    if (!hasToggled) {
-                                        appSettings.handedness.currentValue =
-                                            !appSettings.handedness.currentValue
-                                    }
-                                }
-
-                                Action.ToggleHandedness -> {
-                                    appSettings.handedness.currentValue =
-                                        !appSettings.handedness.currentValue
-                                    appSettings.portraitLocation.currentValue =
-                                        -appSettings.portraitLocation.currentValue
-                                    appSettings.landscapeLocation.currentValue =
-                                        -appSettings.landscapeLocation.currentValue
-                                }
-
-                                is Action.AdjustCellHeight ->
-                                    appSettings.keyHeight.currentValue += action.amount
-
-                                Action.ToggleEmojiMode ->
-                                    emojiMode = !emojiMode
-
-                                Action.ToggleShowSymbols ->
-                                    appSettings.showSymbols.currentValue =
-                                        !appSettings.showSymbols.currentValue
-
-                                Action.EnableVoiceMode -> {
-                                    val inputManager = getSystemService<InputMethodManager>()
-                                    val voiceMethodId = inputManager?.let(::getVoiceInputId)
-                                    if (voiceMethodId != null) {
-                                        // Only works on Android 9+ and when a compatible
-                                        // voice keyboard is installed
-                                        switchInputMethod(voiceMethodId)
-                                    } else {
-                                        warningMessageScope.launch {
-                                            warningSnackbarHostState
-                                                .showSnackbar("No voice input method found")
-                                        }
-                                    }
-                                }
-                            }
-                            actionSuccessful
-                        }
-                        Box {
-                            when {
-                                emojiMode -> EmojiKeyboard(onAction = onAction)
-                                else -> {
-                                    ConfiguredKeyboard(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        onAction = onAction,
-                                        onModifierStateUpdated = { newModifiers ->
-                                            if (newModifiers != activeModifiers) {
-                                                fun newKeyEvent(
-                                                    isDown: Boolean,
-                                                    code: Int
-                                                ): KeyEvent =
-                                                    KeyEvent(
-                                                        0,
-                                                        0,
-                                                        when {
-                                                            isDown -> KeyEvent.ACTION_DOWN
-                                                            else -> KeyEvent.ACTION_UP
-                                                        },
-                                                        code,
-                                                        0,
-                                                        newModifiers.androidMetaState,
-                                                        KeyCharacterMap.VIRTUAL_KEYBOARD,
-                                                        0,
-                                                        KeyEvent.FLAG_SOFT_KEYBOARD,
-                                                    )
-                                                if (newModifiers.shift.isShift != activeModifiers.shift.isShift) {
-                                                    currentInputConnection.sendKeyEvent(
-                                                        newKeyEvent(
-                                                            newModifiers.shift.isShift,
-                                                            KeyEvent.KEYCODE_SHIFT_LEFT
-                                                        )
-                                                    )
-                                                }
-                                                if (newModifiers.shift.isCapsLock != activeModifiers.shift.isCapsLock) {
-                                                    currentInputConnection.sendKeyEvent(
-                                                        newKeyEvent(
-                                                            newModifiers.shift.isCapsLock,
-                                                            KeyEvent.KEYCODE_CAPS_LOCK
-                                                        )
-                                                    )
-                                                }
-                                                if (newModifiers.ctrl != activeModifiers.ctrl) {
-                                                    currentInputConnection.sendKeyEvent(
-                                                        newKeyEvent(
-                                                            newModifiers.ctrl,
-                                                            KeyEvent.KEYCODE_CTRL_LEFT
-                                                        )
-                                                    )
-                                                }
-                                                if (newModifiers.alt != activeModifiers.alt) {
-                                                    currentInputConnection.sendKeyEvent(
-                                                        newKeyEvent(
-                                                            newModifiers.alt,
-                                                            KeyEvent.KEYCODE_ALT_LEFT
-                                                        )
-                                                    )
-                                                }
-                                                activeModifiers = newModifiers
-                                            }
-                                        },
-                                        enterKeyLabel = editorInfo.value?.actionLabel?.toString(),
-                                        overrideEnabledLayers = when (editorInfo.value?.let { it.inputType and InputType.TYPE_MASK_CLASS }) {
-                                            InputType.TYPE_CLASS_NUMBER, InputType.TYPE_CLASS_PHONE -> EnabledLayers.Numbers
-                                            else -> null
-                                        }
-                                    )
-                                    SnackbarHost(
-                                        warningSnackbarHostState,
-                                        modifier = Modifier
-                                            .align(Alignment.BottomCenter)
-                                            .sharePointerInput()
-                                    )
                                 }
                             }
                         }
