@@ -3,21 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".FlickboardApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/logo"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.FlickBoard"
-        android:enableOnBackInvokedCallback="true"
-        android:name=".FlickboardApplication"
         tools:targetApi="tiramisu">
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.FlickBoard">
+            android:theme="@style/Theme.FlickBoard"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -32,7 +33,9 @@
             <intent-filter>
                 <action android:name="android.view.InputMethod" />
             </intent-filter>
-            <meta-data android:name="android.view.im" android:resource="@xml/method"/>
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/method" />
         </service>
     </application>
 
