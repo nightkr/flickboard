@@ -98,6 +98,7 @@ fun Keyboard(
     val toneConfig = rememberUpdatedState(toneMode.value.config)
     val backgroundImage = appSettings.backgroundImage.state
     val keyboardMargin = appSettings.keyboardMargin.state
+    val keyboardMarginBottomPortrait = appSettings.keyboardMarginBottomPortrait.state
     val noReverseRtlBrackets = appSettings.noReverseRtlBrackets.state
     var modifierState: ModifierState by remember { mutableStateOf(ModifierState()) }
     LaunchedEffect(modifierState) {
@@ -334,7 +335,13 @@ fun Keyboard(
                         verticalBias = 0F
                     )
                 )
-                .padding(keyboardMargin.value.dp),
+                .padding(keyboardMargin.value.dp)
+                .padding(
+                    bottom = when {
+                        isLandscape.value -> 0.dp
+                        else -> keyboardMarginBottomPortrait.value.dp
+                    }
+                ),
             columnGap = 1.dp,
             rowGap = 1.dp,
             rows = layer.keyRows.map { row ->
