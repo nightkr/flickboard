@@ -1276,12 +1276,14 @@ class AppSettings(val ctx: SettingsContext) {
                     enabledLayersLandscape,
                     handedness,
                     keyHeight,
+                    keyboardMargin,
                     landscapeLocation,
                     landscapeScale,
                     landscapeSplit,
                     landscapeControlSection,
                     portraitLocation,
                     portraitScale,
+                    keyboardMarginBottomPortrait,
                 )
             ),
             SettingsSection(
@@ -1292,8 +1294,6 @@ class AppSettings(val ctx: SettingsContext) {
                     enableToggleShowSymbolsGesture,
                     showNumbers,
                     enableHiddenActions,
-                    keyboardMargin,
-                    keyboardMarginBottomPortrait,
                     keyRoundness,
                     actionVisualBiasCenter,
                     actionVisualScale,
