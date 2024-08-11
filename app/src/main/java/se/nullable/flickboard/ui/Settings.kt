@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeGesturesPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
@@ -260,7 +259,6 @@ fun SettingsSectionPage(section: SettingsSection, modifier: Modifier = Modifier)
             modifier
                 .verticalScroll(rememberScrollState())
                 .weight(1F)
-                .safeGesturesPadding()
         ) {
             section.settings.forEach { setting ->
                 when (setting) {
