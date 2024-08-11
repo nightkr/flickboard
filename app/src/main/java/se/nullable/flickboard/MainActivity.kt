@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .windowInsetsPadding(WindowInsets.navigationBars)
                         .consumeExcludedInsets()
-                        .windowInsetsPadding(WindowInsets.safeContent),
+                        .windowInsetsPadding(WindowInsets.safeDrawing),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Box {
