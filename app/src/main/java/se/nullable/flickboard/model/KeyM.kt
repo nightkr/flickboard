@@ -197,6 +197,12 @@ sealed class Action {
         override fun shift(): Action = copy(shift = true)
     }
 
+    data object Escape : Action() {
+        override fun visual(modifier: ModifierState?): ActionVisual {
+            return ActionVisual.Label("esc")
+        }
+    }
+
     data class Jump(
         val direction: SearchDirection,
         val boundary: TextBoundary = TextBoundary.Character,

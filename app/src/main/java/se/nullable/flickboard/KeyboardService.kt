@@ -433,6 +433,8 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             }
                                         }
 
+                                        Action.Escape -> sendKeyPressEvents(KeyEvent.KEYCODE_ESCAPE)
+
                                         is Action.Jump -> {
                                             when {
                                                 activeModifiers.select -> actionSuccessful =

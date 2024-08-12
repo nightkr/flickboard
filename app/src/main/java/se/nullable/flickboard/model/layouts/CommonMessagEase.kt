@@ -77,8 +77,13 @@ val OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER =
                     actions = mapOf(
                         Direction.TOP_LEFT to Action.ToggleAlt,
                         Direction.TOP_RIGHT to Action.ToggleCtrl,
-                    )
-                )
+                    ),
+                    transientShift = KeyM(
+                        actions = mapOf(
+                            Direction.TOP_RIGHT to Action.Escape,
+                        ),
+                    ),
+                ),
             ),
         )
     )
