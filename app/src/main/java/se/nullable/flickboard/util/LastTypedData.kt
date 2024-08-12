@@ -51,6 +51,14 @@ data class LastTypedData(val codePoint: Int?, val position: Int, val combiner: C
                     baseCharLength = UCharacter.charCount(codePoint)
                 )
 
+            tryHarder && ((codePoint == '?'.code && nextChar == "!")
+                    || (codePoint == '!'.code && nextChar == "?")) ->
+                Combiner(
+                    original = "${UCharacter.toString(codePoint)}$nextChar",
+                    combinedReplacement = "‽",
+                    baseCharLength = UCharacter.charCount(codePoint)
+                )
+
             else -> {
                 val normalizer = Normalizer2.getNFKDInstance()
                 val combiningMark = nextChar.asCombiningMarkOrNull() ?: return null
