@@ -1082,6 +1082,14 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val enableLongSwipes = Setting.Bool(
+        key = "enableLongSwipes",
+        label = "Enable long swipes",
+        description = "Enables shortcut actions on extra long swipes",
+        defaultValue = false,
+        ctx = ctx
+    )
+
     val enableAdvancedModifiers = Setting.Bool(
         key = "enableAdvancedModifiers",
         label = "Enable advanced modifiers",
@@ -1219,8 +1227,8 @@ class AppSettings(val ctx: SettingsContext) {
     val ignoreJumpsLongerThanPx = Setting.FloatSlider(
         key = "ignoreJumpsLongerThanPx",
         label = "Ignore jumps larger than limit",
-        defaultValue = 200F,
-        range = 16F..200F,
+        defaultValue = 600F,
+        range = 16F..600F,
         ctx = ctx,
         description = "This can help against some devices that insert erroneous motion in the middle of " +
                 "gestures, at the cost of sometimes causing misinput if the device lags",
@@ -1310,6 +1318,7 @@ class AppSettings(val ctx: SettingsContext) {
                 icon = R.drawable.baseline_app_settings_alt_24,
                 settings = listOf(
                     enableFastActions,
+                    enableLongSwipes,
                     enableAdvancedModifiers,
                     periodOnDoubleSpace,
                     longHoldOnClockwiseCircle,

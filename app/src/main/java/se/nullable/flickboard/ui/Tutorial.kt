@@ -126,6 +126,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                 desiredGesture = Gesture.Flick(
                     direction = Direction.CENTER,
                     longHold = false,
+                    longSwipe = false,
                     shift = false
                 ),
                 onGesturePerformed = pager::animateScrollToNextPage
@@ -142,6 +143,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                 desiredGesture = Gesture.Flick(
                     direction = Direction.RIGHT,
                     longHold = false,
+                    longSwipe = false,
                     shift = false
                 ),
                 onGesturePerformed = pager::animateScrollToNextPage
@@ -158,6 +160,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                 desiredGesture = Gesture.Flick(
                     direction = Direction.BOTTOM_LEFT,
                     longHold = false,
+                    longSwipe = false,
                     shift = false
                 ),
                 onGesturePerformed = pager::animateScrollToNextPage
@@ -174,6 +177,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                 desiredGesture = Gesture.Flick(
                     direction = Direction.CENTER,
                     longHold = false,
+                    longSwipe = false,
                     shift = true
                 ),
                 onGesturePerformed = pager::animateScrollToNextPage
@@ -190,6 +194,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                 desiredGesture = Gesture.Flick(
                     direction = Direction.BOTTOM_LEFT,
                     longHold = false,
+                    longSwipe = false,
                     shift = true
                 ),
                 onGesturePerformed = pager::animateScrollToNextPage

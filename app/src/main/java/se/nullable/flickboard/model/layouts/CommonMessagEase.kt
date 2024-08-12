@@ -38,6 +38,22 @@ fun spacer(width: Dp) =
         )
     }
 
+val OVERLAY_LONG_SWIPE_LAYER = run {
+    val row = listOf(
+        KeyM(actions = emptyMap(), longActions = mapOf(Direction.RIGHT to Action.Text(" "))),
+        KeyM(actions = emptyMap()),
+        KeyM(actions = emptyMap(), longActions = mapOf(Direction.LEFT to Action.Delete())),
+    )
+    Layer(
+        keyRows = listOf(
+            row,
+            row,
+            row,
+            listOf(KeyM(actions = emptyMap()), KeyM(actions = emptyMap()))
+        )
+    )
+}
+
 val OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER =
     Layer(
         keyRows = listOf(

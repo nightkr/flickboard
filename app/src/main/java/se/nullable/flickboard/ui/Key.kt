@@ -85,6 +85,7 @@ import se.nullable.flickboard.util.toOnAccentContainer
 import se.nullable.flickboard.util.toTertiary
 import kotlin.math.PI
 import kotlin.math.absoluteValue
+import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sign
@@ -117,6 +118,7 @@ fun Key(
     val longHoldOnClockwiseCircle = settings.longHoldOnClockwiseCircle.state
     val swipeThreshold = settings.swipeThreshold.state
     val fastSwipeThreshold = settings.fastSwipeThreshold.state
+    val enableLongSwipes = settings.enableLongSwipes.state
     val gestureRecognizer = settings.gestureRecognizer.state
     val circleJaggednessThreshold = settings.circleJaggednessThreshold.state
     val circleDiscontinuityThreshold = settings.circleDiscontinuityThreshold.state
@@ -217,6 +219,7 @@ fun Key(
                 awaitGesture(
                     swipeThreshold = { swipeThreshold.value.dp },
                     fastSwipeThreshold = { fastSwipeThreshold.value.dp },
+                    enableLongSwipes = { enableLongSwipes.value },
                     circleJaggednessThreshold = { circleJaggednessThreshold.value },
                     circleDiscontinuityThreshold = { circleDiscontinuityThreshold.value },
                     circleAngleThreshold = { circleAngleThreshold.value },
@@ -401,6 +404,7 @@ data class KeyPointerTrailListener(
 private suspend inline fun AwaitPointerEventScope.awaitGesture(
     swipeThreshold: () -> Dp,
     fastSwipeThreshold: () -> Dp,
+    enableLongSwipes: () -> Boolean,
     circleJaggednessThreshold: () -> Float,
     circleDiscontinuityThreshold: () -> Float,
     circleAngleThreshold: () -> Float,
@@ -436,12 +440,21 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     // cache squared slops to avoid having to take square roots
     val swipeSlopSquared = swipeThreshold().toPx().pow(2)
     val fastSwipeSlopSquared = fastSwipeThreshold().toPx().pow(2)
+    val longSwipeSlopSquared = when {
+        enableLongSwipes() -> (min(size.width, size.height) * 1.5F).pow(2)
+        else -> Float.POSITIVE_INFINITY
+    }
     while (true) {
         val event =
             withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { awaitPointerEvent() }
         if (event == null && !isDragging) {
             trailListener?.onUp?.invoke()
-            return Gesture.Flick(Direction.CENTER, longHold = true, shift = false)
+            return Gesture.Flick(
+                Direction.CENTER,
+                longHold = true,
+                longSwipe = false,
+                shift = false
+            )
         }
         for (changeVal in event?.changes ?: emptyList()) {
             // HACK: kotlin doesn't support for (var ... in ...)
@@ -495,6 +508,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                     return Gesture.Flick(
                         direction = Direction.CENTER,
                         longHold = false,
+                        longSwipe = false,
                         shift = false
                     )
                 }
@@ -529,6 +543,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                             else -> Gesture.Flick(
                                 direction = direction,
                                 longHold = false,
+                                longSwipe = posFromDown.getDistanceSquared() > longSwipeSlopSquared,
                                 // shift if swipe is more than halfway to returned from the starting position (U shape)
                                 shift = (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremeDistanceFromDownSquared / 4,
                             )

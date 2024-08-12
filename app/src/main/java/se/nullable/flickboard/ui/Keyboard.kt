@@ -49,6 +49,7 @@ import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER
+import se.nullable.flickboard.model.layouts.OVERLAY_LONG_SWIPE_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER
 import se.nullable.flickboard.model.layouts.spacer
@@ -110,6 +111,7 @@ fun Keyboard(
             derivedStateOf {
                 numericLayer.value.fullSizedLayer(layoutState.value)
                     .mergeFallback(layoutState.value.symbolLayer)
+                    .mergeFallback(OVERLAY_LONG_SWIPE_LAYER)
             }
         }
     val mergedMiniNumericLayer =

@@ -72,7 +72,8 @@ data class Layer(val keyRows: List<List<KeyM>>) {
 data class KeyM(
     val actions: Map<Direction, Action>,
     // Fast actions are performed immediately when detected, rather than when the finger is released.
-    val fastActions: Map<Direction, Action> = mapOf(),
+    val fastActions: Map<Direction, Action> = emptyMap(),
+    val longActions: Map<Direction, Action> = emptyMap(),
     val holdAction: Action? = null,
     val colspan: Int = 1,
     val fixedWidth: Dp? = null,
@@ -87,6 +88,7 @@ data class KeyM(
             fallback.shift == null -> shift
             else -> shift.mergeFallback(fallback.shift, holdForFallback = holdForFallback)
         },
+        longActions = fallback.longActions + longActions,
         holdAction = this.holdAction ?: fallback.holdAction ?: when {
             holdForFallback -> fallback.actions[Direction.CENTER]
             else -> null
@@ -421,7 +423,12 @@ enum class Direction {
 }
 
 interface Gesture {
-    data class Flick(val direction: Direction, val longHold: Boolean, val shift: Boolean) :
+    data class Flick(
+        val direction: Direction,
+        val longHold: Boolean,
+        val longSwipe: Boolean,
+        val shift: Boolean
+    ) :
         Gesture {
         override fun toFlick(longHoldOnClockwiseCircle: Boolean): Flick = this
 
@@ -432,6 +439,9 @@ interface Gesture {
                     ?: key.shift?.actions?.get(direction)
 
                 else -> null
+            } ?: when {
+                longSwipe -> key.longActions[direction]
+                else -> null
             } ?: key.actions[direction]
         }
     }
@@ -440,9 +450,9 @@ interface Gesture {
         override fun toFlick(longHoldOnClockwiseCircle: Boolean): Flick {
             return when {
                 direction == CircleDirection.Clockwise && longHoldOnClockwiseCircle ->
-                    Flick(Direction.CENTER, longHold = true, shift = false)
+                    Flick(Direction.CENTER, longHold = true, longSwipe = false, shift = false)
 
-                else -> Flick(Direction.CENTER, longHold = false, shift = true)
+                else -> Flick(Direction.CENTER, longHold = false, longSwipe = false, shift = true)
             }
         }
     }
@@ -456,11 +466,13 @@ interface Gesture {
                     "flick.${it.name}" to Flick(
                         direction = it,
                         longHold = false,
+                        longSwipe = false,
                         shift = false
                     ),
                     "flick.${it.name}.shift" to Flick(
                         direction = it,
                         longHold = false,
+                        longSwipe = false,
                         shift = true
                     ),
                 )
