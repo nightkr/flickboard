@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
@@ -33,9 +32,6 @@ private val LocalImeBottomInsetOffsetPx = modifierLocalOf {
 @Composable
 fun Modifier.consumeExcludedInsets(): Modifier {
     val bottomInsetOffsetPx = remember { mutableIntStateOf(0) }
-    LaunchedEffect(bottomInsetOffsetPx.intValue) {
-        println("ime bottom inset: ${bottomInsetOffsetPx.intValue}")
-    }
     return this
         .modifierLocalProvider(LocalImeBottomInsetOffsetPx) { bottomInsetOffsetPx }
         .consumeWindowInsets(with(LocalDensity.current) {
