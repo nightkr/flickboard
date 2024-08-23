@@ -66,6 +66,7 @@ import se.nullable.flickboard.R
 import se.nullable.flickboard.angle
 import se.nullable.flickboard.averageOf
 import se.nullable.flickboard.direction
+import se.nullable.flickboard.div
 import se.nullable.flickboard.model.Action
 import se.nullable.flickboard.model.ActionClass
 import se.nullable.flickboard.model.ActionVisual
@@ -85,7 +86,6 @@ import se.nullable.flickboard.util.toOnAccentContainer
 import se.nullable.flickboard.util.toTertiary
 import kotlin.math.PI
 import kotlin.math.absoluteValue
-import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sign
@@ -441,7 +441,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     val swipeSlopSquared = swipeThreshold().toPx().pow(2)
     val fastSwipeSlopSquared = fastSwipeThreshold().toPx().pow(2)
     val longSwipeSlopSquared = when {
-        enableLongSwipes() -> (min(size.width, size.height) * 1.5F).pow(2)
+        enableLongSwipes() -> 1.5F.pow(2)
         else -> Float.POSITIVE_INFINITY
     }
     while (true) {
@@ -540,13 +540,15 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
 
                         return when {
                             circleDirection != null -> Gesture.Circle(circleDirection)
-                            else -> Gesture.Flick(
-                                direction = direction,
-                                longHold = false,
-                                longSwipe = posFromDown.getDistanceSquared() > longSwipeSlopSquared,
-                                // shift if swipe is more than halfway to returned from the starting position (U shape)
-                                shift = (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremeDistanceFromDownSquared / 4,
-                            )
+                            else -> {
+                                Gesture.Flick(
+                                    direction = direction,
+                                    longHold = false,
+                                    longSwipe = (posFromDown / size).getDistanceSquared() > longSwipeSlopSquared,
+                                    // shift if swipe is more than halfway to returned from the starting position (U shape)
+                                    shift = (posFromDown - mostExtremePosFromDown).getDistanceSquared() > mostExtremeDistanceFromDownSquared / 4,
+                                )
+                            }
                         }
                     }
                 }

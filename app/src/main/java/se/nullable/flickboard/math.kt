@@ -1,6 +1,7 @@
 package se.nullable.flickboard
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.IntSize
 import se.nullable.flickboard.model.Direction
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -17,6 +18,11 @@ operator fun Float.times(cond: Boolean): Float = when {
     cond -> this
     else -> 0F
 }
+
+operator fun Offset.div(size: IntSize): Offset = Offset(
+    x = x / size.width,
+    y = y / size.height,
+)
 
 fun Offset.angle(): Float = atan2(y, x)
 
