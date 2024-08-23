@@ -246,9 +246,9 @@ fun Keyboard(
         val layer by remember {
             derivedStateOf {
                 val activeLayer = layersByShiftState.value[modifierState.shift]!!
-                val activeControlLayer = when {
-                    modifierState.shift.isShifted -> controlLayer.value?.autoShift()
-                    else -> controlLayer.value
+                val activeControlLayer = when (modifierState.shift) {
+                    ShiftState.Shift -> controlLayer.value?.autoShift()
+                    ShiftState.Normal, ShiftState.CapsLock -> controlLayer.value
                 }
                 val controlSection = when {
                     isLandscape.value -> landscapeControlSection.value
