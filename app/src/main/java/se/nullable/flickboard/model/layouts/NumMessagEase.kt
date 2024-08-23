@@ -41,7 +41,7 @@ val MESSAGEASE_SYMBOLS_LAYER = Layer(
                 shift = KeyM(
                     actions = mapOf(
                         Direction.TOP_LEFT to Action.Text("‘"),
-                        Direction.TOP to Action.Text("ˇ"),
+                        Direction.TOP to Action.Text("˘"),
                         Direction.TOP_RIGHT to Action.Text("’"),
                         Direction.LEFT to Action.Text("×"),
                         Direction.RIGHT to Action.Text("¡"),
