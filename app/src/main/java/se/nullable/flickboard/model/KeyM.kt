@@ -275,10 +275,10 @@ sealed class Action {
     data object ToggleZalgo : Action() {
         override val isModifier: Boolean = true
 
-        override fun visual(modifier: ModifierState?): ActionVisual = when {
-            modifier?.zalgo ?: true -> ActionVisual.Label("ź̸̥͂a̶̝̲͊͠l̶̻͈͛g̶͖̋̾o̶̠̅")
-            else -> ActionVisual.None
-        }
+        override fun visual(modifier: ModifierState?): ActionVisual =
+            ActionVisual.Icon(R.drawable.outline_cell_merge_24)
+
+        override fun isActive(modifier: ModifierState?): Boolean = modifier?.zalgo ?: false
     }
 
     data object ToggleSelect : Action() {
