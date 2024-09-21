@@ -453,17 +453,21 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
             when {
                 isDragging -> awaitPointerEvent()
                 else -> {
-                    // initial check: wait for touch slop (indicating a drag), 
+                    // initial check: wait for touch slop (indicating a drag),
                     // release (indicating a tap), or timeout (indicating a long hold)
                     val event = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
                         while (true) {
                             val event = awaitPointerEvent()
                             for (change in event.changes) {
+                                // Add pre-slop positions to trail, too
+                                positions.add(change.position)
+                                trailListener?.onTrailUpdate?.invoke(positions)
+
                                 when {
                                     change.changedToUp() -> return@withTimeoutOrNull event
 
-                                    change.positionChange().getDistanceSquared()
-                                            > longSwipeSlopSquared -> {
+                                    (change.position - down.position).getDistanceSquared()
+                                            > swipeSlopSquared -> {
                                         isDragging = true
                                         return@withTimeoutOrNull event
                                     }
