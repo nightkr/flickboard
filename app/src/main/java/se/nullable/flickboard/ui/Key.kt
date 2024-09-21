@@ -119,6 +119,7 @@ fun Key(
     val swipeThreshold = settings.swipeThreshold.state
     val fastSwipeThreshold = settings.fastSwipeThreshold.state
     val enableLongSwipes = settings.enableLongSwipes.state
+    val longSwipeThreshold = settings.longSwipeThreshold.state
     val gestureRecognizer = settings.gestureRecognizer.state
     val circleJaggednessThreshold = settings.circleJaggednessThreshold.state
     val circleDiscontinuityThreshold = settings.circleDiscontinuityThreshold.state
@@ -219,7 +220,12 @@ fun Key(
                 awaitGesture(
                     swipeThreshold = { swipeThreshold.value.dp },
                     fastSwipeThreshold = { fastSwipeThreshold.value.dp },
-                    enableLongSwipes = { enableLongSwipes.value },
+                    longSwipeThreshold = {
+                        when {
+                            enableLongSwipes.value -> longSwipeThreshold.value
+                            else -> Float.POSITIVE_INFINITY
+                        }
+                    },
                     circleJaggednessThreshold = { circleJaggednessThreshold.value },
                     circleDiscontinuityThreshold = { circleDiscontinuityThreshold.value },
                     circleAngleThreshold = { circleAngleThreshold.value },
@@ -404,7 +410,7 @@ data class KeyPointerTrailListener(
 private suspend inline fun AwaitPointerEventScope.awaitGesture(
     swipeThreshold: () -> Dp,
     fastSwipeThreshold: () -> Dp,
-    enableLongSwipes: () -> Boolean,
+    longSwipeThreshold: () -> Float,
     circleJaggednessThreshold: () -> Float,
     circleDiscontinuityThreshold: () -> Float,
     circleAngleThreshold: () -> Float,
@@ -440,10 +446,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     // cache squared slops to avoid having to take square roots
     val swipeSlopSquared = swipeThreshold().toPx().pow(2)
     val fastSwipeSlopSquared = fastSwipeThreshold().toPx().pow(2)
-    val longSwipeSlopSquared = when {
-        enableLongSwipes() -> 1.5F.pow(2)
-        else -> Float.POSITIVE_INFINITY
-    }
+    val longSwipeSlopSquared = longSwipeThreshold().pow(2)
     while (true) {
         val event =
             withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { awaitPointerEvent() }

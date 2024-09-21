@@ -1122,6 +1122,15 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val longSwipeThreshold = Setting.FloatSlider(
+        key = "longSwipeThreshold",
+        label = "Long swipe threshold",
+        range = 0.5F..4F,
+        defaultValue = 1.5F,
+        ctx = ctx,
+        render = Setting.FloatSlider::percentage
+    )
+
     val enableAdvancedModifiers = Setting.Bool(
         key = "enableAdvancedModifiers",
         label = "Enable advanced modifiers",
@@ -1351,6 +1360,7 @@ class AppSettings(val ctx: SettingsContext) {
                 settings = listOf(
                     enableFastActions,
                     enableLongSwipes,
+                    longSwipeThreshold,
                     enableAdvancedModifiers,
                     periodOnDoubleSpace,
                     longHoldOnClockwiseCircle,
@@ -1548,7 +1558,7 @@ abstract class SettingProjection<T> {
                         set(
                             oldBase,
                             (value ?: return@tryModify null)
-                        )?.let { Boxed(it) }
+                        )?.let(::Boxed)
                     }
                 }
         }
