@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
@@ -445,18 +446,49 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
         else -> Float.POSITIVE_INFINITY
     }
     while (true) {
-        val event =
-            withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) { awaitPointerEvent() }
-        if (event == null && !isDragging) {
-            trailListener?.onUp?.invoke()
-            return Gesture.Flick(
-                Direction.CENTER,
-                longHold = true,
-                longSwipe = false,
-                shift = false
-            )
-        }
-        for (changeVal in event?.changes ?: emptyList()) {
+        val event: PointerEvent =
+            when {
+                isDragging -> awaitPointerEvent()
+                else -> {
+                    // initial check: wait for touch slop (indicating a drag), 
+                    // release (indicating a tap), or timeout (indicating a long hold)
+                    val event = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            for (change in event.changes) {
+                                when {
+                                    change.changedToUp() -> return@withTimeoutOrNull event
+
+                                    change.positionChange().getDistanceSquared()
+                                            > longSwipeSlopSquared -> {
+                                        isDragging = true
+                                        return@withTimeoutOrNull event
+                                    }
+                                }
+                            }
+                        }
+                        // unreachable, but Kotlin typechecking doesn't recognize that the loop
+                        // either diverges or returns
+                        @Suppress("UNREACHABLE_CODE")
+                        null
+                    }
+                    when (event) {
+                        // withTimeoutOrNull returns null on timeout, indicating a long hold
+                        null -> {
+                            trailListener?.onUp?.invoke()
+                            return Gesture.Flick(
+                                Direction.CENTER,
+                                longHold = true,
+                                longSwipe = false,
+                                shift = false
+                            )
+                        }
+
+                        else -> event
+                    }
+                }
+            }
+        for (changeVal in event.changes) {
             // HACK: kotlin doesn't support for (var ... in ...)
             var change = changeVal
             if (change.isConsumed || change.changedToUp()) {
@@ -482,11 +514,6 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
             }
             val posFromDown = change.position - down.position
             val distanceFromDownSquared = posFromDown.getDistanceSquared()
-            if (!isDragging) {
-                if (distanceFromDownSquared > swipeSlopSquared) {
-                    isDragging = true
-                }
-            }
             if (distanceFromDownSquared > mostExtremeDistanceFromDownSquared) {
                 mostExtremePosFromDown = posFromDown
                 mostExtremeDistanceFromDownSquared = distanceFromDownSquared
