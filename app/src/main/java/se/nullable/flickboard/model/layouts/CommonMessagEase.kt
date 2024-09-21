@@ -184,6 +184,8 @@ val CONTROL_MESSAGEASE_LAYER =
                     actions = mapOf(
                         Direction.CENTER to Action.Enter(),
                         Direction.TOP_LEFT to Action.ToggleEmojiMode,
+                        // Always enters a new line, rather than triggering special actions
+                        Direction.TOP to Action.Text("\n"),
                         Direction.TOP_RIGHT to Action.ToggleEmojiMode,
                         Direction.BOTTOM to Action.ToggleZalgo,
                     )
