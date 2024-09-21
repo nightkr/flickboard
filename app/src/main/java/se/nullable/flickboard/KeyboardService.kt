@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.core.content.getSystemService
@@ -147,12 +146,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
     // Tracked variant of currentInputEditorInfo
     private val editorInfo = mutableStateOf<EditorInfo?>(null)
 
-    // Invisible area "occupied by" the view
-    private var topPaddingHeight: Int = 0 // Set once view is measured
-
+    private var viewHeight: Int = 0 // Set once view is measured
+    private var keyboardHeight: Int = 0 // Set once view is measured
     override fun onComputeInsets(outInsets: Insets) {
         super.onComputeInsets(outInsets)
-        outInsets.contentTopInsets = topPaddingHeight
+        // Invisible area "occupied by" the view
+        outInsets.contentTopInsets = viewHeight - keyboardHeight
         outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_CONTENT
     }
 
@@ -183,21 +182,33 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         }
         return ComposeView(this).also { view ->
             view.setContent {
-                BoxWithConstraints(contentAlignment = Alignment.BottomCenter) {
+                BoxWithConstraints(Modifier.onSizeChanged { size ->
+                    viewHeight = size.height
+                }, contentAlignment = Alignment.BottomCenter) {
                     // Android clips ongoing touch events at the border between the keyboard and app.
                     // As a workaround, we claim a transparent whole-screen box, and then
                     // use an inset to limit the content region (for touch input and app resizing)
                     // to the region we actually occupy.
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .height(maxHeight)
-                    )
-                    val density = LocalDensity.current
+                    val fullScreenMode = remember {
+                        mutableStateOf(isFullscreenMode)
+                    }
+                    // Full-screen mode is disabled when the hide animation begins, which makes
+                    // the rendering glitchy. Hence, we keep the old value while the keyboard is
+                    // hidden (or hiding).
+                    if (isShowInputRequested) {
+                        fullScreenMode.value = isFullscreenMode
+                    }
+                    // Full-screen mode does not respect inset, but is also not affected by
+                    // the clipping issue, so disable the workaround then.
+                    if (!fullScreenMode.value) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(maxHeight)
+                        )
+                    }
                     Box(Modifier.onSizeChanged { size ->
-                        density.apply {
-                            topPaddingHeight = maxHeight.roundToPx() - size.height
-                        }
+                        keyboardHeight = size.height
                     }) {
                         FlickBoardParent {
                             ProvideDisplayLimits {
