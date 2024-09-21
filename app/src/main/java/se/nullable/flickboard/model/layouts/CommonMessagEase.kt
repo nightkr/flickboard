@@ -135,7 +135,8 @@ val CONTROL_MESSAGEASE_LAYER =
                             Direction.BOTTOM_LEFT to Action.SwitchSystemKeyboard,
                             Direction.BOTTOM_RIGHT to Action.SwitchSystemKeyboard,
                         )
-                    )
+                    ),
+                    holdAction = Action.ToggleNumbersLayer,
                 )
             ),
             // clipboard

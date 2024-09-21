@@ -49,7 +49,6 @@ import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.ui.ConfiguredKeyboard
 import se.nullable.flickboard.ui.EnabledLayers
-import se.nullable.flickboard.ui.EnabledLayersLandscape
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.LocalDisplayLimits
@@ -57,6 +56,7 @@ import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
 import se.nullable.flickboard.ui.voice.getVoiceInputId
 import se.nullable.flickboard.util.AndroidKeycodeMapper
+import se.nullable.flickboard.util.Boxed
 import se.nullable.flickboard.util.LastTypedData
 import se.nullable.flickboard.util.asCombiningMarkOrNull
 import se.nullable.flickboard.util.singleCodePointOrNull
@@ -655,25 +655,20 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                         Action.ToggleActiveLayer -> {
                                             var hasToggled = false
-                                            val enabledLayersLandscape =
-                                                appSettings.enabledLayersLandscape.currentValue
-                                            when {
-                                                displayLimits?.isLandscape == true &&
-                                                        enabledLayersLandscape is EnabledLayersLandscape.Set -> {
-                                                    enabledLayersLandscape.setting.toggle?.let {
-                                                        hasToggled = true
-                                                        appSettings.enabledLayersLandscape.currentValue =
-                                                            EnabledLayersLandscape.Set(it)
-                                                    }
-                                                }
 
-                                                else -> {
-                                                    appSettings.enabledLayers.currentValue.toggle?.let {
+                                            appSettings.enabledLayersProjectionForOrientation(
+                                                displayLimits
+                                            ).tryModify { old ->
+                                                if (old?.isSingleSided == true) {
+                                                    old.toggleNumbers?.let {
                                                         hasToggled = true
-                                                        appSettings.enabledLayers.currentValue = it
+                                                        Boxed(it)
                                                     }
+                                                } else {
+                                                    null
                                                 }
                                             }
+
                                             if (!hasToggled) {
                                                 appSettings.handedness.currentValue =
                                                     !appSettings.handedness.currentValue
@@ -687,6 +682,14 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 -appSettings.portraitLocation.currentValue
                                             appSettings.landscapeLocation.currentValue =
                                                 -appSettings.landscapeLocation.currentValue
+                                        }
+
+                                        Action.ToggleNumbersLayer -> {
+                                            appSettings.enabledLayersProjectionForOrientation(
+                                                displayLimits
+                                            ).modify { old ->
+                                                old?.toggleNumbers
+                                            }
                                         }
 
                                         is Action.AdjustCellHeight ->

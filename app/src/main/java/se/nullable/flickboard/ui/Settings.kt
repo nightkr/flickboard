@@ -831,6 +831,37 @@ class AppSettings(val ctx: SettingsContext) {
         previewForceLandscape = true,
     )
 
+    /**
+     * Used for actions that need to modify this setting depending on the active context.
+     *
+     * Should not be used for UI rendering, as [SettingProjection] does not include state tracking,
+     * nor does this function try to track whether the projection "mode" is still valid. For these
+     * use cases, prefer [enabledLayersForCurrentOrientation].
+     *
+     * [SettingProjection.currentValue] may be null if the projection is outdated. Note that this
+     * is *not exhaustive*.
+     */
+    fun enabledLayersProjectionForOrientation(displayLimits: DisplayLimits?): SettingProjection<EnabledLayers?> =
+        run {
+            val landscapeSetting =
+                enabledLayersLandscape.tryMap(
+                    get = { setting ->
+                        (setting as? EnabledLayersLandscape.Set)?.setting
+                    },
+                    set = { _, it ->
+                        EnabledLayersLandscape.Set(it)
+                    },
+                )
+            when {
+                landscapeSetting.currentValue != null
+                        && displayLimits?.isLandscape ?: false -> landscapeSetting
+
+                else -> enabledLayers.tryMap(
+                    get = { it },
+                    set = { _, it -> it })
+            }
+        }
+
     val enabledLayersForCurrentOrientation: State<EnabledLayers>
         @Composable get() = when {
             LocalDisplayLimits.current?.isLandscape == true -> {
@@ -1371,19 +1402,24 @@ interface Labeled {
     val label: String
 }
 
-enum class EnabledLayers(override val label: String) : Labeled {
+enum class EnabledLayers(
+    override val label: String,
+    val isSingleSided: Boolean = false,
+) : Labeled {
     All("All"),
-    Letters("Letters only"),
-    Numbers("Numbers only"),
+    Letters("Letters only", isSingleSided = true),
+    Numbers("Numbers only", isSingleSided = true),
     DoubleLetters("Double letters"),
     AllMiniNumbers("All (mini numbers)"),
     AllMiniNumbersMiddle("All (mini numbers in middle)"),
     AllMiniNumbersOpposite("All (mini numbers on opposite side)");
 
-    val toggle: EnabledLayers?
+    val toggleNumbers: EnabledLayers?
         get() = when (this) {
             Letters -> Numbers
             Numbers -> Letters
+            DoubleLetters -> All
+            All -> DoubleLetters
             else -> null
         }
 }
@@ -1475,12 +1511,56 @@ enum class ControlSectionOption(override val label: String) : Labeled {
 
 class SettingsContext(val prefs: SharedPreferences, val coroutineScope: CoroutineScope)
 
-sealed class Setting<T>(private val ctx: SettingsContext) {
+abstract class SettingProjection<T> {
+    abstract var currentValue: T
+
+    inline fun modify(f: (T) -> T) {
+        currentValue = f(currentValue)
+    }
+
+    inline fun tryModify(f: (T) -> Boxed<T>?): Boolean {
+        currentValue = (f(currentValue) ?: return false).value
+        return true
+    }
+
+    fun <U> map(
+        get: (T) -> U,
+        set: (T, U) -> T,
+    ): SettingProjection<U> = let { base ->
+        object : SettingProjection<U>() {
+            override var currentValue: U
+                get() = get(base.currentValue)
+                set(value) {
+                    base.modify { set(it, value) }
+                }
+        }
+    }
+
+    fun <U : Any> tryMap(
+        get: (T) -> U?,
+        set: (T, U) -> T?,
+    ): SettingProjection<U?> = let { base ->
+        object : SettingProjection<U?>() {
+            override var currentValue: U?
+                get() = get(base.currentValue)
+                set(value) {
+                    base.tryModify { oldBase ->
+                        set(
+                            oldBase,
+                            (value ?: return@tryModify null)
+                        )?.let { Boxed(it) }
+                    }
+                }
+        }
+    }
+}
+
+sealed class Setting<T>(private val ctx: SettingsContext) : SettingProjection<T>() {
     abstract val key: String
     abstract val label: String
     abstract val description: String?
 
-    var currentValue: T
+    override var currentValue: T
         get() = readFrom(ctx.prefs)
         set(value) = ctx.prefs.edit { writeTo(this, value) }
 

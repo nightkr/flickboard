@@ -347,6 +347,18 @@ sealed class Action {
             ActionVisual.Icon(R.drawable.baseline_flip_camera_android_24)
     }
 
+    /**
+     * Toggles whether a numbers layer is "active"
+     *
+     * Intent: "I want easy access to the numbers layer"
+     *
+     * [ToggleActiveLayer] will also do this, if there is only one active layer.
+     */
+    data object ToggleNumbersLayer : Action() {
+        override fun visual(modifier: ModifierState?): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_flip_camera_android_24)
+    }
+
     data class AdjustCellHeight(val amount: Float) : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual = when {
             amount >= 0 -> ActionVisual.Icon(R.drawable.baseline_zoom_in_24)
