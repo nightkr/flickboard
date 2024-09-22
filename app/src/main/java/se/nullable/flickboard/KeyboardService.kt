@@ -200,7 +200,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                     }
                     // Full-screen mode does not respect inset, but is also not affected by
                     // the clipping issue, so disable the workaround then.
-                    if (!fullScreenMode.value) {
+                    if (false && !fullScreenMode.value) {
                         Box(
                             Modifier
                                 .fillMaxWidth()
