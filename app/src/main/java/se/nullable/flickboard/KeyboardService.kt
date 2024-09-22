@@ -159,7 +159,9 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
     override fun onEvaluateFullscreenMode(): Boolean {
         return super.onEvaluateFullscreenMode()
             .also {
-                currentInputHasBeenFullScreen.value = currentInputHasBeenFullScreen.value || it
+                if (isShowInputRequested) {
+                    currentInputHasBeenFullScreen.value = currentInputHasBeenFullScreen.value && it
+                }
             }
     }
 
