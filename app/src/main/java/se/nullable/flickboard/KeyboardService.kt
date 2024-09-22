@@ -157,12 +157,11 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
     private val currentInputHasBeenFullScreen = mutableStateOf(false)
     override fun onEvaluateFullscreenMode(): Boolean {
-        return super.onEvaluateFullscreenMode()
-            .also {
-                if (isShowInputRequested) {
-                    currentInputHasBeenFullScreen.value = currentInputHasBeenFullScreen.value && it
-                }
-            }
+        if (isShowInputRequested) {
+            currentInputHasBeenFullScreen.value =
+                currentInputHasBeenFullScreen.value && super.onEvaluateFullscreenMode()
+        }
+        return currentInputHasBeenFullScreen.value
     }
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
