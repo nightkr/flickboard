@@ -155,6 +155,14 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_CONTENT
     }
 
+    private val currentInputHasBeenFullScreen = mutableStateOf(false)
+    override fun onEvaluateFullscreenMode(): Boolean {
+        return super.onEvaluateFullscreenMode()
+            .also {
+                currentInputHasBeenFullScreen.value = currentInputHasBeenFullScreen.value || it
+            }
+    }
+
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         editorInfo.value = attribute
@@ -173,6 +181,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         if (!cursorUpdatesRequested) {
             println("no cursor data :(")
         }
+        currentInputHasBeenFullScreen.value = isFullscreenMode
     }
 
     override fun onCreateInputView(): View {
@@ -189,18 +198,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                     // As a workaround, we claim a transparent whole-screen box, and then
                     // use an inset to limit the content region (for touch input and app resizing)
                     // to the region we actually occupy.
-                    val fullScreenMode = remember {
-                        mutableStateOf(isFullscreenMode)
-                    }
-                    // Full-screen mode is disabled when the hide animation begins, which makes
-                    // the rendering glitchy. Hence, we keep the old value while the keyboard is
-                    // hidden (or hiding).
-                    if (isShowInputRequested) {
-                        fullScreenMode.value = isFullscreenMode
-                    }
                     // Full-screen mode does not respect inset, but is also not affected by
                     // the clipping issue, so disable the workaround then.
-                    if (false && !fullScreenMode.value) {
+                    // However, toggling this value leads to some apps glitching out under some
+                    // circumstances (YouTube comments flickering, the keyboard teleporting when
+                    // fading out, etc). Hence, be pessimistic and disable the workaround if
+                    // fullscreen has *ever* been used for a given editing session.
+                    if (!currentInputHasBeenFullScreen.value) {
                         Box(
                             Modifier
                                 .fillMaxWidth()
