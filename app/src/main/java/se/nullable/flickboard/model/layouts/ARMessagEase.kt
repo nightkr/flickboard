@@ -23,6 +23,8 @@ val AR_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("ب"),
+                    Direction.TOP to Action.Text("ُ"),
+                    Direction.TOP_RIGHT to Action.Text("َ"),
                     Direction.BOTTOM to Action.Text("خ"),
                     Direction.BOTTOM_LEFT to Action.Text("ض"),
                 )
@@ -30,6 +32,8 @@ val AR_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("م"),
+                    Direction.LEFT to Action.Text("؟"),
+                    Direction.TOP_LEFT to Action.Text("ْ"),
                     Direction.BOTTOM_LEFT to Action.Text("إ")
                 )
             ),
@@ -69,6 +73,7 @@ val AR_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("و"),
+                    Direction.TOP to Action.Text("ّ"),
                     Direction.TOP_RIGHT to Action.Text("ؤ")
                 )
             ),
@@ -77,6 +82,7 @@ val AR_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("ن"),
                     Direction.TOP to Action.Text("ث"),
                     Direction.RIGHT to Action.Text("أ"),
+                    Direction.LEFT to Action.Text("ء"),
                     Direction.BOTTOM_RIGHT to Action.Text("ئ"),
                     Direction.TOP_LEFT to Action.Text("ظ"),
                     Direction.TOP_RIGHT to Action.Text("غ"),
@@ -86,7 +92,8 @@ val AR_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("د"),
-                    Direction.TOP_LEFT to Action.Text("ذ")
+                    Direction.TOP to Action.Text("ً"),
+                    Direction.LEFT to Action.Text("ذ")
                 )
             ),
         ),
@@ -97,6 +104,7 @@ val AR_MESSAGEASE_MAIN_LAYER = Layer(
 val AR_MESSAGEASE = Layout(
     mainLayer = AR_MESSAGEASE_MAIN_LAYER,
     controlLayer = CONTROL_MESSAGEASE_LAYER,
+    digits = "٠١٢٣٤٥٦٧٨٩",
     textDirection = TextDirection.RightToLeft
 )
 
