@@ -19,6 +19,7 @@ val FR_PUNC_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_RIGHT to Action.Text("à"),
                     Direction.BOTTOM_RIGHT to Action.Text("v"),
                     Direction.LEFT to Action.Text("«"),
+                    Direction.TOP_LEFT to Action.Text("æ"),
                 )
             ),
             KeyM(
@@ -86,6 +87,7 @@ val FR_PUNC_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("s"),
+                    Direction.BOTTOM_RIGHT to Action.Text("œ"),
                     Direction.TOP_LEFT to Action.Text("f"),
                 )
             ),
