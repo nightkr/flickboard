@@ -82,7 +82,6 @@ import se.nullable.flickboard.times
 import se.nullable.flickboard.ui.layout.KeyLabelGrid
 import se.nullable.flickboard.util.toAccent
 import se.nullable.flickboard.util.toAccentContainer
-import se.nullable.flickboard.util.toOnAccent
 import se.nullable.flickboard.util.toOnAccentContainer
 import se.nullable.flickboard.util.toTertiary
 import kotlin.math.PI
@@ -128,6 +127,7 @@ fun Key(
     val enableHapticFeedbackOnGestureStart = settings.enableHapticFeedbackOnGestureStart.state
     val enableHapticFeedbackOnGestureSuccess = settings.enableHapticFeedbackOnGestureSuccess.state
     val enableVisualFeedback = settings.enableVisualFeedback.state
+    val visualFeedbackInvertColourScheme = settings.visualFeedbackInvertColourScheme.state
     val dropLastGesturePoint = settings.dropLastGesturePoint.state
     val ignoreJumpsLongerThanPx = settings.ignoreJumpsLongerThanPx.state
     val flicksMustBeLongerThanSeconds = settings.flicksMustBeLongerThanSeconds.state
@@ -156,16 +156,18 @@ fun Key(
     }
     val lastActionSurfaceColour = remember {
         derivedStateOf {
-            keyColour.value?.toTertiary()
-                ?.toAccent(chroma = keyColourChroma.value, toneConfig.value)
-                ?: materialColourScheme.tertiary
+            when {
+                visualFeedbackInvertColourScheme.value -> keyIndicatorColour.value
+                else -> keySurfaceColour.value
+            }.toTertiary()
         }
     }
     val lastActionColour = remember {
         derivedStateOf {
-            keyColour.value?.toTertiary()
-                ?.toOnAccent(chroma = keyColourChroma.value, toneConfig.value)
-                ?: materialColourScheme.onTertiary
+            when {
+                visualFeedbackInvertColourScheme.value -> keySurfaceColour.value
+                else -> keyIndicatorColour.value
+            }.toTertiary()
         }
     }
     var lastActionTaken: TakenAction? by remember { mutableStateOf(null, neverEqualPolicy()) }

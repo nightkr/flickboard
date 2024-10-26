@@ -1250,6 +1250,13 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val visualFeedbackInvertColourScheme = Setting.Bool(
+        key = "visualFeedbackInvertColourScheme",
+        label = "Make visual highlight extra prominent",
+        defaultValue = false,
+        ctx = ctx
+    )
+
     val enableKeyboardPreview = Setting.Bool(
         key = "enableKeyboardPreview",
         label = "Enable keyboard preview",
@@ -1378,6 +1385,7 @@ class AppSettings(val ctx: SettingsContext) {
                     enableHapticFeedbackOnGestureStart,
                     enableHapticFeedbackOnGestureSuccess,
                     enableVisualFeedback,
+                    visualFeedbackInvertColourScheme,
                     enablePointerTrail,
                 ),
             ),
