@@ -318,7 +318,7 @@ fun KeyActionTakenIndicator(
     Surface(color = surfaceColour, shape = shape, modifier = modifier) {
         Box(Modifier.fillMaxSize()) {
             KeyActionIndicator(
-                action = action,
+                action = action.withHidden(false),
                 enterKeyLabel = enterKeyLabel,
                 modifiers = null,
                 modifier = Modifier.align(Alignment.Center),

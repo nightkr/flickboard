@@ -107,7 +107,7 @@ data class KeyM(
             val isShown = shownActionClasses.contains(action.actionClass)
             when {
                 isShown -> direction to action
-                enableHiddenActions -> direction to action.hide()
+                enableHiddenActions -> direction to action.withHidden(true)
                 else -> null
             }
         }.toMap())
@@ -130,7 +130,7 @@ sealed class Action {
     open val actionClass = ActionClass.Other
     open val fastActionType: FastActionType? = null
     open fun shift(): Action = this
-    open fun hide(): Action = this
+    open fun withHidden(hidden: Boolean): Action = this
 
     open val isModifier = false
     open val isHiddenAction: Boolean
@@ -140,9 +140,13 @@ sealed class Action {
         val character: String,
         val forceRawKeyEvent: Boolean = false,
         val visualOverride: ActionVisual? = null,
+        val hidden: Boolean = false,
     ) : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual =
-            visualOverride ?: ActionVisual.Label(character)
+            when {
+                hidden -> ActionVisual.None
+                else -> visualOverride ?: ActionVisual.Label(character)
+            }
 
         override val actionClass: ActionClass = when {
             character.isBlank() -> ActionClass.Other
@@ -152,7 +156,7 @@ sealed class Action {
         }
 
         override fun shift(): Action = copy(character = character.uppercase())
-        override fun hide(): Action = copy(visualOverride = ActionVisual.None)
+        override fun withHidden(hidden: Boolean): Action = copy(hidden = hidden)
     }
 
     data class Delete(
