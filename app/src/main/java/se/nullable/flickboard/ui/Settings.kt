@@ -130,6 +130,7 @@ import se.nullable.flickboard.ui.util.isSamsungDevice
 import se.nullable.flickboard.util.Boxed
 import se.nullable.flickboard.util.MaterialToneMode
 import se.nullable.flickboard.util.orNull
+import tryEnumValueOf
 import java.io.FileOutputStream
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -768,7 +769,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Letter layouts",
         defaultValue = listOf(LetterLayerOption.English),
         options = LetterLayerOption.entries,
-        fromString = LetterLayerOption::valueOf,
+        tryEnumValueOfT = ::tryEnumValueOf,
         ctx = ctx,
         writePreviewSettings = { readPrefs, prefs ->
             if (enabledLayers.readFrom(readPrefs) == EnabledLayers.Numbers) {
@@ -791,7 +792,7 @@ class AppSettings(val ctx: SettingsContext) {
         description = "Only applies when using double letter layers",
         defaultValue = LetterLayerOption.English,
         options = LetterLayerOption.entries,
-        fromString = LetterLayerOption::valueOf,
+        tryEnumValueOfT = ::tryEnumValueOf,
         ctx = ctx,
         writePreviewSettings = { _, prefs ->
             enabledLayers.writeTo(prefs, EnabledLayers.DoubleLetters)
@@ -803,7 +804,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Number layout",
         defaultValue = NumericLayerOption.Phone,
         options = NumericLayerOption.entries,
-        fromString = NumericLayerOption::valueOf,
+        tryEnumValueOfT = ::tryEnumValueOf,
         ctx = ctx,
         writePreviewSettings = { readPrefs, prefs ->
             if (enabledLayers.readFrom(readPrefs) == EnabledLayers.Letters) {
@@ -817,7 +818,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Enabled layers",
         defaultValue = EnabledLayers.All,
         options = EnabledLayers.entries,
-        fromString = EnabledLayers::valueOf,
+        tryEnumValueOfT = ::tryEnumValueOf,
         ctx = ctx
     )
 
@@ -826,7 +827,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Enabled layers (landscape)",
         defaultValue = EnabledLayersLandscape.Inherit,
         options = EnabledLayersLandscape.entries,
-        fromString = EnabledLayersLandscape::valueOf,
+        tryEnumValueOfT = EnabledLayersLandscape::tryEnumValueOf,
         ctx = ctx,
         previewForceLandscape = true,
     )
@@ -885,7 +886,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Handedness",
         defaultValue = Handedness.RightHanded,
         options = Handedness.entries,
-        fromString = Handedness::valueOf,
+        tryEnumValueOfT = ::tryEnumValueOf,
         ctx = ctx
     )
 
@@ -921,7 +922,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Control section mode in landscape",
         defaultValue = ControlSectionOption.Single,
         options = ControlSectionOption.entries,
-        fromString = ControlSectionOption::valueOf,
+        tryEnumValueOfT = { tryEnumValueOf<ControlSectionOption>(it) },
         ctx = ctx,
         previewForceLandscape = true,
     )
@@ -1070,7 +1071,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Key colour brightness",
         defaultValue = MaterialToneMode.System,
         options = MaterialToneMode.entries,
-        fromString = MaterialToneMode::valueOf,
+        tryEnumValueOfT = { tryEnumValueOf<MaterialToneMode>(it) },
         ctx = ctx,
         description = "Only applies when using a custom colour",
     )
@@ -1194,7 +1195,7 @@ class AppSettings(val ctx: SettingsContext) {
         "Gesture recognizer",
         defaultValue = GestureRecognizer.Default,
         options = GestureRecognizer.entries,
-        fromString = GestureRecognizer::valueOf,
+        tryEnumValueOfT = ::tryEnumValueOf,
         ctx = ctx,
         previewOverride = { Text(it.description) },
     )
@@ -1454,9 +1455,9 @@ sealed interface EnabledLayersLandscape : Labeled {
 
     companion object {
         val entries = listOf(Inherit) + EnabledLayers.entries.map(::Set)
-        fun valueOf(str: String): EnabledLayersLandscape = when (str) {
+        fun tryEnumValueOf(str: String): EnabledLayersLandscape? = when (str) {
             "Inherit" -> Inherit
-            else -> Set(EnabledLayers.valueOf(str))
+            else -> tryEnumValueOf<EnabledLayers>(str)?.let(::Set)
         }
     }
 }
@@ -1735,7 +1736,8 @@ sealed class Setting<T>(private val ctx: SettingsContext) : SettingProjection<T>
         override val label: String,
         val defaultValue: List<T>,
         val options: List<T>,
-        val fromString: (String) -> T?,
+        /** Should be [tryEnumValueOf] */
+        val tryEnumValueOfT: (String) -> T?,
         ctx: SettingsContext,
         override val description: String? = null,
         val writePreviewSettings: (SharedPreferences, SharedPreferences.Editor) -> Unit = { _, _ -> },
@@ -1743,7 +1745,7 @@ sealed class Setting<T>(private val ctx: SettingsContext) : SettingProjection<T>
         override fun readFrom(prefs: SharedPreferences): List<T> =
             prefs.getString(key, null)
                 ?.split(',')
-                ?.mapNotNull { it.takeIf { it.isNotEmpty() }?.let(fromString) }
+                ?.mapNotNull { it.takeIf { it.isNotEmpty() }?.let(tryEnumValueOfT) }
                 ?: defaultValue
 
         override fun writeTo(prefs: SharedPreferences.Editor, value: List<T>) {
@@ -1753,7 +1755,7 @@ sealed class Setting<T>(private val ctx: SettingsContext) : SettingProjection<T>
         override fun readFromJson(json: JsonReader): List<T> = mutableListOf<T>().also { out ->
             json.beginArray()
             while (json.peek() != JsonToken.END_ARRAY) {
-                fromString(json.nextString())?.let(out::add)
+                tryEnumValueOfT(json.nextString())?.let(out::add)
             }
             json.endArray()
         }
@@ -1772,7 +1774,8 @@ sealed class Setting<T>(private val ctx: SettingsContext) : SettingProjection<T>
         override val label: String,
         val defaultValue: T,
         val options: List<T>,
-        val fromString: (String) -> T?,
+        /** Should be [tryEnumValueOf]<T> */
+        val tryEnumValueOfT: (String) -> T?,
         ctx: SettingsContext,
         override val description: String? = null,
         val writePreviewSettings: (SharedPreferences, SharedPreferences.Editor) -> Unit = { _, _ -> },
@@ -1780,13 +1783,13 @@ sealed class Setting<T>(private val ctx: SettingsContext) : SettingProjection<T>
         val previewForceLandscape: Boolean = false,
     ) : Setting<T>(ctx) {
         override fun readFrom(prefs: SharedPreferences): T =
-            prefs.getString(key, null)?.let(fromString) ?: defaultValue
+            prefs.getString(key, null)?.let(tryEnumValueOfT) ?: defaultValue
 
         override fun writeTo(prefs: SharedPreferences.Editor, value: T) {
             prefs.putString(key, value.toString())
         }
 
-        override fun readFromJson(json: JsonReader): T? = fromString(json.nextString())
+        override fun readFromJson(json: JsonReader): T? = tryEnumValueOfT(json.nextString())
         override fun writeToJson(json: JsonWriter, value: T) {
             json.value(value.toString())
         }
