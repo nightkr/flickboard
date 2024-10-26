@@ -459,23 +459,27 @@ fun <T : Labeled> EnumListSetting(setting: Setting.EnumList<T>) {
 
 @Composable
 fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
-    BaseEnumSetting(
-        setting,
-        valueLabel = { it.label },
-        options = setting.options,
-        optionSelectionControl = { selected, option ->
-            RadioButton(selected = selected == option, onClick = { setting.currentValue = option })
-        },
-        optionIsSelected = { selected, option -> option == selected },
-        onOptionSelected = { setting.currentValue = it },
-        collapseOnOptionSelected = true,
-        writePreviewSettings = { readPrefs, prefs, option ->
-            setting.writePreviewSettings(readPrefs, prefs)
-            setting.writeTo(prefs, option)
-        },
-        previewOverride = setting.previewOverride,
-        previewForceLandscape = setting.previewForceLandscape,
-    )
+    if (setting.options.size > 1) {
+        BaseEnumSetting(
+            setting,
+            valueLabel = { it.label },
+            options = setting.options,
+            optionSelectionControl = { selected, option ->
+                RadioButton(
+                    selected = selected == option,
+                    onClick = { setting.currentValue = option })
+            },
+            optionIsSelected = { selected, option -> option == selected },
+            onOptionSelected = { setting.currentValue = it },
+            collapseOnOptionSelected = true,
+            writePreviewSettings = { readPrefs, prefs, option ->
+                setting.writePreviewSettings(readPrefs, prefs)
+                setting.writeTo(prefs, option)
+            },
+            previewOverride = setting.previewOverride,
+            previewForceLandscape = setting.previewForceLandscape,
+        )
+    }
 }
 
 @Composable
