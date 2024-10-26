@@ -1350,7 +1350,6 @@ class AppSettings(val ctx: SettingsContext) {
                     keyOpacity,
                     backgroundOpacity,
                     backgroundImage,
-                    enablePointerTrail,
                 )
             ),
             SettingsSection(
@@ -1379,6 +1378,7 @@ class AppSettings(val ctx: SettingsContext) {
                     enableHapticFeedbackOnGestureStart,
                     enableHapticFeedbackOnGestureSuccess,
                     enableVisualFeedback,
+                    enablePointerTrail,
                 ),
             ),
             SettingsSection(
