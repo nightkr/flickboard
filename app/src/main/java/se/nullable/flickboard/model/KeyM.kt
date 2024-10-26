@@ -379,6 +379,13 @@ sealed class Action {
     data object ToggleShowSymbols : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual =
             ActionVisual.None
+
+        override fun shift(): Action = ToggleShowLetters
+    }
+
+    data object ToggleShowLetters : Action() {
+        override fun visual(modifier: ModifierState?): ActionVisual =
+            ActionVisual.None
     }
 
     data object EnableVoiceMode : Action() {

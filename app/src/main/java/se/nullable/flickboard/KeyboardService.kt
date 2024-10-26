@@ -706,6 +706,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             appSettings.showSymbols.currentValue =
                                                 !appSettings.showSymbols.currentValue
 
+                                        Action.ToggleShowLetters ->
+                                            appSettings.showLetters.currentValue =
+                                                !appSettings.showLetters.currentValue
+
                                         Action.EnableVoiceMode -> {
                                             val inputManager =
                                                 getSystemService<InputMethodManager>()
