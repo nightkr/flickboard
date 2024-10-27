@@ -977,7 +977,7 @@ class AppSettings(val ctx: SettingsContext) {
 
     val enableToggleShowSymbolsGesture = Setting.Bool(
         key = "enableToggleShowSymbolsGesture",
-        label = "Enable toggle show symbols gesture",
+        label = "Enable toggle show symbols/letters gestures",
         defaultValue = true,
         ctx = ctx,
         description = "To use, swipe up from spacebar",
