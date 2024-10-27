@@ -124,14 +124,13 @@ fun Keyboard(
         }
 
     fun letterLayerByShiftState(layout: Layout): Map<ShiftState, Layer> {
-        var mainLayer = layout.mainLayer
+        var overlay = overlayMessageaseLayer(layout.locale)
         if (enableAdvancedModifiers.value) {
-            mainLayer = mainLayer.mergeFallback(OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER)
+            overlay = overlay.mergeFallback(OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER)
         }
         if (enableToggleShowSymbols.value) {
-            mainLayer = mainLayer.mergeFallback(OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER)
+            overlay = overlay.mergeFallback(OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER)
         }
-        val overlay = overlayMessageaseLayer(layout.locale)
         val shift = layout.shiftLayer
             .mergeFallback(
                 overlay.mergeFallback(
@@ -141,7 +140,7 @@ fun Keyboard(
                     .autoShift(layout.locale)
             )
         return mapOf(
-            ShiftState.Normal to mainLayer
+            ShiftState.Normal to layout.mainLayer
                 .mergeFallback(
                     overlay.mergeFallback(
                         mergedFullSizedNumericLayer.value,

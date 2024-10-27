@@ -59,19 +59,19 @@ val OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER =
     Layer(
         keyRows = listOf(
             listOf(
-                KeyM(actions = mapOf()),
-                KeyM(actions = mapOf()),
-                KeyM(actions = mapOf()),
+                KeyM(actions = emptyMap()),
+                KeyM(actions = emptyMap()),
+                KeyM(actions = emptyMap()),
             ),
             listOf(
-                KeyM(actions = mapOf()),
-                KeyM(actions = mapOf()),
-                KeyM(actions = mapOf()),
+                KeyM(actions = emptyMap()),
+                KeyM(actions = emptyMap()),
+                KeyM(actions = emptyMap()),
             ),
             listOf(
-                KeyM(actions = mapOf()),
-                KeyM(actions = mapOf()),
-                KeyM(actions = mapOf()),
+                KeyM(actions = emptyMap()),
+                KeyM(actions = emptyMap()),
+                KeyM(actions = emptyMap()),
             ),
             listOf(
                 KeyM(
@@ -93,19 +93,19 @@ val OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER =
     Layer(
         keyRows = listOf(
             listOf(
-                KeyM(actions = mapOf()),
-                KeyM(actions = mapOf()),
-                KeyM(actions = mapOf()),
+                KeyM(actions = emptyMap()),
+                KeyM(actions = emptyMap()),
+                KeyM(actions = emptyMap()),
             ),
             listOf(
-                KeyM(actions = mapOf()),
-                KeyM(actions = mapOf()),
-                KeyM(actions = mapOf()),
+                KeyM(actions = emptyMap()),
+                KeyM(actions = emptyMap()),
+                KeyM(actions = emptyMap()),
             ),
             listOf(
-                KeyM(actions = mapOf()),
-                KeyM(actions = mapOf()),
-                KeyM(actions = mapOf()),
+                KeyM(actions = emptyMap()),
+                KeyM(actions = emptyMap()),
+                KeyM(actions = emptyMap()),
             ),
             listOf(
                 KeyM(
