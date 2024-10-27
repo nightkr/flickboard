@@ -1188,7 +1188,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Swipe threshold",
         description = "How far you need to drag before a tap becomes a swipe",
         defaultValue = 8F,
-        range = 8F..24F,
+        range = 8F..96F,
         ctx = ctx
     )
 
@@ -1197,7 +1197,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Fast swipe threshold",
         description = "How far you need to drag between each fast action tick",
         defaultValue = 16F,
-        range = 8F..24F,
+        range = 8F..96F,
         ctx = ctx,
     )
 
