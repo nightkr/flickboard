@@ -1,8 +1,8 @@
 // Polish keyboard layout based on letter frequency https://www.sttmedia.com/characterfrequency-polish
 // with accent characters kept together with base ones
-// |   |   |q  |
-// | A | N |lI£| 
-// | ą |vńx|ł  |
+// |v x|   |l q|
+// | A | N | I£|
+// | ą | ń |ł  |
 //  _____________
 // |cć |óup|   | 
 // | W |kOb|mR |
@@ -28,23 +28,23 @@ val PL_RMITURA_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("a"),
+                    Direction.TOP_LEFT to Action.Text("v"),
+                    Direction.TOP_RIGHT to Action.Text("x"),
                     Direction.BOTTOM to Action.Text("ą")
                 )
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("n"),
-                    Direction.BOTTOM_LEFT to Action.Text("v"),
-                    Direction.BOTTOM to Action.Text("ń"),
-                    Direction.BOTTOM_RIGHT to Action.Text("x")
+                    Direction.BOTTOM to Action.Text("ń")
                 )
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("i"),
-                    Direction.TOP_LEFT to Action.Text("q"),
-                    Direction.LEFT to Action.Text("l"),
-                    Direction.RIGHT to Action.Text("£"),   
+                    Direction.TOP_LEFT to Action.Text("l"),
+                    Direction.TOP_RIGHT to Action.Text("q"),
+                    Direction.RIGHT to Action.Text("£"),
                     Direction.BOTTOM_LEFT to Action.Text("ł")
                 )
             ),
@@ -73,7 +73,7 @@ val PL_RMITURA_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
-                    Direction.LEFT to Action.Text("m"),
+                    Direction.LEFT to Action.Text("m")
                 )
             ),
         ),
