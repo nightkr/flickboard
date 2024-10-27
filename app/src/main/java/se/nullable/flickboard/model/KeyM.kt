@@ -7,10 +7,12 @@ import se.nullable.flickboard.model.layouts.MINI_NUMBERS_SYMBOLS_LAYER
 import se.nullable.flickboard.util.HardLineBreakIterator
 import se.nullable.flickboard.util.flipIfBracket
 import java.text.BreakIterator
+import java.util.Locale
 
 data class Layout(
     val mainLayer: Layer,
-    val shiftLayer: Layer = mainLayer.autoShift(),
+    val locale: Locale = Locale.ENGLISH,
+    val shiftLayer: Layer = mainLayer.autoShift(locale),
     val controlLayer: Layer? = null,
     val symbolLayer: Layer = MESSAGEASE_SYMBOLS_LAYER,
     val miniSymbolLayer: Layer = MINI_NUMBERS_SYMBOLS_LAYER,
@@ -50,8 +52,8 @@ data class Layer(val keyRows: List<List<KeyM>>) {
 
     fun flipBrackets(): Layer = mapKeys { it.flipBrackets() }
 
-    fun autoShift(): Layer =
-        mapKeys { it.autoShift() }
+    fun autoShift(locale: Locale): Layer =
+        mapKeys { it.autoShift(locale) }
 
     fun filterActions(shownActionClasses: Set<ActionClass>, enableHiddenActions: Boolean) =
         mapKeys {
@@ -96,9 +98,9 @@ data class KeyM(
         transientShift = this.transientShift ?: fallback.transientShift
     )
 
-    fun autoShift(): KeyM = (shift ?: this).copy(
-        actions = actions.mapValues { it.value.shift() } + (shift?.actions ?: emptyMap()),
-        fastActions = fastActions.mapValues { it.value.shift() } + (shift?.fastActions
+    fun autoShift(locale: Locale): KeyM = (shift ?: this).copy(
+        actions = actions.mapValues { it.value.shift(locale) } + (shift?.actions ?: emptyMap()),
+        fastActions = fastActions.mapValues { it.value.shift(locale) } + (shift?.fastActions
             ?: emptyMap())
     )
 
@@ -129,7 +131,7 @@ sealed class Action {
     open fun isActive(modifier: ModifierState?): Boolean = false
     open val actionClass = ActionClass.Other
     open val fastActionType: FastActionType? = null
-    open fun shift(): Action = this
+    open fun shift(locale: Locale): Action = this
     open fun withHidden(hidden: Boolean): Action = this
 
     open val isModifier = false
@@ -155,7 +157,9 @@ sealed class Action {
             else -> ActionClass.Symbol
         }
 
-        override fun shift(): Action = copy(character = character.uppercase())
+        override fun shift(locale: Locale): Action =
+            copy(character = character.uppercase(locale = locale))
+
         override fun withHidden(hidden: Boolean): Action = copy(hidden = hidden)
     }
 
@@ -169,7 +173,7 @@ sealed class Action {
             else -> ActionVisual.Icon(R.drawable.baseline_backspace_24)
         }
 
-        override fun shift(): Action = copy(boundary = TextBoundary.Word)
+        override fun shift(locale: Locale): Action = copy(boundary = TextBoundary.Word)
     }
 
     data class FastDelete(
@@ -181,7 +185,7 @@ sealed class Action {
 
         override val fastActionType: FastActionType = FastActionType.Delete
 
-        override fun shift(): Action = copy(boundary = TextBoundary.Word)
+        override fun shift(locale: Locale): Action = copy(boundary = TextBoundary.Word)
     }
 
     data object BeginFastAction : Action() {
@@ -198,7 +202,7 @@ sealed class Action {
         override fun visual(modifier: ModifierState?): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_keyboard_return_24)
 
-        override fun shift(): Action = copy(shift = true)
+        override fun shift(locale: Locale): Action = copy(shift = true)
     }
 
     data object Escape : Action() {
@@ -216,7 +220,7 @@ sealed class Action {
             SearchDirection.Forwards -> ActionVisual.Icon(R.drawable.baseline_keyboard_arrow_right_24)
         }
 
-        override fun shift(): Action = copy(boundary = TextBoundary.Word)
+        override fun shift(locale: Locale): Action = copy(boundary = TextBoundary.Word)
     }
 
     data class JumpLineKeepPos(val direction: SearchDirection, val rawEvent: Boolean = false) :
@@ -226,7 +230,7 @@ sealed class Action {
             SearchDirection.Forwards -> ActionVisual.Icon(R.drawable.baseline_keyboard_arrow_down_24)
         }
 
-        override fun shift(): Action = copy(rawEvent = true)
+        override fun shift(locale: Locale): Action = copy(rawEvent = true)
     }
 
     data class ToggleShift(val state: ShiftState) : Action() {
@@ -240,7 +244,7 @@ sealed class Action {
 
         override fun isActive(modifier: ModifierState?): Boolean = state == modifier?.shift
 
-        override fun shift(): Action {
+        override fun shift(locale: Locale): Action {
             return when (state) {
                 ShiftState.Shift -> copy(state = ShiftState.CapsLock)
                 else -> return this
@@ -338,7 +342,7 @@ sealed class Action {
         override fun visual(modifier: ModifierState?): ActionVisual =
             ActionVisual.Icon(R.drawable.baseline_flip_camera_android_24)
 
-        override fun shift(): Action = ToggleHandedness
+        override fun shift(locale: Locale): Action = ToggleHandedness
     }
 
     /**
@@ -384,7 +388,7 @@ sealed class Action {
         override fun visual(modifier: ModifierState?): ActionVisual =
             ActionVisual.None
 
-        override fun shift(): Action = ToggleShowLetters
+        override fun shift(locale: Locale): Action = ToggleShowLetters
     }
 
     data object ToggleShowLetters : Action() {

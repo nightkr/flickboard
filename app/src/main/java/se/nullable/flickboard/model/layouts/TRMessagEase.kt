@@ -8,6 +8,7 @@ import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.ui.KeyboardLayoutPreview
+import java.util.Locale
 
 val TR_MESSAGEASE_MAIN_LAYER = Layer(
     keyRows = listOf(
@@ -90,7 +91,8 @@ val TR_MESSAGEASE_MAIN_LAYER = Layer(
 
 val TR_MESSAGEASE = Layout(
     mainLayer = TR_MESSAGEASE_MAIN_LAYER,
-    controlLayer = CONTROL_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER,
+    locale = Locale("tr", "TR"),
 )
 
 @Composable

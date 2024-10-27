@@ -119,7 +119,7 @@ fun Keyboard(
             derivedStateOf {
                 numericLayer.value.miniLayer(layoutState.value)
                     .mergeFallback(layoutState.value.miniSymbolLayer)
-                    .let { it.setShift(it.autoShift()) }
+                    .let { it.setShift(it.autoShift(layoutState.value.locale)) }
             }
         }
 
@@ -137,7 +137,7 @@ fun Keyboard(
                     mergedFullSizedNumericLayer.value,
                     holdForFallback = true
                 )
-                    .autoShift()
+                    .autoShift(layout.locale)
             )
         return mapOf(
             ShiftState.Normal to mainLayer
@@ -155,7 +155,7 @@ fun Keyboard(
             ShiftState.CapsLock to layout.shiftLayer
                 .mergeFallback(
                     OVERLAY_MESSAGEASE_LAYER
-                        .autoShift()
+                        .autoShift(layout.locale)
                         .mergeFallback(
                             mergedFullSizedNumericLayer.value,
                             holdForFallback = true
@@ -181,7 +181,7 @@ fun Keyboard(
     }
     val controlLayer = remember {
         derivedStateOf {
-            layoutState.value.controlLayer?.let { it.setShift(it.autoShift()) }
+            layoutState.value.controlLayer?.let { it.setShift(it.autoShift(layoutState.value.locale)) }
         }
     }
     val isLandscape = rememberUpdatedState(LocalDisplayLimits.current?.isLandscape ?: false)
@@ -247,7 +247,7 @@ fun Keyboard(
             derivedStateOf {
                 val activeLayer = layersByShiftState.value[modifierState.shift]!!
                 val activeControlLayer = when (modifierState.shift) {
-                    ShiftState.Shift -> controlLayer.value?.autoShift()
+                    ShiftState.Shift -> controlLayer.value?.autoShift(layoutState.value.locale)
                     ShiftState.Normal, ShiftState.CapsLock -> controlLayer.value
                 }
                 val controlSection = when {

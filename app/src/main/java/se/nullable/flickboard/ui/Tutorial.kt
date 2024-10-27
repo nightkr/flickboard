@@ -47,6 +47,7 @@ import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.ui.theme.Typography
+import java.util.Locale
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -281,7 +282,7 @@ fun TutorialKeyStep(
     desiredGesture: Gesture.Flick,
     onGesturePerformed: () -> Unit
 ) {
-    val normalizedKey = key.copy(shift = key.autoShift())
+    val normalizedKey = key.copy(shift = key.autoShift(Locale.ENGLISH))
     val desiredAction = desiredGesture.resolveAction(normalizedKey)
     val handedness = LocalAppSettings.current.handedness.state
 
