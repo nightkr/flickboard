@@ -50,8 +50,8 @@ import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.model.layouts.EN_MESSAGEASE
 import se.nullable.flickboard.model.layouts.OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_LONG_SWIPE_LAYER
-import se.nullable.flickboard.model.layouts.OVERLAY_MESSAGEASE_LAYER
 import se.nullable.flickboard.model.layouts.OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER
+import se.nullable.flickboard.model.layouts.overlayMessageaseLayer
 import se.nullable.flickboard.model.layouts.spacer
 import se.nullable.flickboard.ui.layout.Grid
 import se.nullable.flickboard.util.toOnAccentContainer
@@ -131,9 +131,10 @@ fun Keyboard(
         if (enableToggleShowSymbols.value) {
             mainLayer = mainLayer.mergeFallback(OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER)
         }
+        val overlay = overlayMessageaseLayer(layout.locale)
         val shift = layout.shiftLayer
             .mergeFallback(
-                OVERLAY_MESSAGEASE_LAYER.mergeFallback(
+                overlay.mergeFallback(
                     mergedFullSizedNumericLayer.value,
                     holdForFallback = true
                 )
@@ -142,7 +143,7 @@ fun Keyboard(
         return mapOf(
             ShiftState.Normal to mainLayer
                 .mergeFallback(
-                    OVERLAY_MESSAGEASE_LAYER.mergeFallback(
+                    overlay.mergeFallback(
                         mergedFullSizedNumericLayer.value,
                         holdForFallback = true
                     )
@@ -154,7 +155,7 @@ fun Keyboard(
             // Don't shift numeric layer in caps lock
             ShiftState.CapsLock to layout.shiftLayer
                 .mergeFallback(
-                    OVERLAY_MESSAGEASE_LAYER
+                    overlay
                         .autoShift(layout.locale)
                         .mergeFallback(
                             mergedFullSizedNumericLayer.value,

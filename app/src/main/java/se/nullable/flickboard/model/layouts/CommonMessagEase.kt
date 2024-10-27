@@ -17,6 +17,7 @@ import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.ui.KeyboardLayoutPreview
+import java.util.Locale
 
 val SPACE = KeyM(
     actions = mapOf(
@@ -194,7 +195,7 @@ val CONTROL_MESSAGEASE_LAYER =
         )
     )
 
-val OVERLAY_MESSAGEASE_LAYER = Layer(
+fun overlayMessageaseLayer(locale: Locale) = Layer(
     keyRows = listOf(
         listOf(
             KeyM(actions = mapOf()),
@@ -211,8 +212,14 @@ val OVERLAY_MESSAGEASE_LAYER = Layer(
                 ),
                 transientShift = KeyM(
                     actions = mapOf(
-                        Direction.TOP to Action.ToggleWordCase(CaseChangeDirection.Up),
-                        Direction.BOTTOM to Action.ToggleWordCase(CaseChangeDirection.Down),
+                        Direction.TOP to Action.ToggleWordCase(
+                            CaseChangeDirection.Up,
+                            locale = locale
+                        ),
+                        Direction.BOTTOM to Action.ToggleWordCase(
+                            CaseChangeDirection.Down,
+                            locale = locale
+                        ),
                     )
                 )
             ),

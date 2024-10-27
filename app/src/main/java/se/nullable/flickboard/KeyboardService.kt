@@ -28,8 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.intl.Locale
 import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -577,9 +575,10 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                     currentInputConnection.commitText(newWord, 1)
                                                 }
 
-                                                val lowercase = word.lowercase()
-                                                val titlecase = lowercase.capitalize(Locale.current)
-                                                val uppercase = word.uppercase()
+                                                val lowercase = word.lowercase(action.locale)
+                                                val titlecase =
+                                                    lowercase.replaceFirstChar { it.titlecase(action.locale) }
+                                                val uppercase = word.uppercase(action.locale)
                                                 when (action.direction) {
                                                     CaseChangeDirection.Up -> when (word) {
                                                         uppercase -> {}

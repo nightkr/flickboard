@@ -255,7 +255,7 @@ sealed class Action {
     /**
      * Shift the case for the current word up/down one step (lower <-> Title <-> UPPER )
      */
-    data class ToggleWordCase(val direction: CaseChangeDirection) : Action() {
+    data class ToggleWordCase(val direction: CaseChangeDirection, val locale: Locale) : Action() {
         override fun visual(modifier: ModifierState?): ActionVisual = when (direction) {
             CaseChangeDirection.Up -> ActionVisual.Icon(R.drawable.baseline_keyboard_double_arrow_up_24)
             CaseChangeDirection.Down -> ActionVisual.Icon(R.drawable.baseline_keyboard_double_arrow_down_24)
