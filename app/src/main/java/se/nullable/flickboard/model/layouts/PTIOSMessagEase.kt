@@ -25,7 +25,6 @@ val PT_IOS_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("n"),
-                    Direction.TOP to Action.Text("ñ"),
                     Direction.BOTTOM to Action.Text("l")
                 )
             ),
