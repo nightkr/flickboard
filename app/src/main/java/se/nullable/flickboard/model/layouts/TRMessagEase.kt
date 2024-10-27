@@ -58,6 +58,7 @@ val TR_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
+                    Direction.TOP_LEFT to Action.Text("ı"),
                     Direction.LEFT to Action.Text("m"),
                 )
             ),
