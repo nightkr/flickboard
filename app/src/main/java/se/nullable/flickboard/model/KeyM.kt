@@ -459,7 +459,10 @@ interface Gesture {
         val shift: Boolean
     ) :
         Gesture {
-        override fun toFlick(longHoldOnClockwiseCircle: Boolean): Flick = this
+        override fun toFlick(
+            longHoldOnClockwiseCircle: Boolean,
+            longHoldOnCounterClockwiseCircle: Boolean
+        ): Flick = this
 
         fun resolveAction(key: KeyM): Action? = when {
             longHold -> key.holdAction
@@ -476,9 +479,15 @@ interface Gesture {
     }
 
     data class Circle(val direction: CircleDirection) : Gesture {
-        override fun toFlick(longHoldOnClockwiseCircle: Boolean): Flick {
+        override fun toFlick(
+            longHoldOnClockwiseCircle: Boolean,
+            longHoldOnCounterClockwiseCircle: Boolean
+        ): Flick {
             return when {
                 direction == CircleDirection.Clockwise && longHoldOnClockwiseCircle ->
+                    Flick(Direction.CENTER, longHold = true, longSwipe = false, shift = false)
+
+                direction == CircleDirection.CounterClockwise && longHoldOnCounterClockwiseCircle ->
                     Flick(Direction.CENTER, longHold = true, longSwipe = false, shift = false)
 
                 else -> Flick(Direction.CENTER, longHold = false, longSwipe = false, shift = true)
@@ -486,7 +495,10 @@ interface Gesture {
         }
     }
 
-    fun toFlick(longHoldOnClockwiseCircle: Boolean): Flick
+    fun toFlick(
+        longHoldOnClockwiseCircle: Boolean,
+        longHoldOnCounterClockwiseCircle: Boolean
+    ): Flick
 
     companion object {
         val names = Direction.entries

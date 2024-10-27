@@ -1159,6 +1159,13 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx
     )
 
+    val longHoldOnCounterClockwiseCircle = Setting.Bool(
+        key = "digitOnCounterClockwiseCircle",
+        label = "Type digit on counter-clockwise circle",
+        defaultValue = false,
+        ctx = ctx
+    )
+
     val disabledDeadkeys = Setting.Text(
         key = "disabledDeadkeys",
         label = "Disabled deadkeys",
@@ -1375,6 +1382,7 @@ class AppSettings(val ctx: SettingsContext) {
                     enableAdvancedModifiers,
                     periodOnDoubleSpace,
                     longHoldOnClockwiseCircle,
+                    longHoldOnCounterClockwiseCircle,
                     disabledDeadkeys,
                     swipeThreshold,
                     fastSwipeThreshold,
