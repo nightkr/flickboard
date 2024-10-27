@@ -37,7 +37,7 @@ android {
         minSdk = 28
         targetSdk = 34
         versionCode = 48
-        versionName = "0.1.10"
+        versionName = "0.1.11-beta1"
         archivesName = "flickboard-v${versionName}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
