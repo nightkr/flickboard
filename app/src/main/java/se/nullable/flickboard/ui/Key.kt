@@ -1,9 +1,5 @@
 package se.nullable.flickboard.ui
 
-import android.gesture.GestureLibraries
-import android.gesture.GestureLibrary
-import android.gesture.GesturePoint
-import android.gesture.GestureStroke
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -52,10 +48,8 @@ import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -63,7 +57,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import kotlinx.coroutines.delay
-import se.nullable.flickboard.R
 import se.nullable.flickboard.angle
 import se.nullable.flickboard.averageOf
 import se.nullable.flickboard.direction
@@ -185,22 +178,6 @@ fun Key(
             lastActionIsVisible = false
         }
     }
-    val context = LocalContext.current
-    val view = LocalView.current
-    val gestureLibrary = remember(context, view) {
-        when {
-            // android.gesture is not available in preview mode
-            view.isInEditMode -> null
-            else -> GestureLibraries.fromRawResource(context, R.raw.gestures)
-                .also {
-                    // GestureLibrary.ORIENTATION_STYLE_8
-                    // required for recognizing 8 orientations
-                    // of otherwise equivalent gestures
-                    it.orientationStyle = 8
-                    it.load()
-                }
-        }
-    }
     val onActionModifier = if (onAction != null) {
         fun onGestureStart() {
             if (enableHapticFeedbackOnGestureStart.value) {
@@ -239,7 +216,6 @@ fun Key(
                     onGestureStart = ::onGestureStart,
                     onFastAction = { handleAction(it, isFast = true) },
                     trailListenerState = keyPointerTrailListener,
-                    gestureLibrary = { gestureLibrary },
                     dropLastGesturePoint = { dropLastGesturePoint.value },
                     ignoreJumpsLongerThanPx = { ignoreJumpsLongerThanPx.value },
                     flicksMustBeLongerThanSeconds = { flicksMustBeLongerThanSeconds.value },
@@ -427,9 +403,6 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     onFastAction: OnAction,
     // Passed as state to ensure that it's only grabbed once we have a down event
     trailListenerState: State<KeyPointerTrailListener?>,
-    // HACK: Taking it as a regular argument prevents the function from
-    // being loaded when the type is unavailable
-    gestureLibrary: () -> GestureLibrary?,
     dropLastGesturePoint: () -> Boolean,
     ignoreJumpsLongerThanPx: () -> Float,
     flicksMustBeLongerThanSeconds: () -> Float,
@@ -553,19 +526,6 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                     )
                 }
                 when (gestureRecognizer()) {
-                    GestureRecognizer.Dollar1 -> {
-                        val gesture = android.gesture.Gesture()
-                            .also { g ->
-                                g.addStroke(
-                                    GestureStroke(positions.mapIndexedTo(ArrayList()) { i, pos ->
-                                        GesturePoint(pos.x, pos.y, i.toLong())
-                                    })
-                                )
-                            }
-                        val predictions = gestureLibrary()?.recognize(gesture)
-                        return Gesture.names[predictions?.firstOrNull()?.name]
-                    }
-
                     GestureRecognizer.Default -> {
                         val circleDirection: CircleDirection? = shapeLooksLikeCircle(
                             positions,
