@@ -141,6 +141,7 @@ fun SettingsHomePage(
     onNavigateToSection: (SettingsSection) -> Unit,
     onNavigateToTutorial: () -> Unit,
     onNavigateToBetaMenu: () -> Unit,
+    onNavigateToDescriber: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val appSettings = LocalAppSettings.current
@@ -161,6 +162,13 @@ fun SettingsHomePage(
                     onClick = onNavigateToTutorial,
                     icon = painterResource(R.drawable.baseline_checklist_24),
                     label = "Tutorial"
+                )
+            }
+            item {
+                MenuPageLink(
+                    onClick = onNavigateToDescriber,
+                    icon = painterResource(R.drawable.baseline_help_24),
+                    label = "What Does This Do?"
                 )
             }
             item {
@@ -722,6 +730,7 @@ fun SettingsHomePreview() {
                 onNavigateToSection = {},
                 onNavigateToTutorial = {},
                 onNavigateToBetaMenu = {},
+                onNavigateToDescriber = {}
             )
         }
     }

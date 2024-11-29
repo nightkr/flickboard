@@ -128,6 +128,10 @@ data class KeyM(
 
 sealed class Action {
     abstract fun visual(modifier: ModifierState?): ActionVisual
+
+    // FIXME: make title and description abstract before releasing
+    open val title: String = "(TODO title)"
+    open val description: String = "(TODO description)"
     open fun isActive(modifier: ModifierState?): Boolean = false
     open val actionClass = ActionClass.Other
     open val fastActionType: FastActionType? = null
@@ -150,6 +154,15 @@ sealed class Action {
                 else -> visualOverride ?: ActionVisual.Label(character)
             }
 
+        private val characterName = when (character) {
+            " " -> "space"
+            "\t" -> "tab"
+            else -> character
+        }
+        override val title: String = "Type $characterName"
+        override val description: String =
+            "Types the character $characterName into the active text field."
+
         override val actionClass: ActionClass = when {
             character.isBlank() -> ActionClass.Other
             character.all { it.isDigit() } -> ActionClass.Number
@@ -171,6 +184,26 @@ sealed class Action {
         override fun visual(modifier: ModifierState?): ActionVisual = when {
             hidden -> ActionVisual.None
             else -> ActionVisual.Icon(R.drawable.baseline_backspace_24)
+        }
+
+        override fun withHidden(hidden: Boolean): Action = copy(hidden = hidden)
+
+        override val title: String = run {
+            val actionName = when (direction) {
+                SearchDirection.Backwards -> "Backspace"
+                SearchDirection.Forwards -> "Delete"
+            }
+            when {
+                boundary == TextBoundary.Character -> actionName
+                else -> "$actionName ${boundary.nameInSentence}"
+            }
+        }
+        override val description: String = run {
+            val directionName = when (direction) {
+                SearchDirection.Backwards -> "previous"
+                SearchDirection.Forwards -> "next"
+            }
+            "Deletes the $directionName ${boundary.nameInSentence}."
         }
 
         override fun shift(locale: Locale): Action = copy(boundary = TextBoundary.Word)
@@ -420,10 +453,10 @@ sealed class ActionVisual {
     data object None : ActionVisual()
 }
 
-enum class TextBoundary {
-    Character,
-    Word,
-    Line;
+enum class TextBoundary(val nameInSentence: String) {
+    Character(nameInSentence = "character"),
+    Word(nameInSentence = "word"),
+    Line(nameInSentence = "line");
 
     fun breakIterator(): BreakIterator = when (this) {
         Character -> BreakIterator.getCharacterInstance()

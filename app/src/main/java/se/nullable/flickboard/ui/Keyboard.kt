@@ -69,6 +69,7 @@ fun Keyboard(
     onModifierStateUpdated: (ModifierState) -> Unit = {},
     showAllModifiers: Boolean = false,
     overrideEnabledLayers: EnabledLayers? = null,
+    allowFastActions: Boolean = true,
 ) {
     val context = LocalContext.current
     val appSettings = LocalAppSettings.current
@@ -401,6 +402,7 @@ fun Keyboard(
                                 enterKeyLabel = enterKeyLabel,
                                 keyPointerTrailListener = keyPointerTrailListener,
                                 layoutTextDirection = layout.textDirection,
+                                allowFastActions = allowFastActions,
                             )
                         }
                     }
@@ -417,6 +419,7 @@ fun ConfiguredKeyboard(
     enterKeyLabel: String? = null,
     onModifierStateUpdated: (ModifierState) -> Unit = {},
     overrideEnabledLayers: EnabledLayers? = null,
+    allowFastActions: Boolean = true,
 ) {
     val appSettings = LocalAppSettings.current
     val enabledLetterLayers = appSettings.letterLayers.state.value
@@ -429,6 +432,7 @@ fun ConfiguredKeyboard(
         enterKeyLabel = enterKeyLabel,
         onModifierStateUpdated = onModifierStateUpdated,
         overrideEnabledLayers = overrideEnabledLayers,
+        allowFastActions = allowFastActions,
     )
 }
 

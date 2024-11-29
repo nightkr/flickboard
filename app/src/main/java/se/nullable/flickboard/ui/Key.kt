@@ -94,6 +94,7 @@ fun Key(
     enterKeyLabel: String? = null,
     keyPointerTrailListener: State<KeyPointerTrailListener?> = remember { mutableStateOf(null) },
     layoutTextDirection: TextDirection,
+    allowFastActions: Boolean = true,
 ) {
     if (!key.rendered) {
         Box(modifier)
@@ -211,7 +212,7 @@ fun Key(
                     circleDiscontinuityThreshold = { circleDiscontinuityThreshold.value },
                     circleAngleThreshold = { circleAngleThreshold.value },
                     gestureRecognizer = { gestureRecognizer.value },
-                    fastActions = key.fastActions.takeIf { enableFastActions.value }
+                    fastActions = key.fastActions.takeIf { enableFastActions.value && allowFastActions }
                         ?: emptyMap(),
                     onGestureStart = ::onGestureStart,
                     onFastAction = { handleAction(it, isFast = true) },
@@ -258,7 +259,7 @@ fun Key(
                         action.isModifier -> actionModifier.unrestrictedWidth()
                         else -> actionModifier
                     }
-                    KeyActionIndicator(
+                    RenderActionVisual(
                         action,
                         enterKeyLabel = enterKeyLabel,
                         modifiers = modifierState,
@@ -299,7 +300,7 @@ fun KeyActionTakenIndicator(
 ) {
     Surface(color = surfaceColour, shape = shape, modifier = modifier) {
         Box(Modifier.fillMaxSize()) {
-            KeyActionIndicator(
+            RenderActionVisual(
                 action = action.withHidden(false),
                 enterKeyLabel = enterKeyLabel,
                 modifiers = null,
@@ -314,7 +315,7 @@ fun KeyActionTakenIndicator(
 }
 
 @Composable
-fun KeyActionIndicator(
+fun RenderActionVisual(
     action: Action,
     enterKeyLabel: String?,
     modifiers: ModifierState?,

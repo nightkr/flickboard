@@ -1,9 +1,16 @@
 package se.nullable.flickboard.ui.theme
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 // Set of Material typography styles to start with
@@ -14,7 +21,7 @@ val Typography = Typography(
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
-    )
+    ),
     /* Other default text styles to override
     titleLarge = TextStyle(
         fontFamily = FontFamily.Default,
@@ -32,3 +39,32 @@ val Typography = Typography(
     )
     */
 )
+
+@Composable
+fun Title(text: String) {
+    Text(
+        text,
+        style = Typography.titleLarge,
+        modifier = Modifier
+            .padding(8.dp)
+            .padding(top = 16.dp)
+    )
+}
+
+@Composable
+fun SubTitle(text: String) {
+    Text(
+        text,
+        style = Typography.titleMedium,
+    )
+}
+
+@Composable
+fun BodyPlaceholder(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+        modifier = modifier
+    )
+}
