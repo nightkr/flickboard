@@ -131,6 +131,7 @@ sealed class Action {
 
     abstract val title: String
     abstract val description: String
+    open val showAsRelatedInHelp: Boolean = true
 
     open fun isActive(modifier: ModifierState?): Boolean = false
     open val actionClass = ActionClass.Other
@@ -285,6 +286,7 @@ sealed class Action {
         override val title: String = "Jump To ${direction.nextOrPrevInTitle} Line"
         override val description: String =
             "Moves the cursor to the ${direction.nextOrPrevInSentence} line."
+        override val showAsRelatedInHelp: Boolean = !rawEvent
 
         override fun shift(locale: Locale): Action = copy(rawEvent = true)
     }
@@ -371,8 +373,8 @@ sealed class Action {
 
         override val title: String = "Toggle Zalgo Modifier"
         override val description: String =
-            "If enabled, the next typed character will be be combined into the previous (if supported)." +
-                    " For example, c-zalgo-¨ becomes c̈, and a-zalgo-e becomes æ."
+            "If enabled, the next typed character will be be combined into the previous (if supported).\n" +
+                    "For example, c-zalgo-¨ becomes c̈, and a-zalgo-e becomes æ."
 
         override fun isActive(modifier: ModifierState?): Boolean = modifier?.zalgo ?: false
     }
@@ -611,6 +613,30 @@ enum class Direction {
     TOP_LEFT, TOP, TOP_RIGHT,
     LEFT, CENTER, RIGHT,
     BOTTOM_LEFT, BOTTOM, BOTTOM_RIGHT;
+
+    fun title(): String = when (this) {
+        TOP_LEFT -> "Northwest"
+        TOP -> "North"
+        TOP_RIGHT -> "Northeast"
+        LEFT -> "West"
+        CENTER -> "Tap"
+        RIGHT -> "East"
+        BOTTOM_LEFT -> "Southwest"
+        BOTTOM -> "South"
+        BOTTOM_RIGHT -> "Southeast"
+    }
+
+    fun angleFromTop(): Int = when (this) {
+        TOP -> 0
+        TOP_RIGHT -> 45
+        RIGHT -> 90
+        BOTTOM_RIGHT -> 135
+        BOTTOM -> 180
+        BOTTOM_LEFT -> 225
+        LEFT -> 270
+        TOP_LEFT -> 315
+        CENTER -> 0
+    }
 
     fun isCorner(): Boolean = when (this) {
         TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT -> true

@@ -2,6 +2,7 @@ package se.nullable.flickboard.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -19,13 +20,21 @@ import androidx.compose.ui.unit.dp
 import se.nullable.flickboard.R
 
 @Composable
-fun MenuPageLink(onClick: () -> Unit, icon: Painter, label: String, modifier: Modifier = Modifier) {
+fun MenuPageLink(
+    onClick: () -> Unit,
+    icon: Painter?,
+    label: String,
+    modifier: Modifier = Modifier,
+    iconModifier: Modifier = Modifier,
+) {
     Box(modifier.clickable(onClick = onClick)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(8.dp)
         ) {
-            Icon(icon, null)
+            if (icon != null) {
+                Icon(icon, contentDescription = null, iconModifier)
+            }
             Text(
                 label,
                 Modifier
@@ -41,10 +50,17 @@ fun MenuPageLink(onClick: () -> Unit, icon: Painter, label: String, modifier: Mo
 @Preview
 fun MenuPageLinkPreview() {
     Surface {
-        MenuPageLink(
-            onClick = {},
-            icon = painterResource(R.drawable.baseline_image_search_24),
-            label = "Section"
-        )
+        Column {
+            MenuPageLink(
+                onClick = {},
+                icon = painterResource(R.drawable.baseline_image_search_24),
+                label = "Section"
+            )
+            MenuPageLink(
+                onClick = {},
+                icon = null,
+                label = "Section"
+            )
+        }
     }
 }
