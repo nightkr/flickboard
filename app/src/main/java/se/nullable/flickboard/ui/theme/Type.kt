@@ -52,10 +52,11 @@ fun Title(text: String) {
 }
 
 @Composable
-fun SubTitle(text: String) {
+fun SubTitle(text: String, modifier: Modifier = Modifier) {
     Text(
         text,
         style = Typography.titleMedium,
+        modifier = modifier,
     )
 }
 

@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -101,6 +102,13 @@ fun ActionDescription(
     onNavigateBack: (() -> Unit)?,
     onNavigateToAction: (Action) -> Unit
 ) {
+    data class RelatedAction(
+        val action: Action,
+        val icon: Painter,
+        val label: String,
+        val iconModifier: Modifier = Modifier,
+    )
+
     if (action != null) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -132,32 +140,33 @@ fun ActionDescription(
                     longHoldOnCounterClockwiseCircle = false,
                 )
                 val fastAction = key?.fastActions?.get(flick.direction)
+                val relatedActions = mutableListOf<RelatedAction>()
                 if (fastAction != null) {
-                    MenuPageLink(
-                        onClick = {
-                            onNavigateToAction(fastAction)
-                        },
-                        icon = painterResource(R.drawable.baseline_speed_24),
-                        label = "Fast Action: ${fastAction.title}"
+                    relatedActions.add(
+                        RelatedAction(
+                            fastAction,
+                            painterResource(R.drawable.baseline_speed_24),
+                            "Fast Action"
+                        )
                     )
                 }
                 val shiftAction = key?.shift?.actions?.get(flick.direction)
                 if (shiftAction != null && shiftAction != action && shiftAction.showAsRelatedInHelp) {
-                    MenuPageLink(
-                        onClick = {
-                            onNavigateToAction(shiftAction)
-                        },
-                        icon = painterResource(R.drawable.baseline_rotate_right_24),
-                        label = "Shift: ${shiftAction.title}"
+                    relatedActions.add(
+                        RelatedAction(
+                            shiftAction,
+                            painterResource(R.drawable.baseline_rotate_right_24),
+                            "Shift"
+                        )
                     )
                 }
                 if (gesture == Gesture.Tap && key?.holdAction != null) {
-                    MenuPageLink(
-                        onClick = {
-                            onNavigateToAction(key.holdAction)
-                        },
-                        icon = painterResource(R.drawable.baseline_file_download_24),
-                        label = "Hold: ${key.holdAction.title}"
+                    relatedActions.add(
+                        RelatedAction(
+                            key.holdAction,
+                            painterResource(R.drawable.baseline_file_download_24),
+                            "Hold"
+                        )
                     )
                 }
                 if (flick.direction == Direction.CENTER) {
@@ -167,6 +176,16 @@ fun ActionDescription(
                             // Only show otherwise hidden icons
                             (swipeAction.isHiddenAction || swipeAction.visual(null) == ActionVisual.None)
                         ) {
+                            relatedActions.add(
+                                RelatedAction(
+                                    swipeAction,
+                                    painterResource(R.drawable.baseline_swipe_up_alt_24),
+                                    direction.title(),
+                                    iconModifier = Modifier.rotate(
+                                        direction.angleFromTop().toFloat()
+                                    ),
+                                )
+                            )
                             MenuPageLink(
                                 onClick = {
                                     onNavigateToAction(swipeAction)
@@ -176,6 +195,19 @@ fun ActionDescription(
                                 iconModifier = Modifier.rotate(direction.angleFromTop().toFloat()),
                             )
                         }
+                    }
+                }
+                if (relatedActions.isNotEmpty()) {
+                    SubTitle("Related gestures:", Modifier.padding(top = 8.dp))
+                    relatedActions.forEach { relatedAction ->
+                        MenuPageLink(
+                            onClick = {
+                                onNavigateToAction(relatedAction.action)
+                            },
+                            icon = relatedAction.icon,
+                            iconModifier = relatedAction.iconModifier,
+                            label = "${relatedAction.label}: ${relatedAction.action.title}",
+                        )
                     }
                 }
             }
