@@ -186,7 +186,7 @@ fun Key(
             }
         }
 
-        fun handleAction(action: Action, isFast: Boolean): Boolean {
+        fun handleAction(action: Action, gesture: Gesture?, isFast: Boolean): Boolean {
             if (enableHapticFeedbackOnGestureSuccess.value || (isFast && enableHapticFeedbackOnGestureStart.value)) {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             }
@@ -195,7 +195,7 @@ fun Key(
                     lastActionTaken = TakenAction(action)
                 }
             }
-            return onAction(action)
+            return onAction.onAction(action, key, gesture)
         }
         Modifier.pointerInput(key) {
             awaitEachGesture {
@@ -215,7 +215,13 @@ fun Key(
                     fastActions = key.fastActions.takeIf { enableFastActions.value && allowFastActions }
                         ?: emptyMap(),
                     onGestureStart = ::onGestureStart,
-                    onFastAction = { handleAction(it, isFast = true) },
+                    onFastAction = { action ->
+                        handleAction(
+                            action,
+                            gesture = null,
+                            isFast = true
+                        )
+                    },
                     trailListenerState = keyPointerTrailListener,
                     dropLastGesturePoint = { dropLastGesturePoint.value },
                     ignoreJumpsLongerThanPx = { ignoreJumpsLongerThanPx.value },
@@ -226,7 +232,7 @@ fun Key(
                             longHoldOnClockwiseCircle = key.holdAction != null && longHoldOnClockwiseCircle.value,
                             longHoldOnCounterClockwiseCircle = key.holdAction != null && longHoldOnCounterClockwiseCircle.value,
                         )
-                    flick.resolveAction(key)?.let { handleAction(it, isFast = false) }
+                    flick.resolveAction(key)?.let { handleAction(it, gesture, isFast = false) }
                 }
             }
         }
@@ -401,7 +407,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     gestureRecognizer: () -> GestureRecognizer,
     fastActions: Map<Direction, Action>,
     onGestureStart: () -> Unit,
-    onFastAction: OnAction,
+    onFastAction: (Action) -> Boolean,
     // Passed as state to ensure that it's only grabbed once we have a down event
     trailListenerState: State<KeyPointerTrailListener?>,
     dropLastGesturePoint: () -> Boolean,
@@ -519,12 +525,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                     System.nanoTime() - gestureStartedAtNanos <
                     flicksMustBeLongerThanSeconds() * 10.toDouble().pow(9)
                 ) {
-                    return Gesture.Flick(
-                        direction = Direction.CENTER,
-                        longHold = false,
-                        longSwipe = false,
-                        shift = false
-                    )
+                    return Gesture.Tap
                 }
                 when (gestureRecognizer()) {
                     GestureRecognizer.Default -> {
@@ -663,8 +664,8 @@ fun KeyPreview() {
                             Direction.BOTTOM_RIGHT to Action.Text(character = "I"),
                         )
                     ),
-                    onAction = {
-                        lastAction = it
+                    onAction = { action, _, _ ->
+                        lastAction = action
                         true
                     },
                     layoutTextDirection = TextDirection.LeftToRight,

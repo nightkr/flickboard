@@ -69,7 +69,10 @@ fun EmojiKeyboard(onAction: OnAction) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
         ) {
-            Button(onClick = { onAction(Action.ToggleEmojiMode) }, Modifier.padding(8.dp)) {
+            Button(
+                onClick = { onAction.onAction(Action.ToggleEmojiMode, key = null, gesture = null) },
+                Modifier.padding(8.dp)
+            ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, "Return to keyboard")
             }
             // Ideally this would be a ScrollableTabRow, but it enforces a massive minimum width
@@ -109,7 +112,10 @@ fun EmojiKeyboard(onAction: OnAction) {
                     )
                 }
             }
-            Button(onClick = { onAction(Action.Delete()) }, Modifier.padding(8.dp)) {
+            Button(
+                onClick = { onAction.onAction(Action.Delete(), key = null, gesture = null) },
+                Modifier.padding(8.dp)
+            ) {
                 Icon(painterResource(R.drawable.baseline_backspace_24), "Backspace")
             }
         }
@@ -145,7 +151,7 @@ fun EmojiKeyboard(onAction: OnAction) {
                                         ?: history
                                 }
                     }
-                    onAction(Action.Text(primaryVariant))
+                    onAction.onAction(Action.Text(primaryVariant), key = null, gesture = null)
                 }) {
                     Text(
                         primaryVariant,
@@ -181,7 +187,7 @@ fun NarrowTab(selected: Boolean, onClick: () -> Unit, icon: @Composable () -> Un
 @Composable
 @Preview
 fun EmojiKeyboardPreview() {
-    EmojiKeyboard(onAction = { true })
+    EmojiKeyboard(onAction = { _, _, _ -> true })
 }
 
 sealed class EmojiTab {

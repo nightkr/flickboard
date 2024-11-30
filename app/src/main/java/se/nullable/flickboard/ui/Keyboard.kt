@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import kotlinx.coroutines.delay
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.model.Gesture
+import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ModifierState
@@ -58,7 +60,11 @@ import se.nullable.flickboard.util.toOnAccentContainer
 import java.io.IOException
 
 // Returns false if action could not be processed
-typealias OnAction = (Action) -> Boolean
+//typealias OnAction = (Action, KeyM?, Gesture?) -> Boolean
+fun interface OnAction {
+    // Returns false if action could not be processed
+    fun onAction(action: Action, key: KeyM?, gesture: Gesture?): Boolean
+}
 
 @Composable
 fun Keyboard(
@@ -373,8 +379,8 @@ fun Keyboard(
                             }
                             Key(
                                 key,
-                                onAction = onAction?.let { onAction ->
-                                    { action ->
+                                onAction = onAction?.let { wrappedOnAction ->
+                                    { action, key, gesture ->
                                         modifierState = when (action) {
                                             is Action.ToggleShift -> modifierState.copy(shift = action.state)
                                             Action.ToggleCtrl -> modifierState.copy(ctrl = !modifierState.ctrl)
@@ -388,7 +394,7 @@ fun Keyboard(
                                                 else -> modifierState.next()
                                             }
                                         }
-                                        onAction(action)
+                                        wrappedOnAction.onAction(action, key, gesture)
                                     }
                                 },
                                 modifierState = modifierState.takeUnless { showAllModifiers },
@@ -439,7 +445,10 @@ fun ConfiguredKeyboard(
 @Composable
 fun KeyboardLayoutPreview(layout: Layout, showAllModifiers: Boolean = false) {
     FlickBoardParent {
-        Keyboard(layout = layout, showAllModifiers = showAllModifiers, onAction = { true })
+        Keyboard(
+            layout = layout,
+            showAllModifiers = showAllModifiers,
+            onAction = { _, _, _ -> true })
     }
 }
 
@@ -454,8 +463,8 @@ fun KeyboardPreview() {
                 Row {
                     Text(text = "Tapped: $lastAction")
                 }
-                ConfiguredKeyboard(onAction = {
-                    lastAction = it
+                ConfiguredKeyboard(onAction = { action, _, _ ->
+                    lastAction = action
                     true
                 })
             }
@@ -475,8 +484,8 @@ fun PlayKeyboardPreview() {
                     appSettings.keyHeight.writeTo(this, 128F)
                 }
             }) {
-                ConfiguredKeyboard(onAction = {
-                    lastAction = it
+                ConfiguredKeyboard(onAction = { action, _, _ ->
+                    lastAction = action
                     true
                 })
             }

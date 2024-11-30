@@ -49,6 +49,7 @@ import se.nullable.flickboard.ui.EnabledLayers
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.ui.LocalDisplayLimits
+import se.nullable.flickboard.ui.OnAction
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
 import se.nullable.flickboard.ui.voice.getVoiceInputId
@@ -210,7 +211,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 val periodOnDoubleSpace = appSettings.periodOnDoubleSpace.state
                                 val disabledDeadkeys = appSettings.disabledDeadkeys.state
                                 val displayLimits = LocalDisplayLimits.current
-                                val onAction: (Action) -> Boolean = { action ->
+                                val onAction = OnAction { action, _, _ ->
                                     warningMessageScope.launch {
                                         warningSnackbarHostState.currentSnackbarData?.dismiss()
                                     }

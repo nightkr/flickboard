@@ -55,8 +55,8 @@ fun KeyboardDescriber(modifier: Modifier = Modifier, initialAction: Action? = nu
             }
         }
         ConfiguredKeyboard(
-            onAction = {
-                selectedAction.value = it
+            onAction = { action, _, _ ->
+                selectedAction.value = action
                 true
             },
             allowFastActions = false,
