@@ -1,9 +1,9 @@
 package se.nullable.flickboard.ui.help
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -57,30 +57,31 @@ fun KeyboardDescriber(modifier: Modifier = Modifier, initialAction: Action? = nu
     }
     val scrollState = rememberScrollState()
     Column(modifier) {
-        Spacer(Modifier.weight(1F))
-        Surface(
-            Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-            color = MaterialTheme.colorScheme.surfaceContainer,
-        ) {
-            Column(
+        Column(Modifier.weight(1F), verticalArrangement = Arrangement.Bottom) {
+            Surface(
                 Modifier
-                    .verticalScroll(scrollState)
-                    .fillMaxWidth()
-                    .padding(8.dp)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer,
             ) {
-                val action = selectedActionStack.firstOrNull()
-                ActionDescription(
-                    action = action?.first,
-                    key = action?.second,
-                    gesture = action?.third,
-                    onNavigateBack = when {
-                        selectedActionStack.size > 1 -> ({ selectedActionStack.removeAt(0) })
-                        else -> null
-                    },
-                    onNavigateToAction = { selectedActionStack.add(0, Triple(it, null, null)) },
-                )
+                Column(
+                    Modifier
+                        .verticalScroll(scrollState)
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                ) {
+                    val action = selectedActionStack.firstOrNull()
+                    ActionDescription(
+                        action = action?.first,
+                        key = action?.second,
+                        gesture = action?.third,
+                        onNavigateBack = when {
+                            selectedActionStack.size > 1 -> ({ selectedActionStack.removeAt(0) })
+                            else -> null
+                        },
+                        onNavigateToAction = { selectedActionStack.add(0, Triple(it, null, null)) },
+                    )
+                }
             }
         }
         ConfiguredKeyboard(
