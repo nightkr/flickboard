@@ -34,6 +34,7 @@ import se.nullable.flickboard.model.ActionVisual
 import se.nullable.flickboard.model.Direction
 import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
+import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.model.TextDirection
@@ -175,7 +176,7 @@ fun ActionDescription(
                         if (
                             direction != Direction.CENTER &&
                             // Only show otherwise hidden icons
-                            (swipeAction.isHiddenAction || swipeAction.visual(null) == ActionVisual.None)
+                            swipeAction.visual(ModifierState()) == ActionVisual.None
                         ) {
                             relatedActions.add(
                                 RelatedAction(
