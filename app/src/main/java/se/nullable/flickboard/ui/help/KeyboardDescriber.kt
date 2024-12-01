@@ -36,6 +36,7 @@ import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.SearchDirection
+import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.ui.ConfiguredKeyboard
@@ -80,7 +81,12 @@ fun KeyboardDescriber(modifier: Modifier = Modifier, initialAction: Action? = nu
                             selectedActionStack.size > 1 -> ({ selectedActionStack.removeAt(0) })
                             else -> null
                         },
-                        onNavigateToAction = { selectedActionStack.add(0, Triple(it, null, null)) },
+                        onNavigateToAction = { action, key, gesture ->
+                            selectedActionStack.add(
+                                0,
+                                Triple(action, key, gesture)
+                            )
+                        },
                     )
                 }
             }
@@ -103,13 +109,15 @@ fun ActionDescription(
     key: KeyM?,
     gesture: Gesture?,
     onNavigateBack: (() -> Unit)?,
-    onNavigateToAction: (Action) -> Unit
+    onNavigateToAction: (Action, KeyM?, Gesture?) -> Unit
 ) {
     data class RelatedAction(
         val action: Action,
         val icon: Painter,
         val label: String,
         val iconModifier: Modifier = Modifier,
+        val gesture: Gesture?,
+        val sameKey: Boolean = gesture != null,
     )
 
     if (action != null) {
@@ -149,7 +157,18 @@ fun ActionDescription(
                         RelatedAction(
                             fastAction,
                             painterResource(R.drawable.baseline_speed_24),
-                            "Fast Action"
+                            "Fast Action",
+                            gesture = flick,
+                        )
+                    )
+                }
+                if (flick.shift) {
+                    relatedActions.add(
+                        RelatedAction(
+                            Action.ToggleShift(ShiftState.Shift),
+                            painterResource(R.drawable.baseline_arrow_drop_up_24),
+                            "Reach",
+                            gesture = null,
                         )
                     )
                 }
@@ -159,7 +178,8 @@ fun ActionDescription(
                         RelatedAction(
                             shiftAction,
                             painterResource(R.drawable.baseline_rotate_right_24),
-                            "Shift"
+                            "Shift",
+                            gesture = flick.copy(shift = true),
                         )
                     )
                 }
@@ -168,12 +188,17 @@ fun ActionDescription(
                         RelatedAction(
                             key.holdAction,
                             painterResource(R.drawable.baseline_file_download_24),
-                            "Hold"
+                            "Hold",
+                            gesture = flick.copy(longHold = true),
                         )
                     )
                 }
                 if (flick.direction == Direction.CENTER) {
-                    key?.actions?.forEach { (direction, swipeAction) ->
+                    val flickKey = when {
+                        flick.shift -> key?.shift
+                        else -> key
+                    }
+                    flickKey?.actions?.forEach { (direction, swipeAction) ->
                         if (
                             direction != Direction.CENTER &&
                             // Only show otherwise hidden icons
@@ -187,15 +212,8 @@ fun ActionDescription(
                                     iconModifier = Modifier.rotate(
                                         direction.angleFromTop().toFloat()
                                     ),
+                                    gesture = flick.copy(direction = direction),
                                 )
-                            )
-                            MenuPageLink(
-                                onClick = {
-                                    onNavigateToAction(swipeAction)
-                                },
-                                icon = painterResource(R.drawable.baseline_swipe_up_alt_24),
-                                label = "${direction.title()}: ${swipeAction.title}",
-                                iconModifier = Modifier.rotate(direction.angleFromTop().toFloat()),
                             )
                         }
                     }
@@ -205,7 +223,11 @@ fun ActionDescription(
                     relatedActions.forEach { relatedAction ->
                         MenuPageLink(
                             onClick = {
-                                onNavigateToAction(relatedAction.action)
+                                onNavigateToAction(
+                                    relatedAction.action,
+                                    key.takeIf { relatedAction.sameKey },
+                                    relatedAction.gesture
+                                )
                             },
                             icon = relatedAction.icon,
                             iconModifier = relatedAction.iconModifier,
