@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import kotlinx.coroutines.delay
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.model.ActionClass
 import se.nullable.flickboard.model.Gesture
 import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
@@ -76,6 +77,7 @@ fun Keyboard(
     showAllModifiers: Boolean = false,
     overrideEnabledLayers: EnabledLayers? = null,
     allowFastActions: Boolean = true,
+    allowHideSettings: Boolean = true,
 ) {
     val context = LocalContext.current
     val appSettings = LocalAppSettings.current
@@ -96,7 +98,10 @@ fun Keyboard(
     val handedness = appSettings.handedness.state
     val backgroundOpacity = appSettings.backgroundOpacity.state
     val enablePointerTrail = appSettings.enablePointerTrail.state
-    val shownActionClasses = appSettings.shownActionClasses
+    val shownActionClasses = when {
+        allowHideSettings -> appSettings.shownActionClasses
+        else -> remember { derivedStateOf { ActionClass.entries.toSet() } }
+    }
     val enableHiddenActions = appSettings.enableHiddenActions.state
     val enableAdvancedModifiers = appSettings.enableAdvancedModifiers.state
     val enableToggleShowSymbols = appSettings.enableToggleShowSymbolsGesture.state
@@ -426,6 +431,7 @@ fun ConfiguredKeyboard(
     onModifierStateUpdated: (ModifierState) -> Unit = {},
     overrideEnabledLayers: EnabledLayers? = null,
     allowFastActions: Boolean = true,
+    allowHideSettings: Boolean = true,
 ) {
     val appSettings = LocalAppSettings.current
     val enabledLetterLayers = appSettings.letterLayers.state.value
@@ -439,6 +445,7 @@ fun ConfiguredKeyboard(
         onModifierStateUpdated = onModifierStateUpdated,
         overrideEnabledLayers = overrideEnabledLayers,
         allowFastActions = allowFastActions,
+        allowHideSettings = allowHideSettings,
     )
 }
 

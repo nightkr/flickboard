@@ -92,6 +92,7 @@ fun KeyboardDescriber(modifier: Modifier = Modifier, initialAction: Action? = nu
                 true
             },
             allowFastActions = false,
+            allowHideSettings = false,
         )
     }
 }
