@@ -1,5 +1,13 @@
 package se.nullable.flickboard.ui.help
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -72,22 +80,52 @@ fun KeyboardDescriber(modifier: Modifier = Modifier, initialAction: Action? = nu
                         .fillMaxWidth()
                         .padding(8.dp)
                 ) {
-                    val action = selectedActionStack.firstOrNull()
-                    ActionDescription(
-                        action = action?.first,
-                        key = action?.second,
-                        gesture = action?.third,
-                        onNavigateBack = when {
-                            selectedActionStack.size > 1 -> ({ selectedActionStack.removeAt(0) })
-                            else -> null
+                    AnimatedContent(
+                        Triple(
+                            selectedActionStack.firstOrNull(),
+                            selectedActionStack.lastOrNull(),
+                            selectedActionStack.size,
+                        ),
+                        transitionSpec = {
+                            val (_, targetBase, targetStackSize) = targetState
+                            val (_, initialBase, initialStackSize) = initialState
+                            when {
+                                targetBase != initialBase ->
+                                    // Default transition
+                                    (fadeIn(animationSpec = tween(220, delayMillis = 90)) +
+                                            scaleIn(
+                                                initialScale = 0.92f,
+                                                animationSpec = tween(220, delayMillis = 90)
+                                            ))
+                                        .togetherWith(fadeOut(animationSpec = tween(90)))
+
+                                targetStackSize >= initialStackSize ->
+                                    slideInHorizontally { width -> width } + fadeIn() togetherWith
+                                            slideOutHorizontally { width -> -width } + fadeOut()
+
+                                else ->
+                                    slideInHorizontally { width -> -width } + fadeIn() togetherWith
+                                            slideOutHorizontally { width -> width } + fadeOut()
+                            }
                         },
-                        onNavigateToAction = { action, key, gesture ->
-                            selectedActionStack.add(
-                                0,
-                                Triple(action, key, gesture)
-                            )
-                        },
-                    )
+                        label = "action description"
+                    ) { (action, _, stackSize) ->
+                        ActionDescription(
+                            action = action?.first,
+                            key = action?.second,
+                            gesture = action?.third,
+                            onNavigateBack = when {
+                                stackSize > 1 -> ({ selectedActionStack.removeAt(0) })
+                                else -> null
+                            },
+                            onNavigateToAction = { action, key, gesture ->
+                                selectedActionStack.add(
+                                    0,
+                                    Triple(action, key, gesture)
+                                )
+                            },
+                        )
+                    }
                 }
             }
         }
