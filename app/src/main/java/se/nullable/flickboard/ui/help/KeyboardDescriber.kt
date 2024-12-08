@@ -8,7 +8,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -163,11 +163,12 @@ fun ActionDescription(
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (onNavigateBack != null) {
-                    Icon(
-                        painterResource(R.drawable.baseline_arrow_back_24),
-                        contentDescription = "Back",
-                        Modifier.clickable { onNavigateBack() }
-                    )
+                    IconButton(onClick = { onNavigateBack() }) {
+                        Icon(
+                            painterResource(R.drawable.baseline_arrow_back_24),
+                            contentDescription = "Back",
+                        )
+                    }
                 }
                 RenderActionVisual(
                     action.withHidden(false),
