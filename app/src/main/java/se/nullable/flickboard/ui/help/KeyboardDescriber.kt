@@ -190,6 +190,7 @@ fun ActionDescription(
                 )
                 val fastAction = key?.fastActions?.get(flick.direction)
                 val relatedActions = mutableListOf<RelatedAction>()
+                val withModifiers = mutableListOf<RelatedAction>()
                 if (fastAction != null) {
                     relatedActions.add(
                         RelatedAction(
@@ -200,19 +201,9 @@ fun ActionDescription(
                         )
                     )
                 }
-                if (flick.shift) {
-                    relatedActions.add(
-                        RelatedAction(
-                            Action.ToggleShift(ShiftState.Shift),
-                            painterResource(R.drawable.baseline_arrow_drop_up_24),
-                            "Reach",
-                            gesture = null,
-                        )
-                    )
-                }
                 val shiftAction = key?.shift?.actions?.get(flick.direction)
                 if (shiftAction != null && shiftAction != action && shiftAction.showAsRelatedInHelp) {
-                    relatedActions.add(
+                    withModifiers.add(
                         RelatedAction(
                             shiftAction,
                             painterResource(R.drawable.baseline_rotate_right_24),
@@ -222,12 +213,22 @@ fun ActionDescription(
                     )
                 }
                 if (gesture == Gesture.Tap && key?.holdAction != null) {
-                    relatedActions.add(
+                    withModifiers.add(
                         RelatedAction(
                             key.holdAction,
                             painterResource(R.drawable.baseline_file_download_24),
                             "Hold",
                             gesture = flick.copy(longHold = true),
+                        )
+                    )
+                }
+                if (flick.shift) {
+                    relatedActions.add(
+                        RelatedAction(
+                            Action.ToggleShift(ShiftState.Shift),
+                            painterResource(R.drawable.baseline_arrow_drop_up_24),
+                            "Reach",
+                            gesture = null,
                         )
                     )
                 }
@@ -256,23 +257,28 @@ fun ActionDescription(
                         }
                     }
                 }
-                if (relatedActions.isNotEmpty()) {
-                    SubTitle("Related gestures:", Modifier.padding(top = 8.dp))
-                    relatedActions.forEach { relatedAction ->
-                        MenuPageLink(
-                            onClick = {
-                                onNavigateToAction(
-                                    relatedAction.action,
-                                    key.takeIf { relatedAction.sameKey },
-                                    relatedAction.gesture
-                                )
-                            },
-                            icon = relatedAction.icon,
-                            iconModifier = relatedAction.iconModifier,
-                            label = "${relatedAction.label}: ${relatedAction.action.title}",
-                        )
+                @Composable
+                fun RelatedActions(title: String, actions: List<RelatedAction>) {
+                    if (actions.isNotEmpty()) {
+                        SubTitle(title, Modifier.padding(top = 8.dp))
+                        actions.forEach { relatedAction ->
+                            MenuPageLink(
+                                onClick = {
+                                    onNavigateToAction(
+                                        relatedAction.action,
+                                        key.takeIf { relatedAction.sameKey },
+                                        relatedAction.gesture
+                                    )
+                                },
+                                icon = relatedAction.icon,
+                                iconModifier = relatedAction.iconModifier,
+                                label = "${relatedAction.label}: ${relatedAction.action.title}",
+                            )
+                        }
                     }
                 }
+                RelatedActions("With modifiers:", withModifiers)
+                RelatedActions("Related gestures:", relatedActions)
             }
         }
     } else {
