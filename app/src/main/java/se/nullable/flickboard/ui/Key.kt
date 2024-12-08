@@ -95,6 +95,7 @@ fun Key(
     keyPointerTrailListener: State<KeyPointerTrailListener?> = remember { mutableStateOf(null) },
     layoutTextDirection: TextDirection,
     allowFastActions: Boolean = true,
+    highlightedAction: Action? = null,
 ) {
     if (!key.rendered) {
         Box(modifier)
@@ -147,6 +148,14 @@ fun Key(
         derivedStateOf {
             keyColour.value?.toAccent(chroma = keyColourChroma.value, toneConfig.value)
                 ?: materialColourScheme.primary
+        }
+    }
+    val highlightedActionColour = remember {
+        derivedStateOf {
+            keyIndicatorColour.value.toAccent(
+                chroma = keyColourChroma.value + 0.2F,
+                toneConfig.value
+            ).toTertiary()
         }
     }
     val lastActionSurfaceColour = remember {
@@ -271,6 +280,10 @@ fun Key(
                         modifiers = modifierState,
                         colour = keyIndicatorColour.value,
                         activeColour = activeKeyIndicatorColour.value,
+                        forceColour = when {
+                            action == highlightedAction -> highlightedActionColour.value
+                            else -> null
+                        },
                         layoutTextDirection = layoutTextDirection,
                         modifier = actionModifier,
                     )
@@ -327,6 +340,7 @@ fun RenderActionVisual(
     modifiers: ModifierState?,
     colour: Color,
     activeColour: Color,
+    forceColour: Color? = null,
     layoutTextDirection: TextDirection,
     modifier: Modifier = Modifier,
     allowFade: Boolean = true,
@@ -334,6 +348,7 @@ fun RenderActionVisual(
     val overrideActionVisual =
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
     val usedColour = when {
+        forceColour != null -> forceColour
         action.actionClass == ActionClass.Symbol && allowFade -> colour.copy(alpha = 0.4F)
         action.isActive(modifiers) -> activeColour
         else -> colour

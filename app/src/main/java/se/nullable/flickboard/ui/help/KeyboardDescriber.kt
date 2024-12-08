@@ -137,6 +137,7 @@ fun KeyboardDescriber(modifier: Modifier = Modifier, initialAction: Action? = nu
             },
             allowFastActions = false,
             allowHideSettings = false,
+            highlightedAction = selectedActionStack.firstOrNull()?.first,
         )
     }
 }

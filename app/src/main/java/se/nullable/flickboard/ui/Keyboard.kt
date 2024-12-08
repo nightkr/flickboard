@@ -78,6 +78,7 @@ fun Keyboard(
     overrideEnabledLayers: EnabledLayers? = null,
     allowFastActions: Boolean = true,
     allowHideSettings: Boolean = true,
+    highlightedAction: Action? = null,
 ) {
     val context = LocalContext.current
     val appSettings = LocalAppSettings.current
@@ -414,6 +415,7 @@ fun Keyboard(
                                 keyPointerTrailListener = keyPointerTrailListener,
                                 layoutTextDirection = layout.textDirection,
                                 allowFastActions = allowFastActions,
+                                highlightedAction = highlightedAction,
                             )
                         }
                     }
@@ -432,6 +434,7 @@ fun ConfiguredKeyboard(
     overrideEnabledLayers: EnabledLayers? = null,
     allowFastActions: Boolean = true,
     allowHideSettings: Boolean = true,
+    highlightedAction: Action? = null,
 ) {
     val appSettings = LocalAppSettings.current
     val enabledLetterLayers = appSettings.letterLayers.state.value
@@ -446,6 +449,7 @@ fun ConfiguredKeyboard(
         overrideEnabledLayers = overrideEnabledLayers,
         allowFastActions = allowFastActions,
         allowHideSettings = allowHideSettings,
+        highlightedAction = highlightedAction,
     )
 }
 
