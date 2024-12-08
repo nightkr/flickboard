@@ -1,5 +1,6 @@
 package se.nullable.flickboard.ui
 
+import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -40,7 +41,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.changedToDown
@@ -49,7 +49,7 @@ import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -102,7 +102,9 @@ fun Key(
         return
     }
 
-    val haptic = LocalHapticFeedback.current
+    val view = LocalView.current
+//    val haptic = LocalHapticFeedback.current
+
     val settings = LocalAppSettings.current
     val actionVisualScale = settings.actionVisualScale.state
     val scale = settings.currentScale
@@ -191,13 +193,22 @@ fun Key(
     val onActionModifier = if (onAction != null) {
         fun onGestureStart() {
             if (enableHapticFeedbackOnGestureStart.value) {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                // This gesture type is not supported by Compose 1.7.x, see #254
+                // Using Views gestures as a workaround
+                view.performHapticFeedback(
+                    when {
+                        android.os.Build.VERSION.SDK_INT >= 30 -> HapticFeedbackConstants.GESTURE_START
+                        else -> HapticFeedbackConstants.KEYBOARD_TAP
+                    }
+                )
             }
         }
 
         fun handleAction(action: Action, gesture: Gesture?, isFast: Boolean): Boolean {
             if (enableHapticFeedbackOnGestureSuccess.value || (isFast && enableHapticFeedbackOnGestureStart.value)) {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                // This gesture type is not supported by Compose 1.7.x, see #254
+                // Using Views gestures as a workaround
+                view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             }
             if (enableVisualFeedback.value) {
                 if (!action.isHiddenAction) {
