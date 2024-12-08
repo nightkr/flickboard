@@ -308,7 +308,7 @@ sealed class Action {
         override val description: String = when (state) {
             ShiftState.Normal -> "Disables any active shift modifier."
             ShiftState.Shift -> "Replaces the next action with a shifted variant (such as an upper-case letter or alternate symbol)." +
-                    " This can also be done by drawing a circle on the "
+                    " This can also be done by drawing a circle (for tap gestures) or oval (for edge gestures) on the key."
 
             ShiftState.CapsLock -> "Turns all letters upper-case until shift is disabled manually."
         }
