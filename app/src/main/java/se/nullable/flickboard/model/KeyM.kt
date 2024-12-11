@@ -160,6 +160,7 @@ sealed class Action {
         private val characterName = when (character) {
             " " -> "space"
             "\t" -> "tab"
+            "\n" -> "newline"
             else -> character
         }
         override val title: String = "Type $characterName"
