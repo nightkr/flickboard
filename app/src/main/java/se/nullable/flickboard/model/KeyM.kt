@@ -324,6 +324,19 @@ sealed class Action {
         }
     }
 
+    // Not an actual usable icon, but a pseudo-icon that shows up in help texts
+    data object TransientShift : Action() {
+        override val isModifier: Boolean = true
+
+        override fun visual(modifier: ModifierState?): ActionVisual =
+            ActionVisual.Icon(R.drawable.baseline_rotate_right_24)
+
+        override val title: String = "Transient Shift"
+        override val description: String =
+            "A gesture can be made shifted by drawing a circle (for tap gestures) or U (for edge gestures) on the key.\n" +
+                    "Gestures that require transient shift can only be made this way, not by using shift mode."
+    }
+
     /**
      * Shift the case for the current word up/down one step (lower <-> Title <-> UPPER )
      */

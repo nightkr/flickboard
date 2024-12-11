@@ -603,7 +603,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             }
                                         }
 
-                                        is Action.ToggleShift, Action.ToggleCtrl, Action.ToggleAlt, Action.ToggleZalgo -> {
+                                        is Action.ToggleShift, Action.ToggleCtrl, Action.ToggleAlt, Action.ToggleZalgo, Action.TransientShift -> {
                                             // handled internally in Keyboard
                                         }
 

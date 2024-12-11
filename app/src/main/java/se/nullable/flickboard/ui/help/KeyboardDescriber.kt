@@ -214,6 +214,17 @@ fun ActionDescription(
                         )
                     )
                 }
+                val transientShiftAction = key?.transientShift?.actions?.get(flick.direction)
+                if (transientShiftAction != null && transientShiftAction != action && transientShiftAction.showAsRelatedInHelp) {
+                    withModifiers.add(
+                        RelatedAction(
+                            transientShiftAction,
+                            painterResource(R.drawable.baseline_rotate_right_24),
+                            "Transient Shift",
+                            gesture = flick.copy(shift = true),
+                        )
+                    )
+                }
                 if (gesture == Gesture.Tap && key?.holdAction != null) {
                     withModifiers.add(
                         RelatedAction(
@@ -225,14 +236,26 @@ fun ActionDescription(
                     )
                 }
                 if (flick.shift) {
-                    relatedActions.add(
-                        RelatedAction(
-                            Action.ToggleShift(ShiftState.Shift),
-                            painterResource(R.drawable.baseline_arrow_drop_up_24),
-                            "Reach",
-                            gesture = null,
+                    if (action == (transientShiftAction ?: shiftAction)) {
+                        relatedActions.add(
+                            RelatedAction(
+                                Action.TransientShift,
+                                painterResource(R.drawable.baseline_rotate_right_24),
+                                "Reach",
+                                gesture = null,
+                            )
                         )
-                    )
+                    }
+                    if (action == shiftAction) {
+                        relatedActions.add(
+                            RelatedAction(
+                                Action.ToggleShift(ShiftState.Shift),
+                                painterResource(R.drawable.baseline_arrow_drop_up_24),
+                                "Reach",
+                                gesture = null,
+                            )
+                        )
+                    }
                 }
                 if (flick.direction == Direction.CENTER) {
                     val flickKey = when {
