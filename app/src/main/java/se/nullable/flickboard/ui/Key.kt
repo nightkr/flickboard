@@ -26,13 +26,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,10 +72,7 @@ import se.nullable.flickboard.model.ModifierState
 import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.times
 import se.nullable.flickboard.ui.layout.KeyLabelGrid
-import se.nullable.flickboard.util.toAccent
-import se.nullable.flickboard.util.toAccentContainer
-import se.nullable.flickboard.util.toOnAccentContainer
-import se.nullable.flickboard.util.toTertiary
+import se.nullable.flickboard.ui.theme.LocalKeyboardTheme
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.pow
@@ -126,49 +121,10 @@ fun Key(
     val enableHapticFeedbackOnGestureStart = settings.enableHapticFeedbackOnGestureStart.state
     val enableHapticFeedbackOnGestureSuccess = settings.enableHapticFeedbackOnGestureSuccess.state
     val enableVisualFeedback = settings.enableVisualFeedback.state
-    val visualFeedbackInvertColourScheme = settings.visualFeedbackInvertColourScheme.state
     val dropLastGesturePoint = settings.dropLastGesturePoint.state
     val ignoreJumpsLongerThanPx = settings.ignoreJumpsLongerThanPx.state
     val flicksMustBeLongerThanSeconds = settings.flicksMustBeLongerThanSeconds.state
-    val keyColour = settings.keyColour.state
-    val keyColourChroma = settings.keyColourChroma.state
-    val toneMode = settings.keyColourTone.state
-    val toneConfig = rememberUpdatedState(toneMode.value.config)
-    val materialColourScheme = MaterialTheme.colorScheme
-    val keySurfaceColour = remember {
-        derivedStateOf {
-            keyColour.value?.toAccentContainer(chroma = keyColourChroma.value, toneConfig.value)
-                ?: materialColourScheme.primaryContainer
-        }
-    }
-    val keyIndicatorColour = remember {
-        derivedStateOf {
-            keyColour.value?.toOnAccentContainer(chroma = keyColourChroma.value, toneConfig.value)
-                ?: materialColourScheme.onPrimaryContainer
-        }
-    }
-    val activeKeyIndicatorColour = remember {
-        derivedStateOf {
-            keyColour.value?.toAccent(chroma = keyColourChroma.value, toneConfig.value)
-                ?: materialColourScheme.primary
-        }
-    }
-    val lastActionSurfaceColour = remember {
-        derivedStateOf {
-            when {
-                visualFeedbackInvertColourScheme.value -> keyIndicatorColour.value
-                else -> keySurfaceColour.value
-            }.toTertiary()
-        }
-    }
-    val lastActionColour = remember {
-        derivedStateOf {
-            when {
-                visualFeedbackInvertColourScheme.value -> keySurfaceColour.value
-                else -> keyIndicatorColour.value
-            }.toTertiary()
-        }
-    }
+    val keyboardTheme = LocalKeyboardTheme.current
     var lastActionTaken: TakenAction? by remember { mutableStateOf(null, neverEqualPolicy()) }
     var lastActionIsVisible by remember { mutableStateOf(false) }
     val lastActionAlpha = animateFloatAsState(1F * lastActionIsVisible, label = "lastActionAlpha") {
@@ -257,7 +213,7 @@ fun Key(
     Box(
         modifier
             .background(
-                keySurfaceColour.value.copy(alpha = keyOpacity.value),
+                keyboardTheme.keySurfaceColour.copy(alpha = keyOpacity.value),
                 shape = shape
             )
             .height(keyHeight.dp)
@@ -282,8 +238,8 @@ fun Key(
                         action,
                         enterKeyLabel = enterKeyLabel,
                         modifiers = modifierState,
-                        colour = keyIndicatorColour.value,
-                        activeColour = activeKeyIndicatorColour.value,
+                        colour = keyboardTheme.keyIndicatorColour,
+                        activeColour = keyboardTheme.activeKeyIndicatorColour,
                         style = when {
                             action == highlightedAction -> ActionStyle.Normal
                             // Dim all non-highlighted actions if one is active
@@ -301,8 +257,8 @@ fun Key(
                 action = it.action,
                 enterKeyLabel = enterKeyLabel,
                 shape = shape,
-                colour = lastActionColour.value,
-                surfaceColour = lastActionSurfaceColour.value,
+                colour = keyboardTheme.lastActionColour,
+                surfaceColour = keyboardTheme.lastActionSurfaceColour,
                 layoutTextDirection = layoutTextDirection,
                 modifier = Modifier.alpha(lastActionAlpha.value),
             )

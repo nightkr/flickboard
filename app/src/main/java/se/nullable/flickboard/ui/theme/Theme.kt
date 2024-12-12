@@ -9,11 +9,19 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import se.nullable.flickboard.ui.LocalAppSettings
+import se.nullable.flickboard.util.toAccent
+import se.nullable.flickboard.util.toAccentContainer
+import se.nullable.flickboard.util.toOnAccentContainer
+import se.nullable.flickboard.util.toTertiary
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -36,6 +44,18 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1C1B1F),
     */
 )
+
+data class KeyboardTheme(
+    val keySurfaceColour: Color,
+    val keyIndicatorColour: Color,
+    val activeKeyIndicatorColour: Color,
+    val lastActionSurfaceColour: Color,
+    val lastActionColour: Color,
+)
+
+val LocalKeyboardTheme = compositionLocalOf<KeyboardTheme> {
+    error("Tried to use LocalKeyboardTheme without a FlickBoardTheme")
+}
 
 @Composable
 fun FlickBoardTheme(
@@ -68,6 +88,43 @@ fun FlickBoardTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content
-    )
+    ) {
+        val settings = LocalAppSettings.current
+        val keyColour = settings.keyColour.state
+        val keyColourChroma = settings.keyColourChroma.state
+        val toneMode = settings.keyColourTone.state
+        val toneConfig = toneMode.value.config
+        val visualFeedbackInvertColourScheme = settings.visualFeedbackInvertColourScheme.state
+        val keySurfaceColour = keyColour.value?.toAccentContainer(
+            chroma = keyColourChroma.value,
+            toneConfig
+        ) ?: colorScheme.primaryContainer
+        val keyIndicatorColour = keyColour.value?.toOnAccentContainer(
+            chroma = keyColourChroma.value,
+            toneConfig
+        ) ?: colorScheme.onPrimaryContainer
+        CompositionLocalProvider(
+            LocalKeyboardTheme provides (run {
+                run {
+                    KeyboardTheme(
+                        keySurfaceColour = keySurfaceColour,
+                        keyIndicatorColour = keyIndicatorColour,
+                        activeKeyIndicatorColour = keyColour.value?.toAccent(
+                            chroma = keyColourChroma.value,
+                            toneConfig
+                        ) ?: colorScheme.primary,
+                        lastActionSurfaceColour = when {
+                            visualFeedbackInvertColourScheme.value -> keyIndicatorColour
+                            else -> keySurfaceColour
+                        }.toTertiary(),
+                        lastActionColour = when {
+                            visualFeedbackInvertColourScheme.value -> keySurfaceColour
+                            else -> keyIndicatorColour
+                        }.toTertiary(),
+                    )
+                }
+            }),
+            content = content
+        )
+    }
 }
