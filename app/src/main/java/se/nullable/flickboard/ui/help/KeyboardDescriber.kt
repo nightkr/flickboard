@@ -193,6 +193,12 @@ fun ActionDescription(
                 val fastAction = key?.fastActions?.get(flick.direction)
                 val relatedActions = mutableListOf<RelatedAction>()
                 val withModifiers = mutableListOf<RelatedAction>()
+                val transientShiftIcon = when (flick.direction) {
+                    Direction.CENTER -> painterResource(R.drawable.baseline_rotate_right_24)
+                    else -> painterResource(R.drawable.swipe_up_u)
+                }
+                val transientShiftIconModifier =
+                    Modifier.rotate(flick.direction.angleFromTop().toFloat())
                 if (fastAction != null) {
                     relatedActions.add(
                         RelatedAction(
@@ -204,24 +210,34 @@ fun ActionDescription(
                     )
                 }
                 val shiftAction = key?.shift?.actions?.get(flick.direction)
+                val transientShiftAction = key?.transientShift?.actions?.get(flick.direction)
                 if (shiftAction != null && shiftAction != action && shiftAction.showAsRelatedInHelp) {
                     withModifiers.add(
                         RelatedAction(
                             shiftAction,
-                            painterResource(R.drawable.baseline_rotate_right_24),
-                            "Shift",
+                            label = "Shift",
+                            icon = when {
+                                // Only show transient shift icon for regular shift if there is no
+                                // transient shift action that shadows it
+                                transientShiftAction == null -> transientShiftIcon
+                                else -> painterResource(R.drawable.baseline_arrow_drop_up_24)
+                            },
+                            iconModifier = when {
+                                transientShiftAction == null -> transientShiftIconModifier
+                                else -> Modifier
+                            },
                             gesture = flick.copy(shift = true),
                         )
                     )
                 }
-                val transientShiftAction = key?.transientShift?.actions?.get(flick.direction)
                 if (transientShiftAction != null && transientShiftAction != action && transientShiftAction.showAsRelatedInHelp) {
                     withModifiers.add(
                         RelatedAction(
                             transientShiftAction,
-                            painterResource(R.drawable.baseline_rotate_right_24),
+                            transientShiftIcon,
                             "Transient Shift",
                             gesture = flick.copy(shift = true),
+                            iconModifier = transientShiftIconModifier,
                         )
                     )
                 }
@@ -240,7 +256,7 @@ fun ActionDescription(
                         relatedActions.add(
                             RelatedAction(
                                 Action.TransientShift,
-                                painterResource(R.drawable.baseline_rotate_right_24),
+                                transientShiftIcon,
                                 "Reach",
                                 gesture = null,
                             )
