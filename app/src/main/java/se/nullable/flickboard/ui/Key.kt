@@ -358,7 +358,6 @@ fun RenderActionVisual(
     modifiers: ModifierState?,
     colour: Color,
     activeColour: Color,
-    forceColour: Color? = null,
     layoutTextDirection: TextDirection,
     modifier: Modifier = Modifier,
     style: ActionStyle = ActionStyle.default(action, modifiers),
@@ -366,14 +365,12 @@ fun RenderActionVisual(
     val overrideActionVisual =
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
     val usedColour = animateColorAsState(
-        when {
-        forceColour != null -> forceColour
-        else -> when (style) {
+        when (style) {
             ActionStyle.Normal -> colour
             ActionStyle.Dim -> colour.copy(alpha = 0.4F)
             ActionStyle.Active -> activeColour
-        }
-        }, label = "key colour"
+        },
+        label = "key colour",
     )
     when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
         is ActionVisual.Label -> {
