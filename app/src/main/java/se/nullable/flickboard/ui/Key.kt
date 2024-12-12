@@ -337,9 +337,21 @@ fun KeyActionTakenIndicator(
                 modifier = Modifier.align(Alignment.Center),
                 colour = colour,
                 activeColour = colour,
-                allowFade = false,
+                style = ActionStyle.Normal,
                 layoutTextDirection = layoutTextDirection,
             )
+        }
+    }
+}
+
+enum class ActionStyle {
+    Normal, Active, Dim;
+
+    companion object {
+        fun default(action: Action, modifiers: ModifierState?): ActionStyle = when {
+            action.actionClass == ActionClass.Symbol -> Dim
+            action.isActive(modifiers) -> Active
+            else -> Normal
         }
     }
 }
@@ -354,15 +366,17 @@ fun RenderActionVisual(
     forceColour: Color? = null,
     layoutTextDirection: TextDirection,
     modifier: Modifier = Modifier,
-    allowFade: Boolean = true,
+    style: ActionStyle = ActionStyle.default(action, modifiers),
 ) {
     val overrideActionVisual =
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
     val usedColour = when {
         forceColour != null -> forceColour
-        action.actionClass == ActionClass.Symbol && allowFade -> colour.copy(alpha = 0.4F)
-        action.isActive(modifiers) -> activeColour
-        else -> colour
+        else -> when (style) {
+            ActionStyle.Normal -> colour
+            ActionStyle.Dim -> colour.copy(alpha = 0.4F)
+            ActionStyle.Active -> activeColour
+        }
     }
     when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
         is ActionVisual.Label -> {

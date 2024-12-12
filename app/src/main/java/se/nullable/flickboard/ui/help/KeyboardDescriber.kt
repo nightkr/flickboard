@@ -47,6 +47,7 @@ import se.nullable.flickboard.model.SearchDirection
 import se.nullable.flickboard.model.ShiftState
 import se.nullable.flickboard.model.TextBoundary
 import se.nullable.flickboard.model.TextDirection
+import se.nullable.flickboard.ui.ActionStyle
 import se.nullable.flickboard.ui.ConfiguredKeyboard
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.MenuPageLink
@@ -180,7 +181,7 @@ fun ActionDescription(
                     colour = MaterialTheme.colorScheme.onSurface,
                     activeColour = MaterialTheme.colorScheme.onSurface,
                     layoutTextDirection = TextDirection.LeftToRight,
-                    allowFade = false,
+                    style = ActionStyle.Normal,
                 )
                 SubTitle(action.title)
             }
