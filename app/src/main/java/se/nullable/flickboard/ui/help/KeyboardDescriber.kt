@@ -257,7 +257,8 @@ fun ActionDescription(
                             RelatedAction(
                                 Action.TransientShift,
                                 transientShiftIcon,
-                                "Reach",
+                                iconModifier = transientShiftIconModifier,
+                                label = "Reach",
                                 gesture = null,
                             )
                         )
