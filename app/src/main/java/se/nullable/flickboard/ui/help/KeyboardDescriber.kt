@@ -116,13 +116,13 @@ fun KeyboardDescriber(modifier: Modifier = Modifier, initialAction: Action? = nu
                             key = action?.second,
                             gesture = action?.third,
                             onNavigateBack = when {
-                                stackSize > 1 -> ({ selectedActionStack.removeAt(0) })
+                                stackSize > 0 -> ({ selectedActionStack.removeAt(0) })
                                 else -> null
                             },
-                            onNavigateToAction = { action, key, gesture ->
+                            onNavigateToAction = { targetAction, key, gesture ->
                                 selectedActionStack.add(
                                     0,
-                                    Triple(action, key, gesture)
+                                    Triple(targetAction, key, gesture)
                                 )
                             },
                         )

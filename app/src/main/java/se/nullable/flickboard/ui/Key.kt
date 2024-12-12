@@ -1,6 +1,7 @@
 package se.nullable.flickboard.ui
 
 import android.view.HapticFeedbackConstants
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -152,14 +153,6 @@ fun Key(
                 ?: materialColourScheme.primary
         }
     }
-    val highlightedActionColour = remember {
-        derivedStateOf {
-            keyIndicatorColour.value.toAccent(
-                chroma = keyColourChroma.value + 0.2F,
-                toneConfig.value
-            ).toTertiary()
-        }
-    }
     val lastActionSurfaceColour = remember {
         derivedStateOf {
             when {
@@ -291,9 +284,11 @@ fun Key(
                         modifiers = modifierState,
                         colour = keyIndicatorColour.value,
                         activeColour = activeKeyIndicatorColour.value,
-                        forceColour = when {
-                            action == highlightedAction -> highlightedActionColour.value
-                            else -> null
+                        style = when {
+                            action == highlightedAction -> ActionStyle.Normal
+                            // Dim all non-highlighted actions if one is active
+                            highlightedAction != null -> ActionStyle.Dim
+                            else -> ActionStyle.default(action, modifierState)
                         },
                         layoutTextDirection = layoutTextDirection,
                         modifier = actionModifier,
@@ -370,21 +365,23 @@ fun RenderActionVisual(
 ) {
     val overrideActionVisual =
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
-    val usedColour = when {
+    val usedColour = animateColorAsState(
+        when {
         forceColour != null -> forceColour
         else -> when (style) {
             ActionStyle.Normal -> colour
             ActionStyle.Dim -> colour.copy(alpha = 0.4F)
             ActionStyle.Active -> activeColour
         }
-    }
+        }, label = "key colour"
+    )
     when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
         is ActionVisual.Label -> {
             BoxWithConstraints(modifier.padding(horizontal = 2.dp)) {
                 val density = LocalDensity.current
                 Text(
                     text = actionVisual.label,
-                    color = usedColour,
+                    color = usedColour.value,
                     fontSize = with(density) {
                         min(
                             maxWidth,
@@ -420,7 +417,7 @@ fun RenderActionVisual(
         is ActionVisual.Icon -> Icon(
             painter = painterResource(id = actionVisual.resource),
             contentDescription = null,
-            tint = usedColour,
+            tint = usedColour.value,
             modifier = modifier
         )
 
