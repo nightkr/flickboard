@@ -666,7 +666,7 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
                                     MockedSharedPreferences(appSettings.ctx.prefs)
                                         .also { it.edit { writePreviewSettings(it, this, option) } }
                                 }
-                                AppSettingsProvider(prefs) {
+                                FlickBoardParent(prefs) {
                                     ProvideDisplayLimits(DisplayLimits.calculateCurrent().let {
                                         it.copy(isLandscape = previewForceLandscape || it.isLandscape)
                                     }) {
