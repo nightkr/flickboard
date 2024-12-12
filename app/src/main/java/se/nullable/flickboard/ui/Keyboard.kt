@@ -331,11 +331,12 @@ fun Keyboard(
                 } catch (e: IOException) {
                     Log.w("Keyboard", "Failed to load background image", e)
                     null
-                } ?: ColorPainter(backgroundColor)
+                }
             }
         }
+        val backgroundPainter = backgroundImagePainter.value ?: ColorPainter(backgroundColor)
         Image(
-            backgroundImagePainter.value,
+            backgroundPainter,
             null,
             contentScale = ContentScale.Crop,
             alpha = backgroundOpacity.value,
