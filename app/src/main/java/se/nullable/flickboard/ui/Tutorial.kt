@@ -305,7 +305,7 @@ fun TutorialKeyStep(
         }
         TutorialKey(
             normalizedKey,
-            onAction = { action ->
+            onAction = { action, _, _ ->
                 when {
                     action == desiredAction -> onGesturePerformed()
                 }

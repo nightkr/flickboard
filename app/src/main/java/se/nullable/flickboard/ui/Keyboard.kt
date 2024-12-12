@@ -42,6 +42,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import kotlinx.coroutines.delay
 import se.nullable.flickboard.model.Action
+import se.nullable.flickboard.model.ActionClass
+import se.nullable.flickboard.model.Gesture
+import se.nullable.flickboard.model.KeyM
 import se.nullable.flickboard.model.Layer
 import se.nullable.flickboard.model.Layout
 import se.nullable.flickboard.model.ModifierState
@@ -58,7 +61,11 @@ import se.nullable.flickboard.util.toOnAccentContainer
 import java.io.IOException
 
 // Returns false if action could not be processed
-typealias OnAction = (Action) -> Boolean
+//typealias OnAction = (Action, KeyM?, Gesture?) -> Boolean
+fun interface OnAction {
+    // Returns false if action could not be processed
+    fun onAction(action: Action, key: KeyM?, gesture: Gesture?): Boolean
+}
 
 @Composable
 fun Keyboard(
@@ -69,6 +76,9 @@ fun Keyboard(
     onModifierStateUpdated: (ModifierState) -> Unit = {},
     showAllModifiers: Boolean = false,
     overrideEnabledLayers: EnabledLayers? = null,
+    allowFastActions: Boolean = true,
+    allowHideSettings: Boolean = true,
+    highlightedAction: Action? = null,
 ) {
     val context = LocalContext.current
     val appSettings = LocalAppSettings.current
@@ -89,7 +99,10 @@ fun Keyboard(
     val handedness = appSettings.handedness.state
     val backgroundOpacity = appSettings.backgroundOpacity.state
     val enablePointerTrail = appSettings.enablePointerTrail.state
-    val shownActionClasses = appSettings.shownActionClasses
+    val shownActionClasses = when {
+        allowHideSettings -> appSettings.shownActionClasses
+        else -> remember { derivedStateOf { ActionClass.entries.toSet() } }
+    }
     val enableHiddenActions = appSettings.enableHiddenActions.state
     val enableAdvancedModifiers = appSettings.enableAdvancedModifiers.state
     val enableToggleShowSymbols = appSettings.enableToggleShowSymbolsGesture.state
@@ -372,8 +385,8 @@ fun Keyboard(
                             }
                             Key(
                                 key,
-                                onAction = onAction?.let { onAction ->
-                                    { action ->
+                                onAction = onAction?.let { wrappedOnAction ->
+                                    { action, key, gesture ->
                                         modifierState = when (action) {
                                             is Action.ToggleShift -> modifierState.copy(shift = action.state)
                                             Action.ToggleCtrl -> modifierState.copy(ctrl = !modifierState.ctrl)
@@ -387,7 +400,7 @@ fun Keyboard(
                                                 else -> modifierState.next()
                                             }
                                         }
-                                        onAction(action)
+                                        wrappedOnAction.onAction(action, key, gesture)
                                     }
                                 },
                                 modifierState = modifierState.takeUnless { showAllModifiers },
@@ -401,6 +414,8 @@ fun Keyboard(
                                 enterKeyLabel = enterKeyLabel,
                                 keyPointerTrailListener = keyPointerTrailListener,
                                 layoutTextDirection = layout.textDirection,
+                                allowFastActions = allowFastActions,
+                                highlightedAction = highlightedAction,
                             )
                         }
                     }
@@ -417,6 +432,9 @@ fun ConfiguredKeyboard(
     enterKeyLabel: String? = null,
     onModifierStateUpdated: (ModifierState) -> Unit = {},
     overrideEnabledLayers: EnabledLayers? = null,
+    allowFastActions: Boolean = true,
+    allowHideSettings: Boolean = true,
+    highlightedAction: Action? = null,
 ) {
     val appSettings = LocalAppSettings.current
     val enabledLetterLayers = appSettings.letterLayers.state.value
@@ -429,13 +447,19 @@ fun ConfiguredKeyboard(
         enterKeyLabel = enterKeyLabel,
         onModifierStateUpdated = onModifierStateUpdated,
         overrideEnabledLayers = overrideEnabledLayers,
+        allowFastActions = allowFastActions,
+        allowHideSettings = allowHideSettings,
+        highlightedAction = highlightedAction,
     )
 }
 
 @Composable
 fun KeyboardLayoutPreview(layout: Layout, showAllModifiers: Boolean = false) {
     FlickBoardParent {
-        Keyboard(layout = layout, showAllModifiers = showAllModifiers, onAction = { true })
+        Keyboard(
+            layout = layout,
+            showAllModifiers = showAllModifiers,
+            onAction = { _, _, _ -> true })
     }
 }
 
@@ -450,8 +474,8 @@ fun KeyboardPreview() {
                 Row {
                     Text(text = "Tapped: $lastAction")
                 }
-                ConfiguredKeyboard(onAction = {
-                    lastAction = it
+                ConfiguredKeyboard(onAction = { action, _, _ ->
+                    lastAction = action
                     true
                 })
             }
@@ -471,8 +495,8 @@ fun PlayKeyboardPreview() {
                     appSettings.keyHeight.writeTo(this, 128F)
                 }
             }) {
-                ConfiguredKeyboard(onAction = {
-                    lastAction = it
+                ConfiguredKeyboard(onAction = { action, _, _ ->
+                    lastAction = action
                     true
                 })
             }

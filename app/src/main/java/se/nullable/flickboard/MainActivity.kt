@@ -39,6 +39,7 @@ import se.nullable.flickboard.ui.SettingsHomePage
 import se.nullable.flickboard.ui.SettingsSectionPage
 import se.nullable.flickboard.ui.TutorialPage
 import se.nullable.flickboard.ui.consumeExcludedInsets
+import se.nullable.flickboard.ui.help.KeyboardDescriber
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -108,6 +109,18 @@ class MainActivity : ComponentActivity() {
                                             },
                                             onNavigateToTutorial = { navController.navigate("tutorial") },
                                             onNavigateToBetaMenu = { navController.navigate("beta-menu") },
+                                            onNavigateToDescriber = { navController.navigate("describer") },
+                                            modifier = Modifier.padding(padding)
+                                        )
+                                    }
+                                }
+                                composable("describer") {
+                                    Scaffold(topBar = {
+                                        TopAppBar(
+                                            title = { Text("What Does This Do?") },
+                                            navigationIcon = { NavigateUpIcon(navController) })
+                                    }) { padding ->
+                                        KeyboardDescriber(
                                             modifier = Modifier.padding(padding)
                                         )
                                     }

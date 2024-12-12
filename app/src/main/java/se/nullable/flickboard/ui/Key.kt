@@ -1,6 +1,7 @@
 package se.nullable.flickboard.ui
 
 import android.view.HapticFeedbackConstants
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -94,6 +95,8 @@ fun Key(
     enterKeyLabel: String? = null,
     keyPointerTrailListener: State<KeyPointerTrailListener?> = remember { mutableStateOf(null) },
     layoutTextDirection: TextDirection,
+    allowFastActions: Boolean = true,
+    highlightedAction: Action? = null,
 ) {
     if (!key.rendered) {
         Box(modifier)
@@ -194,7 +197,7 @@ fun Key(
             }
         }
 
-        fun handleAction(action: Action, isFast: Boolean): Boolean {
+        fun handleAction(action: Action, gesture: Gesture?, isFast: Boolean): Boolean {
             if (enableHapticFeedbackOnGestureSuccess.value || (isFast && enableHapticFeedbackOnGestureStart.value)) {
                 // This gesture type is not supported by Compose 1.7.x, see #254
                 // Using Views gestures as a workaround
@@ -205,7 +208,7 @@ fun Key(
                     lastActionTaken = TakenAction(action)
                 }
             }
-            return onAction(action)
+            return onAction.onAction(action, key, gesture)
         }
         Modifier.pointerInput(key) {
             awaitEachGesture {
@@ -222,10 +225,16 @@ fun Key(
                     circleDiscontinuityThreshold = { circleDiscontinuityThreshold.value },
                     circleAngleThreshold = { circleAngleThreshold.value },
                     gestureRecognizer = { gestureRecognizer.value },
-                    fastActions = key.fastActions.takeIf { enableFastActions.value }
+                    fastActions = key.fastActions.takeIf { enableFastActions.value && allowFastActions }
                         ?: emptyMap(),
                     onGestureStart = ::onGestureStart,
-                    onFastAction = { handleAction(it, isFast = true) },
+                    onFastAction = { action ->
+                        handleAction(
+                            action,
+                            gesture = null,
+                            isFast = true
+                        )
+                    },
                     trailListenerState = keyPointerTrailListener,
                     dropLastGesturePoint = { dropLastGesturePoint.value },
                     ignoreJumpsLongerThanPx = { ignoreJumpsLongerThanPx.value },
@@ -236,7 +245,7 @@ fun Key(
                             longHoldOnClockwiseCircle = key.holdAction != null && longHoldOnClockwiseCircle.value,
                             longHoldOnCounterClockwiseCircle = key.holdAction != null && longHoldOnCounterClockwiseCircle.value,
                         )
-                    flick.resolveAction(key)?.let { handleAction(it, isFast = false) }
+                    flick.resolveAction(key)?.let { handleAction(it, gesture, isFast = false) }
                 }
             }
         }
@@ -269,12 +278,18 @@ fun Key(
                         action.isModifier -> actionModifier.unrestrictedWidth()
                         else -> actionModifier
                     }
-                    KeyActionIndicator(
+                    RenderActionVisual(
                         action,
                         enterKeyLabel = enterKeyLabel,
                         modifiers = modifierState,
                         colour = keyIndicatorColour.value,
                         activeColour = activeKeyIndicatorColour.value,
+                        style = when {
+                            action == highlightedAction -> ActionStyle.Normal
+                            // Dim all non-highlighted actions if one is active
+                            highlightedAction != null -> ActionStyle.Dim
+                            else -> ActionStyle.default(action, modifierState)
+                        },
                         layoutTextDirection = layoutTextDirection,
                         modifier = actionModifier,
                     )
@@ -310,22 +325,34 @@ fun KeyActionTakenIndicator(
 ) {
     Surface(color = surfaceColour, shape = shape, modifier = modifier) {
         Box(Modifier.fillMaxSize()) {
-            KeyActionIndicator(
+            RenderActionVisual(
                 action = action.withHidden(false),
                 enterKeyLabel = enterKeyLabel,
                 modifiers = null,
                 modifier = Modifier.align(Alignment.Center),
                 colour = colour,
                 activeColour = colour,
-                allowFade = false,
+                style = ActionStyle.Normal,
                 layoutTextDirection = layoutTextDirection,
             )
         }
     }
 }
 
+enum class ActionStyle {
+    Normal, Active, Dim;
+
+    companion object {
+        fun default(action: Action, modifiers: ModifierState?): ActionStyle = when {
+            action.actionClass == ActionClass.Symbol -> Dim
+            action.isActive(modifiers) -> Active
+            else -> Normal
+        }
+    }
+}
+
 @Composable
-fun KeyActionIndicator(
+fun RenderActionVisual(
     action: Action,
     enterKeyLabel: String?,
     modifiers: ModifierState?,
@@ -333,22 +360,25 @@ fun KeyActionIndicator(
     activeColour: Color,
     layoutTextDirection: TextDirection,
     modifier: Modifier = Modifier,
-    allowFade: Boolean = true,
+    style: ActionStyle = ActionStyle.default(action, modifiers),
 ) {
     val overrideActionVisual =
         enterKeyLabel.takeIf { action is Action.Enter }?.let { ActionVisual.Label(it) }
-    val usedColour = when {
-        action.actionClass == ActionClass.Symbol && allowFade -> colour.copy(alpha = 0.4F)
-        action.isActive(modifiers) -> activeColour
-        else -> colour
-    }
+    val usedColour = animateColorAsState(
+        when (style) {
+            ActionStyle.Normal -> colour
+            ActionStyle.Dim -> colour.copy(alpha = 0.4F)
+            ActionStyle.Active -> activeColour
+        },
+        label = "key colour",
+    )
     when (val actionVisual = overrideActionVisual ?: action.visual(modifiers)) {
         is ActionVisual.Label -> {
             BoxWithConstraints(modifier.padding(horizontal = 2.dp)) {
                 val density = LocalDensity.current
                 Text(
                     text = actionVisual.label,
-                    color = usedColour,
+                    color = usedColour.value,
                     fontSize = with(density) {
                         min(
                             maxWidth,
@@ -384,7 +414,7 @@ fun KeyActionIndicator(
         is ActionVisual.Icon -> Icon(
             painter = painterResource(id = actionVisual.resource),
             contentDescription = null,
-            tint = usedColour,
+            tint = usedColour.value,
             modifier = modifier
         )
 
@@ -411,7 +441,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     gestureRecognizer: () -> GestureRecognizer,
     fastActions: Map<Direction, Action>,
     onGestureStart: () -> Unit,
-    onFastAction: OnAction,
+    onFastAction: (Action) -> Boolean,
     // Passed as state to ensure that it's only grabbed once we have a down event
     trailListenerState: State<KeyPointerTrailListener?>,
     dropLastGesturePoint: () -> Boolean,
@@ -529,12 +559,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                     System.nanoTime() - gestureStartedAtNanos <
                     flicksMustBeLongerThanSeconds() * 10.toDouble().pow(9)
                 ) {
-                    return Gesture.Flick(
-                        direction = Direction.CENTER,
-                        longHold = false,
-                        longSwipe = false,
-                        shift = false
-                    )
+                    return Gesture.Tap
                 }
                 when (gestureRecognizer()) {
                     GestureRecognizer.Default -> {
@@ -673,8 +698,8 @@ fun KeyPreview() {
                             Direction.BOTTOM_RIGHT to Action.Text(character = "I"),
                         )
                     ),
-                    onAction = {
-                        lastAction = it
+                    onAction = { action, _, _ ->
+                        lastAction = action
                         true
                     },
                     layoutTextDirection = TextDirection.LeftToRight,
