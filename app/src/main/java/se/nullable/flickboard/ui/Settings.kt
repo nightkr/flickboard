@@ -1862,8 +1862,8 @@ sealed class Setting<T>(private val ctx: SettingsContext) : SettingProjection<T>
 enum class GestureRecognizer(override val label: String, val description: String) : Labeled {
     Default("Default", description = "The default FlickBoard gesture recognizer"),
     Dollar1(
-        "$1 (EXPERIMENTAL)",
-        description = "Experimental next-generation gesture recognizer (many recognition settings do not apply)"
+        "$1 (OLD EXPERIMENT)",
+        description = "Experimental legacy gesture recognizer (many recognition settings do not apply)"
     ),
 }
 
