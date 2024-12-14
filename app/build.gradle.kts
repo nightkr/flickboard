@@ -5,6 +5,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    kotlin("plugin.serialization") version "2.0.21"
 }
 
 val keystorePropertiesFile = rootProject.file("../flickboard.keystore.properties")
@@ -115,6 +116,8 @@ dependencies {
     implementation("androidx.emoji2:emoji2-emojipicker:1.5.0")
     implementation("androidx.emoji2:emoji2-bundled:1.5.0")
     implementation("androidx.navigation:navigation-compose:2.8.4")
+    // Runtime library for kotlin serialization plugin
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")

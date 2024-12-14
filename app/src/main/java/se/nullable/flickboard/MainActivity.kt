@@ -32,6 +32,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import kotlinx.serialization.Serializable
 import se.nullable.flickboard.ui.BetaMenu
 import se.nullable.flickboard.ui.FlickBoardParent
 import se.nullable.flickboard.ui.LocalAppSettings
@@ -72,9 +74,9 @@ class MainActivity : ComponentActivity() {
                             val appSettings = LocalAppSettings.current
                             NavHost(
                                 navController = navController,
-                                startDestination = "settings",
+                                startDestination = MainActivityNav.SettingsMain,
                             ) {
-                                composable("tutorial") {
+                                composable<MainActivityNav.Tutorial> {
                                     Scaffold(topBar = {
                                         TopAppBar(
                                             title = {},
@@ -90,12 +92,12 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 }
-                                composable("settings") {
+                                composable<MainActivityNav.SettingsMain> {
                                     val hasCompletedTutorial = appSettings.hasCompletedTutorial
                                     LaunchedEffect(hasCompletedTutorial.state.value) {
                                         if (!hasCompletedTutorial.currentValue) {
                                             hasCompletedTutorial.currentValue = true
-                                            navController.navigate("tutorial") {
+                                            navController.navigate(MainActivityNav.Tutorial) {
                                                 anim {
                                                     enter = 0
                                                 }
@@ -105,16 +107,26 @@ class MainActivity : ComponentActivity() {
                                     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(id = R.string.app_name)) }) }) { padding ->
                                         SettingsHomePage(
                                             onNavigateToSection = { section ->
-                                                navController.navigate("settings/${section.key}")
+                                                navController.navigate(
+                                                    MainActivityNav.SettingsSection(
+                                                        section.key
+                                                    )
+                                                )
                                             },
-                                            onNavigateToTutorial = { navController.navigate("tutorial") },
-                                            onNavigateToBetaMenu = { navController.navigate("beta-menu") },
-                                            onNavigateToDescriber = { navController.navigate("describer") },
+                                            onNavigateToTutorial = {
+                                                navController.navigate(MainActivityNav.Tutorial)
+                                            },
+                                            onNavigateToBetaMenu = {
+                                                navController.navigate(MainActivityNav.BetaMenu)
+                                            },
+                                            onNavigateToDescriber = {
+                                                navController.navigate(MainActivityNav.KeyboardDescriber)
+                                            },
                                             modifier = Modifier.padding(padding)
                                         )
                                     }
                                 }
-                                composable("describer") {
+                                composable<MainActivityNav.KeyboardDescriber> {
                                     Scaffold(topBar = {
                                         TopAppBar(
                                             title = { Text("What Does This Do?") },
@@ -125,7 +137,7 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 }
-                                composable("beta-menu") {
+                                composable<MainActivityNav.BetaMenu> {
                                     Scaffold(topBar = {
                                         TopAppBar(
                                             title = { Text("Beta Options") },
@@ -136,18 +148,21 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 }
-                                appSettings.all.forEach { settingsSection ->
-                                    composable("settings/${settingsSection.key}") {
-                                        Scaffold(topBar = {
-                                            TopAppBar(
-                                                title = { Text(settingsSection.label) },
-                                                navigationIcon = { NavigateUpIcon(navController) })
-                                        }) { padding ->
-                                            SettingsSectionPage(
-                                                section = settingsSection,
-                                                modifier = Modifier.padding(padding)
-                                            )
-                                        }
+                                composable<MainActivityNav.SettingsSection> { backStackEntry ->
+                                    val route =
+                                        backStackEntry.toRoute<MainActivityNav.SettingsSection>()
+                                    val settingsSection =
+                                        appSettings.all.find { it.key == route.sectionKey }
+                                            ?: throw Exception("No settings section with key ${route.sectionKey}")
+                                    Scaffold(topBar = {
+                                        TopAppBar(
+                                            title = { Text(settingsSection.label) },
+                                            navigationIcon = { NavigateUpIcon(navController) })
+                                    }) { padding ->
+                                        SettingsSectionPage(
+                                            section = settingsSection,
+                                            modifier = Modifier.padding(padding)
+                                        )
                                     }
                                 }
                             }
@@ -157,4 +172,21 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
+
+sealed class MainActivityNav {
+    @Serializable
+    data object SettingsMain : MainActivityNav()
+
+    @Serializable
+    data class SettingsSection(val sectionKey: String) : MainActivityNav()
+
+    @Serializable
+    data object Tutorial : MainActivityNav()
+
+    @Serializable
+    data object KeyboardDescriber : MainActivityNav()
+
+    @Serializable
+    data object BetaMenu : MainActivityNav()
 }
