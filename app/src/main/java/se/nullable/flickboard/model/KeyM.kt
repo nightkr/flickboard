@@ -726,6 +726,26 @@ interface Gesture {
                 direction = Direction.CENTER,
                 longHold = false, longSwipe = false, shift = false
             )
+
+        val names = Direction.entries
+            .flatMap {
+                listOf(
+                    "flick.${it.name}" to Flick(
+                        direction = it,
+                        longHold = false,
+                        longSwipe = false,
+                        shift = false
+                    ),
+                    "flick.${it.name}.shift" to Flick(
+                        direction = it,
+                        longHold = false,
+                        longSwipe = false,
+                        shift = true
+                    ),
+                )
+            }
+            .toMap() +
+                CircleDirection.entries.associate { "circle.${it.name}" to Circle(it) }
     }
 }
 
