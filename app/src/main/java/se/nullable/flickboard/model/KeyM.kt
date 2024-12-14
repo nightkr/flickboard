@@ -201,7 +201,8 @@ sealed class Action {
             }
         }
         override val description: String =
-            "Deletes the ${direction.nextOrPrevInSentence} ${boundary.nameInSentence}."
+            "Deletes the ${direction.nextOrPrevInSentence} ${boundary.nameInSentence}.\n" +
+                    "When Fast Actions are enabled, multiple ${boundary.pluralInSentence} can be selected for deletion by swiping west/east."
 
         override fun shift(locale: Locale): Action = copy(boundary = TextBoundary.Word)
     }
@@ -272,7 +273,9 @@ sealed class Action {
         override val title: String =
             "Jump To ${direction.nextOrPrevInTitle} ${boundary.nameInTitle}"
         override val description: String =
-            "Moves the cursor to the ${direction.nextOrPrevInSentence} ${boundary.nameInSentence}."
+            "Moves the cursor to the ${direction.nextOrPrevInSentence} ${boundary.nameInSentence}.\n" +
+                    "When Fast Actions are enabled, multiple multiple ${boundary.pluralInSentence} can be selected by swiping further west/east.\n" +
+                    "When in Select mode, the ${boundary.pluralInSentence} will be (de)selected instead."
 
         override fun shift(locale: Locale): Action = copy(boundary = TextBoundary.Word)
     }
@@ -308,8 +311,9 @@ sealed class Action {
         }
         override val description: String = when (state) {
             ShiftState.Normal -> "Disables any active shift modifier."
-            ShiftState.Shift -> "Replaces the next action with a shifted variant (such as an upper-case letter or alternate symbol)." +
-                    " This can also be done by drawing a circle (for tap gestures) or U (for edge gestures) on the key."
+            ShiftState.Shift -> "Replaces the next action with a shifted variant (such as an upper-case letter or alternate symbol).\n" +
+                    "This can also be done by drawing a circle (for tap gestures) or U (for edge gestures) on the key.\n" +
+                    "Circle gestures can also be configured to produce numbers instead, depending on the direction."
 
             ShiftState.CapsLock -> "Turns all letters upper-case until shift is disabled manually."
         }
@@ -334,7 +338,8 @@ sealed class Action {
         override val title: String = "Transient Shift"
         override val description: String =
             "A gesture can be made shifted by drawing a circle (for tap gestures) or U (for edge gestures) on the key.\n" +
-                    "Gestures that require transient shift can only be made this way, not by using shift mode."
+                    "Gestures that require transient shift can only be made this way, not by using shift mode.\n" +
+                    "Circle gestures can also be configured to produce numbers instead, depending on the direction."
     }
 
     /**
@@ -592,10 +597,18 @@ sealed class ActionVisual {
     data object None : ActionVisual()
 }
 
-enum class TextBoundary(val nameInTitle: String, val nameInSentence: String) {
-    Character(nameInTitle = "Character", nameInSentence = "character"),
-    Word(nameInTitle = "Word", nameInSentence = "word"),
-    Line(nameInTitle = "Line", nameInSentence = "line");
+enum class TextBoundary(
+    val nameInTitle: String,
+    val nameInSentence: String,
+    val pluralInSentence: String
+) {
+    Character(
+        nameInTitle = "Character",
+        nameInSentence = "character",
+        pluralInSentence = "characters"
+    ),
+    Word(nameInTitle = "Word", nameInSentence = "word", pluralInSentence = "words"),
+    Line(nameInTitle = "Line", nameInSentence = "line", pluralInSentence = "lines");
 
     fun breakIterator(): BreakIterator = when (this) {
         Character -> BreakIterator.getCharacterInstance()
