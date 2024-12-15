@@ -5,8 +5,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -54,6 +52,7 @@ import se.nullable.flickboard.ui.MenuPageLink
 import se.nullable.flickboard.ui.RenderActionVisual
 import se.nullable.flickboard.ui.theme.BodyPlaceholder
 import se.nullable.flickboard.ui.theme.SubTitle
+import se.nullable.flickboard.ui.theme.Transition
 
 @Composable
 fun KeyboardDescriber(modifier: Modifier = Modifier, initialAction: Action? = null) {
@@ -100,13 +99,8 @@ fun KeyboardDescriber(modifier: Modifier = Modifier, initialAction: Action? = nu
                                             ))
                                         .togetherWith(fadeOut(animationSpec = tween(90)))
 
-                                targetStackSize >= initialStackSize ->
-                                    slideInHorizontally { width -> width } + fadeIn() togetherWith
-                                            slideOutHorizontally { width -> -width } + fadeOut()
-
-                                else ->
-                                    slideInHorizontally { width -> -width } + fadeIn() togetherWith
-                                            slideOutHorizontally { width -> width } + fadeOut()
+                                targetStackSize >= initialStackSize -> Transition.push
+                                else -> Transition.pop
                             }
                         },
                         label = "action description"

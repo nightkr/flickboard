@@ -42,6 +42,7 @@ import se.nullable.flickboard.ui.SettingsSectionPage
 import se.nullable.flickboard.ui.TutorialPage
 import se.nullable.flickboard.ui.consumeExcludedInsets
 import se.nullable.flickboard.ui.help.KeyboardDescriber
+import se.nullable.flickboard.ui.theme.Transition
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -75,6 +76,10 @@ class MainActivity : ComponentActivity() {
                             NavHost(
                                 navController = navController,
                                 startDestination = MainActivityNav.SettingsMain,
+                                enterTransition = { Transition.pushEnter },
+                                exitTransition = { Transition.pushExit },
+                                popEnterTransition = { Transition.popEnter },
+                                popExitTransition = { Transition.popExit },
                             ) {
                                 composable<MainActivityNav.Tutorial> {
                                     Scaffold(topBar = {
@@ -100,6 +105,7 @@ class MainActivity : ComponentActivity() {
                                             navController.navigate(MainActivityNav.Tutorial) {
                                                 anim {
                                                     enter = 0
+                                                    exit = 0
                                                 }
                                             }
                                         }

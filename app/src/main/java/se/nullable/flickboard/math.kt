@@ -14,6 +14,10 @@ operator fun Int.times(cond: Boolean): Int = when {
     else -> 0
 }
 
+// Not an operator, because it seems like extension methods
+// (including operators) can't be inlined over the extended object?
+inline fun neg(crossinline f: (Int) -> Int): (Int) -> Int = { -f(it) }
+
 operator fun Float.times(cond: Boolean): Float = when {
     cond -> this
     else -> 0F
