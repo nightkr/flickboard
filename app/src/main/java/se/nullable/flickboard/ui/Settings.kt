@@ -12,6 +12,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -86,6 +90,7 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import se.nullable.flickboard.BuildConfig
+import se.nullable.flickboard.MainActivitySharedElement
 import se.nullable.flickboard.PiF
 import se.nullable.flickboard.R
 import se.nullable.flickboard.model.ActionClass
@@ -136,12 +141,15 @@ import java.util.Locale
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SettingsHomePage(
     onNavigateToSection: (SettingsSection) -> Unit,
     onNavigateToTutorial: () -> Unit,
     onNavigateToBetaMenu: () -> Unit,
     onNavigateToDescriber: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier = Modifier
 ) {
     val appSettings = LocalAppSettings.current
@@ -247,8 +255,9 @@ fun SettingsHomePage(
                 )
             }
         }
-        SettingsKeyboardPreview()
+        SettingsKeyboardPreview(sharedTransitionScope, animatedVisibilityScope)
     }
+
 }
 
 @Composable
@@ -262,8 +271,14 @@ fun SettingsTitle(text: String) {
     )
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SettingsSectionPage(section: SettingsSection, modifier: Modifier = Modifier) {
+fun SettingsSectionPage(
+    section: SettingsSection,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    modifier: Modifier = Modifier
+) {
     Column {
         Column(
             modifier
@@ -283,77 +298,95 @@ fun SettingsSectionPage(section: SettingsSection, modifier: Modifier = Modifier)
                 }
             }
         }
-        SettingsKeyboardPreview()
+        SettingsKeyboardPreview(sharedTransitionScope, animatedVisibilityScope)
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun SettingsKeyboardPreview() {
+fun SettingsKeyboardPreview(
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope
+) {
     val enable = LocalAppSettings.current.enableKeyboardPreview
     val enableState = enable.state
-    Box {
-        Surface(color = MaterialTheme.colorScheme.secondaryContainer) {
+    with(sharedTransitionScope) {
+        Box {
             Column {
                 val realKeyboardVisible = WindowInsets.isImeVisible
                 val softwareKeyboardController = LocalSoftwareKeyboardController.current
-                Row(
+                Surface(
                     Modifier
-                        .fillMaxWidth()
                         .clickable {
                             when {
                                 realKeyboardVisible -> softwareKeyboardController?.hide()
                                 else -> enable.currentValue = !enable.currentValue
                             }
-                        },
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    when {
-                        realKeyboardVisible -> {
-                            Text(
-                                text = "Keyboard active",
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(8.dp)
-                            )
-                            Icon(
-                                painterResource(R.drawable.baseline_keyboard_hide_24),
-                                "close",
-                                Modifier
-                                    .padding(8.dp)
-                            )
                         }
+                        .sharedElement(
+                            rememberSharedContentState(MainActivitySharedElement.SettingsKeyboardPreviewHeader.toString()),
+                            animatedVisibilityScope
+                        ),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        when {
+                            realKeyboardVisible -> {
+                                Text(
+                                    text = "Keyboard active",
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.padding(8.dp)
+                                )
+                                Icon(
+                                    painterResource(R.drawable.baseline_keyboard_hide_24),
+                                    "close",
+                                    Modifier
+                                        .padding(8.dp)
+                                )
+                            }
 
-                        else -> {
-                            Text(
-                                text = "Preview keyboard",
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(8.dp)
-                            )
-                            val hideIconAngle = animateFloatAsState(
-                                when {
-                                    enableState.value -> 0F
-                                    else -> 180F
-                                }, label = "hideIconAngle"
-                            )
-                            Icon(
-                                painterResource(R.drawable.baseline_arrow_drop_down_24),
-                                when {
-                                    enableState.value -> "hide"
-                                    else -> "show"
-                                },
-                                Modifier
-                                    .padding(8.dp)
-                                    .rotate(hideIconAngle.value)
-                            )
+                            else -> {
+                                Text(
+                                    text = "Preview keyboard",
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.padding(8.dp)
+                                )
+                                val hideIconAngle = animateFloatAsState(
+                                    when {
+                                        enableState.value -> 0F
+                                        else -> 180F
+                                    }, label = "hideIconAngle"
+                                )
+                                Icon(
+                                    painterResource(R.drawable.baseline_arrow_drop_down_24),
+                                    when {
+                                        enableState.value -> "hide"
+                                        else -> "show"
+                                    },
+                                    Modifier
+                                        .padding(8.dp)
+                                        .rotate(hideIconAngle.value)
+                                )
+                            }
                         }
                     }
                 }
-                AnimatedVisibility(enableState.value, Modifier.excludeFromBottomInset()) {
+                AnimatedVisibility(enableState.value) {
                     ProvideDisplayLimits {
                         ConfiguredKeyboard(
                             onAction = { _, _, _ -> true }, // Keyboard provides internal visual feedback if enabled
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .excludeFromBottomInset()
+                                // sharedElement can't encompass AnimatedVisibility, or the size animation breaks
+                                .sharedElement(
+                                    rememberSharedContentState(MainActivitySharedElement.SettingsKeyboardPreview.toString()),
+                                    animatedVisibilityScope
+                                )
                         )
                     }
                 }
@@ -721,27 +754,44 @@ fun RowScope.SettingLabel(setting: Setting<*>) {
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 @Preview
 fun SettingsHomePreview() {
     FlickBoardParent {
         Surface {
-            SettingsHomePage(
-                onNavigateToSection = {},
-                onNavigateToTutorial = {},
-                onNavigateToBetaMenu = {},
-                onNavigateToDescriber = {}
-            )
+            SharedTransitionLayout {
+                AnimatedVisibility(true) {
+                    SettingsHomePage(
+                        onNavigateToSection = {},
+                        onNavigateToTutorial = {},
+                        onNavigateToBetaMenu = {},
+                        onNavigateToDescriber = {},
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedVisibilityScope = this@AnimatedVisibility,
+                    )
+                }
+            }
         }
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 @Preview
 fun SettingsSectionPagePreview() {
     FlickBoardParent {
         Surface {
-            SettingsSectionPage(LocalAppSettings.current.all[0], Modifier.width(1000.dp))
+            SharedTransitionLayout {
+                AnimatedVisibility(true) {
+                    SettingsSectionPage(
+                        LocalAppSettings.current.all[0],
+                        this@SharedTransitionLayout,
+                        this@AnimatedVisibility,
+                        Modifier.width(1000.dp)
+                    )
+                }
+            }
         }
     }
 }
