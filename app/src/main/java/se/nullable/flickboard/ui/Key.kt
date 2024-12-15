@@ -1,6 +1,5 @@
 package se.nullable.flickboard.ui
 
-import android.gesture.GestureLibraries
 import android.gesture.GestureLibrary
 import android.gesture.GesturePoint
 import android.gesture.GestureStroke
@@ -51,7 +50,6 @@ import androidx.compose.ui.input.pointer.changedToUp
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -61,7 +59,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import kotlinx.coroutines.delay
-import se.nullable.flickboard.R
 import se.nullable.flickboard.angle
 import se.nullable.flickboard.averageOf
 import se.nullable.flickboard.direction
@@ -79,6 +76,7 @@ import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.times
 import se.nullable.flickboard.ui.layout.KeyLabelGrid
 import se.nullable.flickboard.ui.theme.LocalKeyboardTheme
+import se.nullable.flickboard.ui.util.LocalDollar1GestureLibrary
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.pow
@@ -145,21 +143,7 @@ fun Key(
             lastActionIsVisible = false
         }
     }
-    val context = LocalContext.current
-    val gestureLibrary = remember(context, view) {
-        when {
-            // android.gesture is not available in preview mode
-            view.isInEditMode -> null
-            else -> GestureLibraries.fromRawResource(context, R.raw.gestures)
-                .also {
-                    // GestureLibrary.ORIENTATION_STYLE_8
-                    // required for recognizing 8 orientations
-                    // of otherwise equivalent gestures
-                    it.orientationStyle = 8
-                    it.load()
-                }
-        }
-    }
+    val gestureLibrary = LocalDollar1GestureLibrary.current?.value
     val onActionModifier = if (onAction != null) {
         fun onGestureStart() {
             if (enableHapticFeedbackOnGestureStart.value) {
@@ -422,8 +406,6 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
     onFastAction: (Action) -> Boolean,
     // Passed as state to ensure that it's only grabbed once we have a down event
     trailListenerState: State<KeyPointerTrailListener?>,
-    // HACK: Taking it as a regular argument prevents the function from
-    // being loaded when the type is unavailable
     gestureLibrary: () -> GestureLibrary?,
     dropLastGesturePoint: () -> Boolean,
     ignoreJumpsLongerThanPx: () -> Float,
