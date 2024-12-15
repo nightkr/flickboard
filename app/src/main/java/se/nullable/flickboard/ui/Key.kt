@@ -7,6 +7,7 @@ import android.view.HapticFeedbackConstants
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
@@ -110,6 +111,7 @@ fun Key(
     val scale = settings.currentScale
     val keyHeight = settings.keyHeight.state.value * scale
     val keyRoundness = settings.keyRoundness.state
+    val keyOutline = settings.keyOutline.state
     val keyOpacity = settings.keyOpacity.state
     val enableFastActions = settings.enableFastActions.state
     val longHoldOnClockwiseCircle = settings.longHoldOnClockwiseCircle.state
@@ -216,6 +218,15 @@ fun Key(
         Modifier
     }
     val shape = RoundedCornerShape((keyRoundness.value * 100).roundToInt())
+    val outlineModifier = when {
+        keyOutline.value > 0.05F -> Modifier.border(
+            keyOutline.value.dp,
+            keyboardTheme.keyIndicatorColour,
+            shape = shape,
+        )
+
+        else -> Modifier
+    }
     Box(
         modifier
             .background(
@@ -223,6 +234,7 @@ fun Key(
                 shape = shape,
             )
             .height(keyHeight.dp)
+            .then(outlineModifier)
             .then(onActionModifier),
     ) {
         KeyLabelGrid(

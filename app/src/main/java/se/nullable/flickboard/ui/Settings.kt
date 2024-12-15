@@ -1121,6 +1121,15 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx,
     )
 
+    val keyOutline = Setting.FloatSlider(
+        key = "keyOutline",
+        label = "Key outline",
+        defaultValue = 0F,
+        range = 0F..1F,
+        ctx = ctx,
+        render = Setting.FloatSlider::percentage,
+    )
+
     val actionVisualBiasCenter = Setting.FloatSlider(
         key = "actionVisualBiasCenter",
         label = "Center key label scale",
@@ -1444,6 +1453,7 @@ class AppSettings(val ctx: SettingsContext) {
                     enableHiddenActions,
                     keyRoundness,
                     keyGap,
+                    keyOutline,
                     actionVisualBiasCenter,
                     actionVisualScale,
                     keyColour,
