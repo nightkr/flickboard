@@ -15,13 +15,11 @@ import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.getSystemService
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -55,6 +54,7 @@ import se.nullable.flickboard.ui.LocalDisplayLimits
 import se.nullable.flickboard.ui.OnAction
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
+import se.nullable.flickboard.ui.theme.LocalKeyboardTheme
 import se.nullable.flickboard.ui.util.sharePointerInput
 import se.nullable.flickboard.ui.voice.getVoiceInputId
 import se.nullable.flickboard.util.AndroidKeycodeMapper
@@ -219,9 +219,22 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                 val warningMessageScope = rememberCoroutineScope()
                                 val warningSnackbarHostState = remember { SnackbarHostState() }
                                 val appSettings = LocalAppSettings.current
+                                val keyboardTheme = LocalKeyboardTheme.current
                                 val periodOnDoubleSpace = appSettings.periodOnDoubleSpace.state
                                 val disabledDeadkeys = appSettings.disabledDeadkeys.state
                                 val displayLimits = LocalDisplayLimits.current
+
+                                SideEffect {
+                                    window.window?.let { window ->
+                                        val insets = WindowCompat.getInsetsController(
+                                            window,
+                                            window.decorView,
+                                        )
+                                        insets.isAppearanceLightNavigationBars =
+                                            !keyboardTheme.isDark
+                                    }
+                                }
+
                                 val onAction = OnAction { action, _, _ ->
                                     warningMessageScope.launch {
                                         warningSnackbarHostState.currentSnackbarData?.dismiss()
@@ -740,7 +753,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     }
                                     actionSuccessful
                                 }
-                                Box(Modifier.windowInsetsPadding(WindowInsets.safeDrawing)) {
+                                Box {
                                     when {
                                         emojiMode -> EmojiKeyboard(onAction = onAction)
                                         else -> {

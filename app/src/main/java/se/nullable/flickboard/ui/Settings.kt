@@ -30,9 +30,11 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
@@ -672,7 +674,11 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
                 sheetState = sheetState,
                 onDismissRequest = { expanded = false },
             ) {
-                LazyColumn {
+                LazyColumn(
+                    Modifier
+                        // Don't propagate any insets to the previews
+                        .consumeWindowInsets(WindowInsets.safeContent),
+                ) {
                     items(options, key = { it.toString() }) { option ->
                         val appSettings = LocalAppSettings.current
                         val isSelected = optionIsSelected(setting.state.value, option)

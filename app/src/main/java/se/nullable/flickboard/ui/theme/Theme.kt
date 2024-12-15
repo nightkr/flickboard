@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import se.nullable.flickboard.ui.LocalAppSettings
+import se.nullable.flickboard.util.MaterialToneMode
 import se.nullable.flickboard.util.toAccent
 import se.nullable.flickboard.util.toAccentContainer
 import se.nullable.flickboard.util.toOnAccentContainer
@@ -42,6 +43,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 data class KeyboardTheme(
+    val isDark: Boolean,
     val keySurfaceColour: Color,
     val keyIndicatorColour: Color,
     val activeKeyIndicatorColour: Color,
@@ -94,6 +96,12 @@ fun FlickBoardTheme(
             LocalKeyboardTheme provides (run {
                 run {
                     KeyboardTheme(
+                        isDark = when (toneMode.value) {
+                            MaterialToneMode.System -> darkTheme
+                            MaterialToneMode.Light -> false
+                            MaterialToneMode.Dark -> true
+                            MaterialToneMode.Midnight -> true
+                        },
                         keySurfaceColour = keySurfaceColour,
                         keyIndicatorColour = keyIndicatorColour,
                         activeKeyIndicatorColour = keyColour.value?.toAccent(

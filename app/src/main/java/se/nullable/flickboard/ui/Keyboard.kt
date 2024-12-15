@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -358,7 +359,8 @@ fun Keyboard(
                         isLandscape.value -> 0.dp
                         else -> keyboardMarginBottomPortrait.value.dp
                     },
-                ),
+                )
+                .safeDrawingPadding(),
             columnGap = keyGap.value.dp,
             rowGap = keyGap.value.dp,
             rows = layer.keyRows.map { row ->
