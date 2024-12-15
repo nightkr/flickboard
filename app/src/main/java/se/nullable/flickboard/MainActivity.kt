@@ -82,27 +82,45 @@ class MainActivity : ComponentActivity() {
                                 popExitTransition = { Transition.popExit },
                             ) {
                                 composable<MainActivityNav.Tutorial> {
+                                    val onFinish: () -> Unit = {
+                                        appSettings.hasCompletedTutorial.currentValue = true
+                                        when {
+                                            // navigateUp() when the stack is empty causes an uncomfortable flash of white
+                                            // so navigate to the start destination explicitly instead
+                                            navController.previousBackStackEntry == null ->
+                                                navController.navigate(MainActivityNav.SettingsMain) {
+                                                    popUpTo<MainActivityNav.Tutorial> {
+                                                        inclusive = true
+                                                    }
+                                                }
+
+                                            else -> navController.navigateUp()
+                                        }
+                                    }
                                     Scaffold(topBar = {
                                         TopAppBar(
                                             title = {},
                                             actions = {
-                                                Box(Modifier.clickable { navController.navigateUp() }) {
+                                                Box(Modifier.clickable(onClick = onFinish)) {
                                                     Text("SKIP", Modifier.padding(8.dp))
                                                 }
                                             })
                                     }) { padding ->
                                         TutorialPage(
-                                            onFinish = { navController.navigateUp() },
+                                            onFinish = onFinish,
                                             modifier = Modifier.padding(padding)
                                         )
                                     }
                                 }
                                 composable<MainActivityNav.SettingsMain> {
-                                    val hasCompletedTutorial = appSettings.hasCompletedTutorial
-                                    LaunchedEffect(hasCompletedTutorial.state.value) {
-                                        if (!hasCompletedTutorial.currentValue) {
-                                            hasCompletedTutorial.currentValue = true
+                                    val hasCompletedTutorial =
+                                        appSettings.hasCompletedTutorial.state.value
+                                    LaunchedEffect(hasCompletedTutorial) {
+                                        if (!hasCompletedTutorial) {
                                             navController.navigate(MainActivityNav.Tutorial) {
+                                                popUpTo<MainActivityNav.SettingsMain> {
+                                                    inclusive = true
+                                                }
                                                 anim {
                                                     enter = 0
                                                     exit = 0
