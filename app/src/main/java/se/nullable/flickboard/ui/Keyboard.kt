@@ -343,10 +343,6 @@ fun Keyboard(
             alpha = backgroundOpacity.value,
             modifier = Modifier.matchParentSize(),
         )
-        val keyGapSize = when {
-            keyGap.value -> 1.dp
-            else -> 0.dp
-        }
         Grid(
             modifier = Modifier
                 .width(thisWidth)
@@ -363,8 +359,8 @@ fun Keyboard(
                         else -> keyboardMarginBottomPortrait.value.dp
                     },
                 ),
-            columnGap = keyGapSize,
-            rowGap = keyGapSize,
+            columnGap = keyGap.value.dp,
+            rowGap = keyGap.value.dp,
             rows = layer.keyRows.map { row ->
                 {
                     row.forEach { key ->

@@ -1114,11 +1114,13 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::percentage,
     )
 
-    val keyGap = Setting.Bool(
+    val keyGap = Setting.FloatSlider(
         key = "keyGap",
         label = "Key gap",
-        defaultValue = true,
+        defaultValue = 1F,
+        range = 0F..2F,
         ctx = ctx,
+        render = Setting.FloatSlider::percentage,
     )
 
     val keyOutline = Setting.FloatSlider(
