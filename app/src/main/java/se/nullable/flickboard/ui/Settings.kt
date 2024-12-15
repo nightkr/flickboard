@@ -1114,12 +1114,10 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::percentage,
     )
 
-    val keyBorderStyle = Setting.Enum(
-        key = "keyBorderStyle",
-        label = "Key border style",
-        defaultValue = KeyBorderStyle.Gap,
-        options = KeyBorderStyle.entries,
-        tryEnumValueOfT = { tryEnumValueOf<KeyBorderStyle>(it) },
+    val keyGap = Setting.Bool(
+        key = "keyGap",
+        label = "Key gap",
+        defaultValue = true,
         ctx = ctx,
     )
 
@@ -1445,7 +1443,7 @@ class AppSettings(val ctx: SettingsContext) {
                     showNumbers,
                     enableHiddenActions,
                     keyRoundness,
-                    keyBorderStyle,
+                    keyGap,
                     actionVisualBiasCenter,
                     actionVisualScale,
                     keyColour,
@@ -1623,11 +1621,6 @@ enum class ControlSectionOption(override val label: String) : Labeled {
     Single("Single"),
     DoubleInside("Double (inside)"),
     DoubleOutside("Double (outside)"),
-}
-
-enum class KeyBorderStyle(override val label: String) : Labeled {
-    Gap("Gap"),
-    None("None"),
 }
 
 class SettingsContext(val prefs: SharedPreferences, val coroutineScope: CoroutineScope)
