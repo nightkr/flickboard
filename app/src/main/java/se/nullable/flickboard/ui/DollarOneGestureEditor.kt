@@ -38,13 +38,13 @@ import se.nullable.flickboard.model.Gesture
 import kotlin.math.min
 
 // Only used as a preview
-// Used to edit raw/gestures.txt
+// Used to edit raw/gestures.bin
 @Composable
 @Preview
 fun DollarOneGestureEditor() {
     val context = LocalContext.current
     val gestureLibrary = remember(context) {
-        GestureLibraries.fromPrivateFile(context, "gestures.txt")
+        GestureLibraries.fromPrivateFile(context, "gestures.bin")
             .also { it.load() }
     }
     val refreshGestureLibrary = remember { mutableStateOf(Unit, neverEqualPolicy()) }

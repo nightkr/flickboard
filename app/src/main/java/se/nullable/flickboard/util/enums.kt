@@ -1,3 +1,5 @@
+package se.nullable.flickboard.util
+
 inline fun <reified T : Enum<T>> tryEnumValueOf(name: String): T? = try {
     enumValueOf<T>(name)
 } catch (_: IllegalArgumentException) {

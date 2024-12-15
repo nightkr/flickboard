@@ -51,7 +51,7 @@ fun EmojiKeyboard(onAction: OnAction) {
     val emojiHistory = appSettings.emojiHistory.state
     val emojis = emojiList()
     val selectedTab = remember(emojis) {
-        mutableStateOf<EmojiTab>(
+        mutableStateOf(
             when {
                 emojiHistory.value.isBlank() -> EmojiTab.Category(0)
                 else -> EmojiTab.Recent

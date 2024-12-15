@@ -1,6 +1,5 @@
 package se.nullable.flickboard.ui
 
-import android.content.SharedPreferences
 import android.util.JsonReader
 import android.util.JsonToken
 import android.util.JsonWriter
@@ -127,18 +126,3 @@ fun BetaMenu(modifier: Modifier = Modifier) {
     }
 }
 
-private fun SharedPreferences.Editor.copyPreferencesFrom(from: SharedPreferences) {
-    from.all.forEach { (key, value) ->
-        // We have no way to detect StringSet specifically, thanks erasure...
-        @Suppress("UNCHECKED_CAST")
-        when (value) {
-            is String -> putString(key, value)
-            is Set<*> -> putStringSet(key, value as Set<String>)
-            is Boolean -> putBoolean(key, value)
-            is Int -> putInt(key, value)
-            is Long -> putLong(key, value)
-            is Float -> putFloat(key, value)
-            else -> throw Exception("unable to export $value")
-        }
-    }
-}

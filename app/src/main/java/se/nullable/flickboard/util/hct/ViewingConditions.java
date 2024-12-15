@@ -30,8 +30,6 @@ import androidx.annotation.RestrictTo;
  *
  * <p>This class caches intermediate values of the CAM16 conversion process that depend only on
  * viewing conditions, enabling speed ups.
- *
- * @hide
  */
 @RestrictTo(LIBRARY_GROUP)
 public final class ViewingConditions {
@@ -109,6 +107,7 @@ public final class ViewingConditions {
      * @param discountingIlluminant Whether the eye accounts for the tint of the ambient lighting,
      *                              such as knowing an apple is still red in green light. default = false, the eye does not
      *                              perform this process on self-luminous objects like displays.
+     * @noinspection UnnecessaryLocalVariable
      */
     public static ViewingConditions make(
             double[] whitePoint,

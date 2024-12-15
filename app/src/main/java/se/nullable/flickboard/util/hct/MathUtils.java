@@ -22,8 +22,6 @@ import androidx.annotation.RestrictTo;
 
 /**
  * Utility methods for mathematical operations.
- *
- * @hide
  */
 @RestrictTo(LIBRARY_GROUP)
 public class MathUtils {

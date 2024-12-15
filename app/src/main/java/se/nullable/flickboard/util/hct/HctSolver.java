@@ -22,8 +22,6 @@ import androidx.annotation.RestrictTo;
 
 /**
  * A class that solves the HCT equation.
- *
- * @hide
  */
 @RestrictTo(LIBRARY_GROUP)
 public class HctSolver {
@@ -335,7 +333,7 @@ public class HctSolver {
      */
     static double trueDelinearized(double rgbComponent) {
         double normalized = rgbComponent / 100.0;
-        double delinearized = 0.0;
+        double delinearized;
         if (normalized <= 0.0031308) {
             delinearized = normalized * 12.92;
         } else {
@@ -420,6 +418,7 @@ public class HctSolver {
      * @return The nth possible vertex of the polygonal intersection of the y plane and the RGB cube,
      * in linear RGB coordinates, if it exists. If this possible vertex lies outside of the cube,
      * [-1.0, -1.0, -1.0] is returned.
+     * @noinspection UnnecessaryLocalVariable
      */
     static double[] nthVertex(double y, int n) {
         double kR = Y_FROM_LINRGB[0];
@@ -528,8 +527,8 @@ public class HctSolver {
         double[] right = segment[1];
         for (int axis = 0; axis < 3; axis++) {
             if (left[axis] != right[axis]) {
-                int lPlane = -1;
-                int rPlane = 255;
+                int lPlane;
+                int rPlane;
                 if (left[axis] < right[axis]) {
                     lPlane = criticalPlaneBelow(trueDelinearized(left[axis]));
                     rPlane = criticalPlaneAbove(trueDelinearized(right[axis]));

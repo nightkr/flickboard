@@ -1,7 +1,6 @@
 package se.nullable.flickboard.ui
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -49,7 +48,6 @@ import se.nullable.flickboard.model.TextDirection
 import se.nullable.flickboard.ui.theme.Typography
 import java.util.Locale
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
     val fullOKey = KeyM(
@@ -257,6 +255,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                                 page == pagerState.currentPage -> MaterialTheme.colorScheme.primary
                                 else -> MaterialTheme.colorScheme.surfaceVariant
                             },
+                            label = "page indicator",
                         )
                         Box(
                             Modifier

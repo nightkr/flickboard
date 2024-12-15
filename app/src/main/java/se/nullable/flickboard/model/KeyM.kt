@@ -635,9 +635,9 @@ enum class SearchDirection(
     Forwards(factor = 1, nextOrPrevInTitle = "Next", nextOrPrevInSentence = "next"),
 }
 
-enum class CaseChangeDirection(val nameInTitle: String, val nameInSentence: String) {
-    Up(nameInTitle = "Up", nameInSentence = "up"),
-    Down(nameInTitle = "Down", nameInSentence = "down");
+enum class CaseChangeDirection(val nameInTitle: String) {
+    Up(nameInTitle = "Up"),
+    Down(nameInTitle = "Down");
 }
 
 enum class Direction {

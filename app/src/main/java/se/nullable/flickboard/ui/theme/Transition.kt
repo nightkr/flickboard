@@ -10,6 +10,7 @@ import se.nullable.flickboard.neg
 object Transition {
     // widthPx is unused, but leaving it to fit the signature and
     // enabling future experimenting with other values
+    @Suppress("SameReturnValue")
     private fun widthTransform(widthPx: Int): Int = 100
     // private fun widthTransform(widthPx: Int): Int = widthPx + 20
 

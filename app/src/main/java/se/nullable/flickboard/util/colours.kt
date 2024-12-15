@@ -55,7 +55,7 @@ data class MaterialToneConfig(
     }
 }
 
-private fun Color.hctRotateHue(hueOffset: Int): Color =
+private fun Color.hctRotateHue(@Suppress("SameParameterValue") hueOffset: Int): Color =
     toHct().also { it.hue += hueOffset }.toColour()
 
 fun Color.toTertiary() = hctRotateHue(240)
@@ -69,6 +69,7 @@ private fun Color.hctSetCt(chroma: Float, tone: Int): Color =
 fun Color.toAccent(chroma: Float, toneConfig: MaterialToneConfig) =
     hctSetCt(chroma = chroma, toneConfig.accent)
 
+@Suppress("unused")
 fun Color.toOnAccent(chroma: Float, toneConfig: MaterialToneConfig) =
     hctSetCt(chroma = chroma, toneConfig.onAccent)
 

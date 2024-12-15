@@ -35,9 +35,6 @@ enum class ShiftState {
     val isCapsLock: Boolean
         get() = this == CapsLock
 
-    val isShifted: Boolean
-        get() = this != Normal
-
     fun next(): ShiftState = when (this) {
         Shift -> Normal
         else -> this

@@ -134,12 +134,12 @@ import se.nullable.flickboard.model.layouts.messageaseNumericCalculatorLayer
 import se.nullable.flickboard.model.layouts.messageaseNumericPhoneLayer
 import se.nullable.flickboard.model.layouts.miniNumbersCalculatorLayer
 import se.nullable.flickboard.model.layouts.miniNumbersPhoneLayer
-import se.nullable.flickboard.ui.theme.Typography
+import se.nullable.flickboard.ui.theme.Title
 import se.nullable.flickboard.ui.util.isSamsungDevice
 import se.nullable.flickboard.util.Boxed
 import se.nullable.flickboard.util.MaterialToneMode
 import se.nullable.flickboard.util.orNull
-import tryEnumValueOf
+import se.nullable.flickboard.util.tryEnumValueOf
 import java.io.FileOutputStream
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -184,7 +184,7 @@ fun SettingsHomePage(
                 )
             }
             item {
-                SettingsTitle("Settings")
+                Title("Settings")
             }
             items(appSettings.all, key = { it.key }) { section ->
                 MenuPageLink(
@@ -204,7 +204,9 @@ fun SettingsHomePage(
                 )
             }
             item {
-                SettingsTitle("About")
+                Title("About")
+                // These constants will depend on the build config
+                @Suppress("KotlinConstantConditions")
                 val variant = when {
                     BuildConfig.BUILD_TYPE == "release" && (BuildConfig.FLAVOR == "plain" || BuildConfig.FLAVOR == "screengrab") -> ""
                     else -> " (${BuildConfig.BUILD_TYPE})"
@@ -236,6 +238,8 @@ fun SettingsHomePage(
                         modifier = Modifier.padding(8.dp),
                     )
                 }
+                // These constants will depend on the build config 
+                @Suppress("KotlinConstantConditions")
                 if (BuildConfig.FLAVOR == "beta") {
                     MenuPageLink(
                         onClick = { onNavigateToBetaMenu() },
@@ -263,17 +267,6 @@ fun SettingsHomePage(
         SettingsKeyboardPreview(sharedTransitionScope, animatedVisibilityScope)
     }
 
-}
-
-@Composable
-fun SettingsTitle(text: String) {
-    Text(
-        text,
-        style = Typography.titleLarge,
-        modifier = Modifier
-            .padding(8.dp)
-            .padding(top = 16.dp),
-    )
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -835,6 +828,7 @@ fun AppSettingsProvider(prefs: SharedPreferences? = null, content: @Composable (
     }
 }
 
+@Suppress("MemberVisibilityCanBePrivate")
 class AppSettings(val ctx: SettingsContext) {
     // Intentionally not rendered
     val hasCompletedTutorial = Setting.Bool(
@@ -999,7 +993,7 @@ class AppSettings(val ctx: SettingsContext) {
         render = Setting.FloatSlider::percentage,
     )
 
-    val landscapeControlSection = Setting.Enum<ControlSectionOption>(
+    val landscapeControlSection = Setting.Enum(
         key = "landscapeControlSection",
         label = "Control section mode in landscape",
         defaultValue = ControlSectionOption.Single,
@@ -1148,7 +1142,7 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx,
         description = "Only applies when using a custom colour",
     )
-    val keyColourTone = Setting.Enum<MaterialToneMode>(
+    val keyColourTone = Setting.Enum(
         key = "keyColourTone",
         label = "Key colour brightness",
         defaultValue = MaterialToneMode.System,
@@ -1409,7 +1403,7 @@ class AppSettings(val ctx: SettingsContext) {
     )
 
     val all =
-        listOf<SettingsSection>(
+        listOf(
             SettingsSection(
                 key = "layout", label = "Layout", icon = R.drawable.baseline_apps_24,
                 settings = listOf(
@@ -1632,19 +1626,6 @@ abstract class SettingProjection<T> {
         return true
     }
 
-    fun <U> map(
-        get: (T) -> U,
-        set: (T, U) -> T,
-    ): SettingProjection<U> = let { base ->
-        object : SettingProjection<U>() {
-            override var currentValue: U
-                get() = get(base.currentValue)
-                set(value) {
-                    base.modify { set(it, value) }
-                }
-        }
-    }
-
     fun <U : Any> tryMap(
         get: (T) -> U?,
         set: (T, U) -> T?,
@@ -1705,8 +1686,7 @@ sealed class Setting<T>(private val ctx: SettingsContext) : SettingProjection<T>
             return v.value
         }
 
-    val watch: Flow<T> = callbackFlow {
-//        println("starting flow: $key")
+    private val watch: Flow<T> = callbackFlow {
         // Type MUST Be initialized by name to ensure that the same object is passed to
         // register and unregister. Otherwise no strong reference is held to the listener,
         // meaning that the registration can be "lost" on any garbage collection.
@@ -1941,7 +1921,7 @@ enum class GestureRecognizer(override val label: String, val description: String
  *
  * Does not support watchers, and changes are not transactional.
  */
-class MockedSharedPreferences(val inner: SharedPreferences) : SharedPreferences by inner {
+class MockedSharedPreferences(private val inner: SharedPreferences) : SharedPreferences by inner {
     private val strings = mutableMapOf<String, String>()
 
     override fun getString(key: String, defValue: String?): String? =

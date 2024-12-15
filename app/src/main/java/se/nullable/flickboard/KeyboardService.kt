@@ -55,13 +55,13 @@ import se.nullable.flickboard.ui.LocalDisplayLimits
 import se.nullable.flickboard.ui.OnAction
 import se.nullable.flickboard.ui.ProvideDisplayLimits
 import se.nullable.flickboard.ui.emoji.EmojiKeyboard
+import se.nullable.flickboard.ui.util.sharePointerInput
 import se.nullable.flickboard.ui.voice.getVoiceInputId
 import se.nullable.flickboard.util.AndroidKeycodeMapper
 import se.nullable.flickboard.util.Boxed
 import se.nullable.flickboard.util.LastTypedData
 import se.nullable.flickboard.util.asCombiningMarkOrNull
 import se.nullable.flickboard.util.singleCodePointOrNull
-import sharePointerInput
 import java.text.BreakIterator
 import kotlin.math.max
 
@@ -79,7 +79,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
     // instead of accessing directly
     private var cursor: CursorAnchorInfo? = null
 
-    var gestureBeginPosition: Int = 0
+    private var gestureBeginPosition: Int = 0
     private fun selection(): IntRange? = when (val currentCursor = cursor) {
         null -> {
             // Some apps (such as Firefox) don't always support requestCursorUpdates,

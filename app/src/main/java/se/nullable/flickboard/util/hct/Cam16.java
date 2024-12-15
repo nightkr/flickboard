@@ -35,8 +35,7 @@ import androidx.annotation.RestrictTo;
  *
  * <p>For example, white under the traditional assumption of a midday sun white point is accurately
  * measured as a slightly chromatic blue by CAM16. (roughly, hue 203, chroma 3, lightness 100)
- *
- * @hide
+ * @noinspection unused, unused, unused, unused, unused, unused, unused
  */
 @RestrictTo(LIBRARY_GROUP)
 public final class Cam16 {
@@ -80,8 +79,7 @@ public final class Cam16 {
         double dA = getAstar() - other.getAstar();
         double dB = getBstar() - other.getBstar();
         double dEPrime = Math.sqrt(dJ * dJ + dA * dA + dB * dB);
-        double dE = 1.41 * Math.pow(dEPrime, 0.63);
-        return dE;
+        return 1.41 * Math.pow(dEPrime, 0.63);
     }
 
     /**
@@ -209,6 +207,7 @@ public final class Cam16 {
      *
      * @param argb              ARGB representation of a color.
      * @param viewingConditions Information about the environment where the color was observed.
+     * @noinspection SameParameterValue
      */
     // The RGB => XYZ conversion matrix elements are derived scientific constants. While the values
     // may differ at runtime due to floating point imprecision, keeping the values the same, and
@@ -393,6 +392,7 @@ public final class Cam16 {
      *
      * @param viewingConditions Information about the environment where the color will be viewed.
      * @return ARGB representation of color
+     * @noinspection SameParameterValue
      */
     int viewed(ViewingConditions viewingConditions) {
         double[] xyz = xyzInViewingConditions(viewingConditions, tempArray);

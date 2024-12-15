@@ -1,3 +1,5 @@
+package se.nullable.flickboard.ui.util
+
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -17,9 +19,9 @@ private data object SharePointerInputElement : ModifierNodeElement<SharePointerI
 }
 
 private class SharePointerInputNode : PointerInputModifierNode, Modifier.Node() {
-    override fun onCancelPointerInput() {
-    }
+    override fun onCancelPointerInput() {}
 
+    @Suppress("EmptyMethod")
     override fun onPointerEvent(
         pointerEvent: PointerEvent,
         pass: PointerEventPass,

@@ -25,8 +25,7 @@ import androidx.annotation.RestrictTo;
  *
  * <p>Utility methods for color science constants and color space conversions that aren't HCT or
  * CAM16.
- *
- * @hide
+ * @noinspection unused
  */
 @RestrictTo(LIBRARY_GROUP)
 public class ColorUtils {
@@ -251,7 +250,7 @@ public class ColorUtils {
      */
     public static int delinearized(double rgbComponent) {
         double normalized = rgbComponent / 100.0;
-        double delinearized = 0.0;
+        double delinearized;
         if (normalized <= 0.0031308) {
             delinearized = normalized * 12.92;
         } else {
