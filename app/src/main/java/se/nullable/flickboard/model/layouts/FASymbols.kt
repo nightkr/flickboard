@@ -16,16 +16,16 @@ val FA_SYMBOLS_LAYER = Layer(
                     Direction.BOTTOM to Action.Text("٫"),
                     Direction.RIGHT to Action.Text(
                         "ّ",
-                        visualOverride = ActionVisual.Label(" ـّ")
-                    )                    
+                        visualOverride = ActionVisual.Label(" ـّ"),
+                    ),
                 ),
                 shift = KeyM(
                     actions = mapOf(
                         Direction.RIGHT to Action.Text("÷"),
                         Direction.BOTTOM_LEFT to Action.Text("¥"),
-                        Direction.BOTTOM to Action.Text("•")
-                    )
-                )
+                        Direction.BOTTOM to Action.Text("•"),
+                    ),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -35,7 +35,7 @@ val FA_SYMBOLS_LAYER = Layer(
                     Direction.LEFT to Action.Text("+"),
                     Direction.RIGHT to Action.Text("!"),
                     Direction.BOTTOM_LEFT to Action.Text("/"),
-                    Direction.BOTTOM_RIGHT to Action.Text("\\")
+                    Direction.BOTTOM_RIGHT to Action.Text("\\"),
                 ),
                 shift = KeyM(
                     actions = mapOf(
@@ -45,9 +45,9 @@ val FA_SYMBOLS_LAYER = Layer(
                         Direction.LEFT to Action.Text("×"),
                         Direction.RIGHT to Action.Text("¡"),
                         Direction.BOTTOM_LEFT to Action.Text("–"),
-                        Direction.BOTTOM_RIGHT to Action.Text("—")
-                    )
-                )
+                        Direction.BOTTOM_RIGHT to Action.Text("—"),
+                    ),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -59,9 +59,9 @@ val FA_SYMBOLS_LAYER = Layer(
                     actions = mapOf(
                         Direction.LEFT to Action.Text("¿"),
                         Direction.BOTTOM to Action.Text("±"),
-                        Direction.BOTTOM_RIGHT to Action.Text("£")
-                    )
-                )
+                        Direction.BOTTOM_RIGHT to Action.Text("£"),
+                    ),
+                ),
             ),
         ),
         listOf(
@@ -80,25 +80,25 @@ val FA_SYMBOLS_LAYER = Layer(
                         Direction.LEFT to Action.Text(")"),
                         Direction.BOTTOM_LEFT to Action.Text("]"),
                         Direction.BOTTOM to Action.Text("¯"),
-                        Direction.BOTTOM_RIGHT to Action.Text("¬")
-                    )
-                )
+                        Direction.BOTTOM_RIGHT to Action.Text("¬"),
+                    ),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.TOP_LEFT to Action.Text(
                         "ُ",
-                        visualOverride = ActionVisual.Label(" ـُ")
+                        visualOverride = ActionVisual.Label(" ـُ"),
                     ),
                     Direction.TOP_RIGHT to Action.Text(
                         "َ",
-                        visualOverride = ActionVisual.Label(" ـَ")
+                        visualOverride = ActionVisual.Label(" ـَ"),
                     ),
                     Direction.BOTTOM to Action.Text(
                         "ِ",
-                        visualOverride = ActionVisual.Label(" ـِ")
-                    )
-                )
+                        visualOverride = ActionVisual.Label(" ـِ"),
+                    ),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -114,23 +114,23 @@ val FA_SYMBOLS_LAYER = Layer(
                         Direction.TOP_RIGHT to Action.Text("{"),
                         Direction.RIGHT to Action.Text("("),
                         Direction.BOTTOM_LEFT to Action.Text("ª"),
-                        Direction.BOTTOM_RIGHT to Action.Text("[")
-                    )
-                )
+                        Direction.BOTTOM_RIGHT to Action.Text("["),
+                    ),
+                ),
             ),
         ),
         listOf(
             KeyM(
                 actions = mapOf(
-                    Direction.TOP_LEFT to Action.Text("~"), 
+                    Direction.TOP_LEFT to Action.Text("~"),
                     Direction.TOP_RIGHT to Action.Text(
                         "ً",
-                        visualOverride = ActionVisual.Label(" ـً")
-                    ),                                       
+                        visualOverride = ActionVisual.Label(" ـً"),
+                    ),
                     Direction.LEFT to Action.Text("«"),
                     Direction.BOTTOM_LEFT to Action.Text("<"),
-                    Direction.BOTTOM_RIGHT to Action.Text(":")
-                ),    
+                    Direction.BOTTOM_RIGHT to Action.Text(":"),
+                ),
                 shift = KeyM(
                     actions = mapOf(
                         Direction.TOP_LEFT to Action.Text("˜"),
@@ -141,10 +141,10 @@ val FA_SYMBOLS_LAYER = Layer(
                         Direction.BOTTOM_RIGHT to Action.Text(
                             "\t",
                             forceRawKeyEvent = true,
-                            visualOverride = ActionVisual.Icon(R.drawable.baseline_keyboard_tab_24)
-                        )
-                    )
-                )
+                            visualOverride = ActionVisual.Icon(R.drawable.baseline_keyboard_tab_24),
+                        ),
+                    ),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -161,9 +161,9 @@ val FA_SYMBOLS_LAYER = Layer(
                         Direction.TOP_RIGHT to Action.Text("”"),
                         Direction.BOTTOM_LEFT to Action.Text("‚"),
                         Direction.BOTTOM to Action.Text("…"),
-                        Direction.BOTTOM_RIGHT to Action.Text("„")
-                    )
-                )
+                        Direction.BOTTOM_RIGHT to Action.Text("„"),
+                    ),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -172,7 +172,7 @@ val FA_SYMBOLS_LAYER = Layer(
                     Direction.LEFT to Action.Text("#"),
                     Direction.RIGHT to Action.Text("»"),
                     Direction.BOTTOM_LEFT to Action.Text("؛"),
-                    Direction.BOTTOM_RIGHT to Action.Text(">")
+                    Direction.BOTTOM_RIGHT to Action.Text(">"),
                 ),
                 shift = KeyM(
                     actions = mapOf(
@@ -181,14 +181,14 @@ val FA_SYMBOLS_LAYER = Layer(
                         Direction.LEFT to Action.Text("£"),
                         Direction.RIGHT to Action.Text("›"),
                         Direction.BOTTOM_LEFT to Action.Text("¸"),
-                        Direction.BOTTOM_RIGHT to Action.Text("»")
-                    )
-                )
+                        Direction.BOTTOM_RIGHT to Action.Text("»"),
+                    ),
+                ),
             ),
         ),
         listOf(
             KeyM(actions = mapOf(), colspan = 2),
-            SPACE.copy(colspan = 1)
-        )
-    )
+            SPACE.copy(colspan = 1),
+        ),
+    ),
 )

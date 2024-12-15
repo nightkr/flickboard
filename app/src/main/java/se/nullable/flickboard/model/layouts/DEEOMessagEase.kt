@@ -20,14 +20,14 @@ val DE_EO_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_RIGHT to Action.Text("ŭ"),
                     Direction.TOP to Action.Text("ĝ"),
                     Direction.TOP_RIGHT to Action.Text("ŭ"),
-                    Direction.LEFT to Action.Text("ŝ")
-                )
+                    Direction.LEFT to Action.Text("ŝ"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("n"),
-                    Direction.BOTTOM to Action.Text("l")
-                )
+                    Direction.BOTTOM to Action.Text("l"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -35,9 +35,9 @@ val DE_EO_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.BOTTOM_LEFT to Action.Text("x"),
                     Direction.TOP_LEFT to Action.Text("ĉ"),
                     Direction.TOP_RIGHT to Action.Text("ĵ"),
-                    Direction.RIGHT to Action.Text("ĥ")
+                    Direction.RIGHT to Action.Text("ĥ"),
 
-                )
+                    ),
             ),
         ),
         listOf(
@@ -46,8 +46,8 @@ val DE_EO_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP to Action.Text("ü"),
                     Direction.CENTER to Action.Text("h"),
                     Direction.RIGHT to Action.Text("k"),
-                    Direction.BOTTOM to Action.Text("ö")
-                )
+                    Direction.BOTTOM to Action.Text("ö"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -59,14 +59,14 @@ val DE_EO_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.RIGHT to Action.Text("b"),
                     Direction.BOTTOM_LEFT to Action.Text("g"),
                     Direction.BOTTOM to Action.Text("o"),
-                    Direction.BOTTOM_RIGHT to Action.Text("j")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("j"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
-                    Direction.LEFT to Action.Text("m")
-                )
+                    Direction.LEFT to Action.Text("m"),
+                ),
             ),
         ),
         listOf(
@@ -78,46 +78,46 @@ val DE_EO_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.BOTTOM_LEFT to Action.Text("ch"),
                 ),
                 shift = KeyM(
-                  actions = mapOf(
-                      Direction.BOTTOM to Action.Text("ẞ"),
-                      Direction.BOTTOM_LEFT to Action.Text("Ch")
-                  )
-                )
+                    actions = mapOf(
+                        Direction.BOTTOM to Action.Text("ẞ"),
+                        Direction.BOTTOM_LEFT to Action.Text("Ch"),
+                    ),
+                ),
 
-            ),
+                ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("e"),
                     Direction.TOP to Action.Text("w"),
                     Direction.RIGHT to Action.Text("z"),
-                    Direction.LEFT to Action.Text("ck")
+                    Direction.LEFT to Action.Text("ck"),
                 ),
                 shift = KeyM(
                     actions = mapOf(
-                    Direction.LEFT to Action.Text("Ck")
-                    )
-                )
+                        Direction.LEFT to Action.Text("Ck"),
+                    ),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("s"),
                     Direction.TOP_LEFT to Action.Text("f"),
-                    Direction.BOTTOM_RIGHT to Action.Text("sch")
+                    Direction.BOTTOM_RIGHT to Action.Text("sch"),
                 ),
                 shift = KeyM(
                     actions = mapOf(
-                        Direction.BOTTOM_RIGHT to Action.Text("Sch")
-                    )
-                )
+                        Direction.BOTTOM_RIGHT to Action.Text("Sch"),
+                    ),
+                ),
             ),
         ),
-        listOf(SPACE)
-    )
+        listOf(SPACE),
+    ),
 )
 
 val DE_EO_MESSAGEASE = Layout(
     mainLayer = DE_EO_MESSAGEASE_MAIN_LAYER,
-    controlLayer = CONTROL_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER,
 )
 
 @Composable

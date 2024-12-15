@@ -20,13 +20,13 @@ val FR_PUNC_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.BOTTOM_RIGHT to Action.Text("v"),
                     Direction.LEFT to Action.Text("«"),
                     Direction.TOP_LEFT to Action.Text("æ"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("n"),
                     Direction.BOTTOM to Action.Text("l"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -35,7 +35,7 @@ val FR_PUNC_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_LEFT to Action.Text("·"),
                     Direction.RIGHT to Action.Text("»"),
                     Direction.BOTTOM_LEFT to Action.Text("x"),
-                )
+                ),
             ),
         ),
         listOf(
@@ -45,7 +45,7 @@ val FR_PUNC_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP to Action.Text("ê"),
                     Direction.RIGHT to Action.Text("k"),
                     Direction.BOTTOM to Action.Text("ç"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -58,13 +58,13 @@ val FR_PUNC_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.BOTTOM to Action.Text("d"),
                     Direction.BOTTOM_LEFT to Action.Text("g"),
                     Direction.LEFT to Action.Text("c"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
                     Direction.LEFT to Action.Text("m"),
-                )
+                ),
             ),
         ),
         listOf(
@@ -74,7 +74,7 @@ val FR_PUNC_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_RIGHT to Action.Text("y"),
                     Direction.RIGHT to Action.Text("è"),
                     Direction.BOTTOM to Action.Text("ù"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -82,23 +82,23 @@ val FR_PUNC_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP to Action.Text("w"),
                     Direction.RIGHT to Action.Text("z"),
                     Direction.LEFT to Action.Text("é"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("s"),
                     Direction.BOTTOM_RIGHT to Action.Text("œ"),
                     Direction.TOP_LEFT to Action.Text("f"),
-                )
+                ),
             ),
         ),
-        listOf(SPACE)
-    )
+        listOf(SPACE),
+    ),
 )
 
 val FR_PUNC_MESSAGEASE = Layout(
     mainLayer = FR_PUNC_MESSAGEASE_MAIN_LAYER,
-    controlLayer = CONTROL_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER,
 )
 
 @Composable

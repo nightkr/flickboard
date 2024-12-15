@@ -61,5 +61,5 @@ val FA_MINI_NUMBERS_SYMBOLS_LAYER = Layer(
                 ),
             ),
         ),
-    )
+    ),
 )

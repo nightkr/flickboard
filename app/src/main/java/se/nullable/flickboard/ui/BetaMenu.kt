@@ -33,12 +33,12 @@ fun BetaMenu(modifier: Modifier = Modifier) {
         val itemModifier = Modifier.padding(8.dp)
         Text(
             "To open the secret beta menu in a release build, tap the version number 7 times",
-            itemModifier
+            itemModifier,
         )
         Text(
             "All beta options are experimental, and you may still require a full reset. " +
                     "Sensitive settings will not be saved.",
-            itemModifier
+            itemModifier,
         )
         val settingsMime = "application/json"
         val exportPicker =
@@ -105,10 +105,12 @@ fun BetaMenu(modifier: Modifier = Modifier) {
                 text = { Text("Import will overwrite existing settings. Proceed?") },
                 onDismissRequest = { showImportConfirmationDialog.value = false },
                 confirmButton = {
-                    TextButton(onClick = {
-                        showImportConfirmationDialog.value = false
-                        importPicker.launch(arrayOf(settingsMime))
-                    }) {
+                    TextButton(
+                        onClick = {
+                            showImportConfirmationDialog.value = false
+                            importPicker.launch(arrayOf(settingsMime))
+                        },
+                    ) {
                         Text("Import")
                     }
                 },
@@ -116,7 +118,7 @@ fun BetaMenu(modifier: Modifier = Modifier) {
                     TextButton(onClick = { showImportConfirmationDialog.value = false }) {
                         Text("Cancel")
                     }
-                }
+                },
             )
         }
         Button(onClick = { showImportConfirmationDialog.value = true }, itemModifier) {

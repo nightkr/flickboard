@@ -18,7 +18,7 @@ val AR_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("ه"),
                     Direction.BOTTOM_RIGHT to Action.Text("ق"),
                     Direction.BOTTOM to Action.Text("ة"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -27,15 +27,15 @@ val AR_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_RIGHT to Action.Text("َ"),
                     Direction.BOTTOM to Action.Text("خ"),
                     Direction.BOTTOM_LEFT to Action.Text("ض"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("م"),
                     Direction.LEFT to Action.Text("؟"),
                     Direction.TOP_LEFT to Action.Text("ْ"),
-                    Direction.BOTTOM_LEFT to Action.Text("إ")
-                )
+                    Direction.BOTTOM_LEFT to Action.Text("إ"),
+                ),
             ),
         ),
         listOf(
@@ -46,7 +46,7 @@ val AR_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.BOTTOM_RIGHT to Action.Text("ط"),
                     Direction.TOP_RIGHT to Action.Text("ص"),
                     Direction.BOTTOM to Action.Text("ى"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -59,14 +59,14 @@ val AR_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.BOTTOM_LEFT to Action.Text("ل"),
                     Direction.BOTTOM to Action.Text("ت"),
                     Direction.BOTTOM_RIGHT to Action.Text("ك"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("ر"),
                     Direction.LEFT to Action.Text("ز"),
                     Direction.BOTTOM_LEFT to Action.Text("ع"),
-                )
+                ),
             ),
         ),
         listOf(
@@ -74,8 +74,8 @@ val AR_MESSAGEASE_MAIN_LAYER = Layer(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("و"),
                     Direction.TOP to Action.Text("ّ"),
-                    Direction.TOP_RIGHT to Action.Text("ؤ")
-                )
+                    Direction.TOP_RIGHT to Action.Text("ؤ"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -87,25 +87,25 @@ val AR_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_LEFT to Action.Text("ظ"),
                     Direction.TOP_RIGHT to Action.Text("غ"),
 
-                    )
+                    ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("د"),
                     Direction.TOP to Action.Text("ً"),
-                    Direction.LEFT to Action.Text("ذ")
-                )
+                    Direction.LEFT to Action.Text("ذ"),
+                ),
             ),
         ),
-        listOf(SPACE)
-    )
+        listOf(SPACE),
+    ),
 )
 
 val AR_MESSAGEASE = Layout(
     mainLayer = AR_MESSAGEASE_MAIN_LAYER,
     controlLayer = CONTROL_MESSAGEASE_LAYER,
     digits = "٠١٢٣٤٥٦٧٨٩",
-    textDirection = TextDirection.RightToLeft
+    textDirection = TextDirection.RightToLeft,
 )
 
 @Composable

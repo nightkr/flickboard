@@ -28,7 +28,7 @@ fun KeyLabelGrid(
     val centerBias = LocalAppSettings.current.actionVisualBiasCenter.state.value
     Layout(
         content = { KeyLabelGridScope().content() },
-        modifier = modifier
+        modifier = modifier,
     ) { measurables, constraints ->
         val xCornerInset = sqrt(constraints.maxWidth * cornerRoundness).toInt() * 2
         val yCornerInset = sqrt(constraints.maxHeight * cornerRoundness).toInt() * 2

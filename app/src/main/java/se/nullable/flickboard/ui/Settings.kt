@@ -173,14 +173,14 @@ fun SettingsHomePage(
                 MenuPageLink(
                     onClick = onNavigateToTutorial,
                     icon = painterResource(R.drawable.baseline_checklist_24),
-                    label = "Tutorial"
+                    label = "Tutorial",
                 )
             }
             item {
                 MenuPageLink(
                     onClick = onNavigateToDescriber,
                     icon = painterResource(R.drawable.baseline_help_24),
-                    label = "What Does This Do?"
+                    label = "What Does This Do?",
                 )
             }
             item {
@@ -190,7 +190,7 @@ fun SettingsHomePage(
                 MenuPageLink(
                     onClick = { onNavigateToSection(section) },
                     icon = painterResource(section.icon),
-                    label = section.label
+                    label = section.label,
                 )
             }
             item {
@@ -200,7 +200,7 @@ fun SettingsHomePage(
                     label = { Text("Type here to try FlickBoard") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
+                        .padding(horizontal = 8.dp),
                 )
             }
             item {
@@ -229,10 +229,11 @@ fun SettingsHomePage(
                                     betaMenuHintToast.show()
                                 }
                             }
-                        }) {
+                        },
+                ) {
                     Text(
                         "FlickBoard v${BuildConfig.VERSION_NAME}$variant",
-                        modifier = Modifier.padding(8.dp)
+                        modifier = Modifier.padding(8.dp),
                     )
                 }
                 if (BuildConfig.FLAVOR == "beta") {
@@ -250,12 +251,12 @@ fun SettingsHomePage(
                 MenuPageLink(
                     onClick = { openUri(Uri.parse("https://github.com/nightkr/flickboard")) },
                     icon = painterResource(id = R.drawable.baseline_code_24),
-                    label = "View Source on GitHub"
+                    label = "View Source on GitHub",
                 )
                 MenuPageLink(
                     onClick = { openUri(Uri.parse("https://github.com/nightkr/flickboard/issues")) },
                     icon = painterResource(id = R.drawable.baseline_bug_report_24),
-                    label = "Report Bugs on GitHub"
+                    label = "Report Bugs on GitHub",
                 )
             }
         }
@@ -271,7 +272,7 @@ fun SettingsTitle(text: String) {
         style = Typography.titleLarge,
         modifier = Modifier
             .padding(8.dp)
-            .padding(top = 16.dp)
+            .padding(top = 16.dp),
     )
 }
 
@@ -287,7 +288,7 @@ fun SettingsSectionPage(
         Column(
             modifier
                 .verticalScroll(rememberScrollState())
-                .weight(1F)
+                .weight(1F),
         ) {
             section.settings.forEach { setting ->
                 when (setting) {
@@ -329,27 +330,27 @@ fun SettingsKeyboardPreview(
                         }
                         .sharedElement(
                             rememberSharedContentState(MainActivitySharedElement.SettingsKeyboardPreviewHeader.toString()),
-                            animatedVisibilityScope
+                            animatedVisibilityScope,
                         ),
                     color = MaterialTheme.colorScheme.secondaryContainer,
                 ) {
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         when {
                             realKeyboardVisible -> {
                                 Text(
                                     text = "Keyboard active",
                                     color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.padding(8.dp)
+                                    modifier = Modifier.padding(8.dp),
                                 )
                                 Icon(
                                     painterResource(R.drawable.baseline_keyboard_hide_24),
                                     "close",
                                     Modifier
-                                        .padding(8.dp)
+                                        .padding(8.dp),
                                 )
                             }
 
@@ -357,13 +358,14 @@ fun SettingsKeyboardPreview(
                                 Text(
                                     text = "Preview keyboard",
                                     color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.padding(8.dp)
+                                    modifier = Modifier.padding(8.dp),
                                 )
                                 val hideIconAngle = animateFloatAsState(
                                     when {
                                         enableState.value -> 0F
                                         else -> 180F
-                                    }, label = "hideIconAngle"
+                                    },
+                                    label = "hideIconAngle",
                                 )
                                 Icon(
                                     painterResource(R.drawable.baseline_arrow_drop_down_24),
@@ -373,7 +375,7 @@ fun SettingsKeyboardPreview(
                                     },
                                     Modifier
                                         .padding(8.dp)
-                                        .rotate(hideIconAngle.value)
+                                        .rotate(hideIconAngle.value),
                                 )
                             }
                         }
@@ -393,8 +395,8 @@ fun SettingsKeyboardPreview(
                                 // sharedElement can't encompass AnimatedVisibility, or the size animation breaks
                                 .sharedElement(
                                     rememberSharedContentState(MainActivitySharedElement.SettingsKeyboardPreview.toString()),
-                                    animatedVisibilityScope
-                                )
+                                    animatedVisibilityScope,
+                                ),
                         )
                     }
                 }
@@ -406,9 +408,10 @@ fun SettingsKeyboardPreview(
 @Composable
 fun BoolSetting(setting: Setting.Bool) {
     val state = setting.state
-    Box(modifier = Modifier.clickable {
-        setting.currentValue = !state.value
-    }
+    Box(
+        modifier = Modifier.clickable {
+            setting.currentValue = !state.value
+        },
     ) {
         SettingRow {
             SettingLabel(setting)
@@ -428,7 +431,7 @@ fun TextSetting(setting: Setting.Text) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 SettingLabel(setting)
             }
@@ -437,7 +440,7 @@ fun TextSetting(setting: Setting.Text) {
                     value = state.value,
                     onValueChange = { setting.currentValue = it },
                     placeholder = { setting.placeholder?.let { Text(it) } },
-                    modifier = Modifier.weight(1F)
+                    modifier = Modifier.weight(1F),
                 )
                 IconButton(onClick = { setting.resetToDefault() }) {
                     Icon(painterResource(R.drawable.baseline_clear_24), "Reset to default")
@@ -455,7 +458,7 @@ fun FloatSliderSetting(setting: Setting.FloatSlider) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 SettingLabel(setting)
                 Text(text = setting.render(state.value))
@@ -465,7 +468,7 @@ fun FloatSliderSetting(setting: Setting.FloatSlider) {
                     value = state.value,
                     onValueChange = { setting.currentValue = it },
                     valueRange = setting.range,
-                    modifier = Modifier.weight(1F)
+                    modifier = Modifier.weight(1F),
                 )
                 IconButton(onClick = { setting.resetToDefault() }) {
                     Icon(painterResource(R.drawable.baseline_clear_24), "Reset to default")
@@ -491,7 +494,7 @@ fun <T : Labeled> EnumListSetting(setting: Setting.EnumList<T>) {
         optionSelectionControl = { selected, option ->
             Switch(
                 checked = selected.contains(option),
-                onCheckedChange = { toggleOption(option, add = it) }
+                onCheckedChange = { toggleOption(option, add = it) },
             )
         },
         optionIsSelected = List<T>::contains,
@@ -516,7 +519,8 @@ fun <T : Labeled> EnumSetting(setting: Setting.Enum<T>) {
             optionSelectionControl = { selected, option ->
                 RadioButton(
                     selected = selected == option,
-                    onClick = { setting.currentValue = option })
+                    onClick = { setting.currentValue = option },
+                )
             },
             optionIsSelected = { selected, option -> option == selected },
             onOptionSelected = { setting.currentValue = it },
@@ -558,15 +562,17 @@ fun ImageSetting(setting: Setting.Image) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             SettingLabel(setting)
             Row {
-                IconButton(onClick = {
-                    imagePicker.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
-                }) {
+                IconButton(
+                    onClick = {
+                        imagePicker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                        )
+                    },
+                ) {
                     Icon(painterResource(R.drawable.baseline_image_search_24), "Set image")
                 }
                 IconButton(onClick = { setting.currentValue = null }) {
@@ -586,7 +592,7 @@ fun ColourSetting(setting: Setting.Colour) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 SettingLabel(setting)
                 Row {
@@ -598,13 +604,15 @@ fun ColourSetting(setting: Setting.Colour) {
                                 Modifier
                                     .size(24.dp)
                                     .clip(CircleShape)
-                                    .align(Alignment.CenterVertically)
+                                    .align(Alignment.CenterVertically),
                             )
                         }
                     }
-                    IconButton(onClick = {
-                        expanded.value = !expanded.value
-                    }) {
+                    IconButton(
+                        onClick = {
+                            expanded.value = !expanded.value
+                        },
+                    ) {
                         Icon(painterResource(R.drawable.baseline_color_lens_24), "Set colour")
                     }
                     IconButton(onClick = { setting.currentValue = null }) {
@@ -617,7 +625,7 @@ fun ColourSetting(setting: Setting.Colour) {
                     onColourSelected = { setting.currentValue = it },
                     Modifier
                         .sizeIn(maxHeight = 200.dp)
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = 16.dp),
                 )
             }
         }
@@ -658,7 +666,7 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
                         expanded -> 180F
                         else -> 0F
                     },
-                    label = "angle"
+                    label = "angle",
                 )
                 Icon(Icons.Filled.ArrowDropDown, null, modifier = Modifier.rotate(angle))
             }
@@ -689,17 +697,17 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
                                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                                 )
                             },
-                            modifier = Modifier.padding(8.dp)
+                            modifier = Modifier.padding(8.dp),
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Row(
                                     Modifier.padding(bottom = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
                                         text = option.label,
                                         fontSize = 16.sp,
-                                        modifier = Modifier.weight(1F)
+                                        modifier = Modifier.weight(1F),
                                     )
                                     optionSelectionControl(setting.state.value, option)
                                 }
@@ -708,14 +716,16 @@ fun <T : Labeled, V : Any> BaseEnumSetting(
                                         .also { it.edit { writePreviewSettings(it, this, option) } }
                                 }
                                 FlickBoardParent(prefs) {
-                                    ProvideDisplayLimits(DisplayLimits.calculateCurrent().let {
-                                        it.copy(isLandscape = previewForceLandscape || it.isLandscape)
-                                    }) {
+                                    ProvideDisplayLimits(
+                                        DisplayLimits.calculateCurrent().let {
+                                            it.copy(isLandscape = previewForceLandscape || it.isLandscape)
+                                        },
+                                    ) {
                                         when {
                                             previewOverride != null -> previewOverride(option)
                                             else -> ConfiguredKeyboard(
                                                 onAction = null,
-                                                modifier = Modifier.fillMaxWidth()
+                                                modifier = Modifier.fillMaxWidth(),
                                             )
                                         }
                                     }
@@ -736,7 +746,7 @@ fun SettingRow(content: @Composable RowScope.() -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .padding(8.dp)
-            .fillMaxWidth()
+            .fillMaxWidth(),
     ) {
         content()
     }
@@ -747,7 +757,7 @@ fun RowScope.SettingLabel(setting: Setting<*>) {
     Column(
         Modifier
             .weight(1f, false)
-            .padding(end = 8.dp)
+            .padding(end = 8.dp),
     ) {
         Text(text = setting.label)
         val description = setting.description
@@ -756,7 +766,7 @@ fun RowScope.SettingLabel(setting: Setting<*>) {
                 text = description,
                 softWrap = true,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7F),
-                fontWeight = FontWeight.Light
+                fontWeight = FontWeight.Light,
             )
         }
     }
@@ -796,7 +806,7 @@ fun SettingsSectionPagePreview() {
                         LocalAppSettings.current.all[0],
                         this@SharedTransitionLayout,
                         this@AnimatedVisibility,
-                        Modifier.width(1000.dp)
+                        Modifier.width(1000.dp),
                     )
                 }
             }
@@ -815,11 +825,11 @@ fun AppSettingsProvider(prefs: SharedPreferences? = null, content: @Composable (
             SettingsContext(
                 prefs = prefs ?: LocalContext.current.getSharedPreferences(
                     "flickboard",
-                    Context.MODE_PRIVATE
+                    Context.MODE_PRIVATE,
                 ),
-                coroutineScope = rememberCoroutineScope()
-            )
-        )
+                coroutineScope = rememberCoroutineScope(),
+            ),
+        ),
     ) {
         content()
     }
@@ -831,7 +841,7 @@ class AppSettings(val ctx: SettingsContext) {
         key = "hasCompletedTutorial",
         label = "Has completed tutorial",
         defaultValue = false,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val letterLayers = Setting.EnumList(
@@ -846,7 +856,7 @@ class AppSettings(val ctx: SettingsContext) {
             if (enabledLayers.readFrom(readPrefs) == EnabledLayers.Numbers) {
                 enabledLayers.writeTo(prefs, EnabledLayers.Letters)
             }
-        }
+        },
     )
 
     // Intentionally not surfaced as a settings option
@@ -854,7 +864,7 @@ class AppSettings(val ctx: SettingsContext) {
         key = "activeLetterLayerIndex",
         label = "Active letter layer index",
         defaultValue = 0,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val secondaryLetterLayer = Setting.Enum(
@@ -867,7 +877,7 @@ class AppSettings(val ctx: SettingsContext) {
         ctx = ctx,
         writePreviewSettings = { _, prefs ->
             enabledLayers.writeTo(prefs, EnabledLayers.DoubleLetters)
-        }
+        },
     )
 
     val numericLayer = Setting.Enum(
@@ -881,7 +891,7 @@ class AppSettings(val ctx: SettingsContext) {
             if (enabledLayers.readFrom(readPrefs) == EnabledLayers.Letters) {
                 enabledLayers.writeTo(prefs, EnabledLayers.Numbers)
             }
-        }
+        },
     )
 
     val enabledLayers = Setting.Enum(
@@ -890,7 +900,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = EnabledLayers.All,
         options = EnabledLayers.entries,
         tryEnumValueOfT = ::tryEnumValueOf,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val enabledLayersLandscape = Setting.Enum(
@@ -930,7 +940,8 @@ class AppSettings(val ctx: SettingsContext) {
 
                 else -> enabledLayers.tryMap(
                     get = { it },
-                    set = { _, it -> it })
+                    set = { _, it -> it },
+                )
             }
         }
 
@@ -958,7 +969,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = Handedness.RightHanded,
         options = Handedness.entries,
         tryEnumValueOfT = ::tryEnumValueOf,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val landscapeLocation = Setting.FloatSlider(
@@ -967,7 +978,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = 0F,
         range = -1F..1F,
         ctx = ctx,
-        render = Setting.FloatSlider::percentage
+        render = Setting.FloatSlider::percentage,
     )
 
     val landscapeScale = Setting.FloatSlider(
@@ -976,7 +987,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = 1F,
         range = 0.2F..1F,
         ctx = ctx,
-        render = Setting.FloatSlider::percentage
+        render = Setting.FloatSlider::percentage,
     )
 
     val landscapeSplit = Setting.FloatSlider(
@@ -985,7 +996,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = 0F,
         range = 0F..1F,
         ctx = ctx,
-        render = Setting.FloatSlider::percentage
+        render = Setting.FloatSlider::percentage,
     )
 
     val landscapeControlSection = Setting.Enum<ControlSectionOption>(
@@ -1004,7 +1015,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = 0F,
         range = -1F..1F,
         ctx = ctx,
-        render = Setting.FloatSlider::percentage
+        render = Setting.FloatSlider::percentage,
     )
 
     val portraitScale = Setting.FloatSlider(
@@ -1013,7 +1024,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = 1F,
         range = 0.2F..1F,
         ctx = ctx,
-        render = Setting.FloatSlider::percentage
+        render = Setting.FloatSlider::percentage,
     )
 
     val currentLocation: Float
@@ -1032,14 +1043,14 @@ class AppSettings(val ctx: SettingsContext) {
         key = "showLetters",
         label = "Show letters",
         defaultValue = true,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val showSymbols = Setting.Bool(
         key = "showSymbols",
         label = "Show symbols",
         defaultValue = true,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val enableToggleShowSymbolsGesture = Setting.Bool(
@@ -1054,7 +1065,7 @@ class AppSettings(val ctx: SettingsContext) {
         key = "showNumbers",
         label = "Show numbers",
         defaultValue = true,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val shownActionClasses: State<Set<ActionClass>>
@@ -1078,7 +1089,7 @@ class AppSettings(val ctx: SettingsContext) {
         key = "enableHiddenActions",
         label = "Enable hidden actions",
         defaultValue = true,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val keyboardMargin = Setting.FloatSlider(
@@ -1086,7 +1097,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Keyboard margin",
         defaultValue = 0F,
         range = 0F..8F,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val keyboardMarginBottomPortrait = Setting.FloatSlider(
@@ -1094,7 +1105,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Keyboard bottom margin (portrait)",
         defaultValue = 0F,
         range = 0F..100F,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val keyRoundness = Setting.FloatSlider(
@@ -1103,7 +1114,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = 0F,
         range = 0F..0.5F,
         ctx = ctx,
-        render = Setting.FloatSlider::percentage
+        render = Setting.FloatSlider::percentage,
     )
 
     val actionVisualBiasCenter = Setting.FloatSlider(
@@ -1112,7 +1123,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = 1.5F,
         range = 1F..2F,
         ctx = ctx,
-        render = Setting.FloatSlider::percentage
+        render = Setting.FloatSlider::percentage,
     )
 
     val actionVisualScale = Setting.FloatSlider(
@@ -1121,13 +1132,13 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = 1F,
         range = 0.5F..1F,
         ctx = ctx,
-        render = Setting.FloatSlider::percentage
+        render = Setting.FloatSlider::percentage,
     )
 
     val keyColour = Setting.Colour(
         key = "keyColour",
         label = "Key colour",
-        ctx = ctx
+        ctx = ctx,
     )
     val keyColourChroma = Setting.FloatSlider(
         key = "keyColourChroma",
@@ -1153,7 +1164,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = 0.7F,
         range = 0F..1F,
         ctx = ctx,
-        render = Setting.FloatSlider::percentage
+        render = Setting.FloatSlider::percentage,
     )
 
     val backgroundOpacity = Setting.FloatSlider(
@@ -1162,20 +1173,20 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = 1F,
         range = 0F..1F,
         ctx = ctx,
-        render = Setting.FloatSlider::percentage
+        render = Setting.FloatSlider::percentage,
     )
 
     val backgroundImage = Setting.Image(
         key = "backgroundImage",
         label = "Background image",
-        ctx = ctx
+        ctx = ctx,
     )
 
     val enablePointerTrail = Setting.Bool(
         key = "enablePointerTrail",
         label = "Enable pointer trail",
         defaultValue = true,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val enableFastActions = Setting.Bool(
@@ -1183,7 +1194,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Enable fast actions",
         description = "Allows certain actions to be performed before the tap is released",
         defaultValue = true,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val enableLongSwipes = Setting.Bool(
@@ -1191,7 +1202,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Enable long swipes",
         description = "Enables shortcut actions on extra long swipes",
         defaultValue = false,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val longSwipeThreshold = Setting.FloatSlider(
@@ -1200,7 +1211,7 @@ class AppSettings(val ctx: SettingsContext) {
         range = 0.5F..4F,
         defaultValue = 1.5F,
         ctx = ctx,
-        render = Setting.FloatSlider::percentage
+        render = Setting.FloatSlider::percentage,
     )
 
     val enableAdvancedModifiers = Setting.Bool(
@@ -1208,7 +1219,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Enable advanced modifiers",
         description = "Allows ctrl and alt modifiers to be toggled by swiping diagonally from space",
         defaultValue = true,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val periodOnDoubleSpace = Setting.Bool(
@@ -1216,21 +1227,21 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Period on double space",
         description = "Convert \"  \" into \". \"",
         defaultValue = false,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val longHoldOnClockwiseCircle = Setting.Bool(
         key = "digitOnClockwiseCircle",
         label = "Type digit on clockwise circle",
         defaultValue = false,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val longHoldOnCounterClockwiseCircle = Setting.Bool(
         key = "digitOnCounterClockwiseCircle",
         label = "Type digit on counter-clockwise circle",
         defaultValue = false,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val disabledDeadkeys = Setting.Text(
@@ -1239,7 +1250,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = "",
         ctx = ctx,
         description = "Special characters that should never be merged into the previous character",
-        placeholder = "(none)"
+        placeholder = "(none)",
     )
 
     val keyHeight = Setting.FloatSlider(
@@ -1247,7 +1258,7 @@ class AppSettings(val ctx: SettingsContext) {
         label = "Key height",
         defaultValue = 72F,
         range = 48F..128F,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val swipeThreshold = Setting.FloatSlider(
@@ -1256,7 +1267,7 @@ class AppSettings(val ctx: SettingsContext) {
         description = "How far you need to drag before a tap becomes a swipe",
         defaultValue = 8F,
         range = 8F..96F,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val fastSwipeThreshold = Setting.FloatSlider(
@@ -1285,7 +1296,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = .5F,
         range = .01F..1F,
         ctx = ctx,
-        render = Setting.FloatSlider::percentage
+        render = Setting.FloatSlider::percentage,
     )
 
     val circleDiscontinuityThreshold = Setting.FloatSlider(
@@ -1295,7 +1306,7 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = .3F * PiF,
         range = 0F..PiF,
         ctx = ctx,
-        render = Setting.FloatSlider::angle
+        render = Setting.FloatSlider::angle,
     )
 
     val circleAngleThreshold = Setting.FloatSlider(
@@ -1305,42 +1316,42 @@ class AppSettings(val ctx: SettingsContext) {
         defaultValue = 1.8F * PiF,
         range = 1.5F * PiF..3F * PiF,
         ctx = ctx,
-        render = Setting.FloatSlider::angle
+        render = Setting.FloatSlider::angle,
     )
 
     val enableHapticFeedbackOnGestureStart = Setting.Bool(
         key = "enableHapticFeedbackOnGestureStart",
         label = "Vibrate on gesture start",
         defaultValue = false,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val enableHapticFeedbackOnGestureSuccess = Setting.Bool(
         key = "enableHapticFeedback",
         label = "Vibrate on gesture finish",
         defaultValue = true,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val enableVisualFeedback = Setting.Bool(
         key = "enableVisualFeedback",
         label = "Highlight taken actions",
         defaultValue = true,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val visualFeedbackInvertColourScheme = Setting.Bool(
         key = "visualFeedbackInvertColourScheme",
         label = "Make visual highlight extra prominent",
         defaultValue = false,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val enableKeyboardPreview = Setting.Bool(
         key = "enableKeyboardPreview",
         label = "Enable keyboard preview",
         defaultValue = true,
-        ctx = ctx
+        ctx = ctx,
     )
 
     val dropLastGesturePoint = Setting.Bool(
@@ -1368,7 +1379,7 @@ class AppSettings(val ctx: SettingsContext) {
         range = 0F..1F,
         ctx = ctx,
         description = "All gestures shorter than the limit will be forcibly interpreted as taps, rather than swipes",
-        render = { String.format(locale = Locale.getDefault(), "%.2fs", it) }
+        render = { String.format(locale = Locale.getDefault(), "%.2fs", it) },
     )
 
     val noReverseRtlBrackets = Setting.Bool(
@@ -1417,7 +1428,7 @@ class AppSettings(val ctx: SettingsContext) {
                     portraitLocation,
                     portraitScale,
                     keyboardMarginBottomPortrait,
-                )
+                ),
             ),
             SettingsSection(
                 key = "aesthetics", label = "Aesthetics", icon = R.drawable.baseline_palette_24,
@@ -1436,7 +1447,7 @@ class AppSettings(val ctx: SettingsContext) {
                     keyOpacity,
                     backgroundOpacity,
                     backgroundImage,
-                )
+                ),
             ),
             SettingsSection(
                 key = "behaviour",
@@ -1457,7 +1468,7 @@ class AppSettings(val ctx: SettingsContext) {
                     circleJaggednessThreshold,
                     circleDiscontinuityThreshold,
                     circleAngleThreshold,
-                )
+                ),
             ),
             SettingsSection(
                 key = "feedback", label = "Feedback", icon = R.drawable.baseline_vibration_24,
@@ -1484,7 +1495,7 @@ class AppSettings(val ctx: SettingsContext) {
                 key = "privacy",
                 label = "Privacy",
                 icon = R.drawable.baseline_fingerprint_24,
-                settings = listOf(saveEmojiHistory)
+                settings = listOf(saveEmojiHistory),
             ),
         )
 }
@@ -1645,7 +1656,7 @@ abstract class SettingProjection<T> {
                     base.tryModify { oldBase ->
                         set(
                             oldBase,
-                            (value ?: return@tryModify null)
+                            (value ?: return@tryModify null),
                         )?.let(::Boxed)
                     }
                 }
@@ -1717,7 +1728,7 @@ sealed class Setting<T>(private val ctx: SettingsContext) : SettingProjection<T>
             // Instead, make sure to constrain coroutineScope to the lifetime of the setting to
             // avoid leaks
             SharingStarted.Lazily,
-            replay = 1
+            replay = 1,
         )
 
     val state: State<T>
@@ -1921,7 +1932,7 @@ enum class GestureRecognizer(override val label: String, val description: String
     Default("Default", description = "The default FlickBoard gesture recognizer"),
     Dollar1(
         "$1 (OLD EXPERIMENT)",
-        description = "Experimental legacy gesture recognizer (many recognition settings do not apply)"
+        description = "Experimental legacy gesture recognizer (many recognition settings do not apply)",
     ),
 }
 

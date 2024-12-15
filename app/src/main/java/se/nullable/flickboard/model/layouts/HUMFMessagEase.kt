@@ -18,21 +18,21 @@ val HU_MF_MESSAGEASE_MAIN_LAYER = Layer(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("a"),
                     Direction.BOTTOM to Action.Text("á"),
-                    Direction.BOTTOM_RIGHT to Action.Text("v")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("v"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("n"),
-                    Direction.BOTTOM to Action.Text("l")
-                )
+                    Direction.BOTTOM to Action.Text("l"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("i"),
                     Direction.BOTTOM_LEFT to Action.Text("x"),
                     Direction.BOTTOM to Action.Text("í"),
-                )
+                ),
             ),
         ),
         listOf(
@@ -43,8 +43,8 @@ val HU_MF_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_RIGHT to Action.Text("ö"),
                     Direction.RIGHT to Action.Text("k"),
                     Direction.BOTTOM to Action.Text("ó"),
-                    Direction.BOTTOM_RIGHT to Action.Text("ő")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("ő"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -57,15 +57,15 @@ val HU_MF_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.BOTTOM_LEFT to Action.Text("g"),
                     Direction.BOTTOM to Action.Text("d"),
                     Direction.BOTTOM_RIGHT to Action.Text("j"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
                     Direction.TOP_LEFT to Action.Text("ü"),
                     Direction.LEFT to Action.Text("m"),
-                    Direction.BOTTOM_LEFT to Action.Text("ű")
-                )
+                    Direction.BOTTOM_LEFT to Action.Text("ű"),
+                ),
             ),
         ),
         listOf(
@@ -73,30 +73,30 @@ val HU_MF_MESSAGEASE_MAIN_LAYER = Layer(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("t"),
                     Direction.TOP_RIGHT to Action.Text("y"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("e"),
                     Direction.TOP to Action.Text("w"),
                     Direction.LEFT to Action.Text("é"),
-                    Direction.RIGHT to Action.Text("z")
-                )
+                    Direction.RIGHT to Action.Text("z"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("s"),
-                    Direction.TOP_LEFT to Action.Text("f")
-                )
+                    Direction.TOP_LEFT to Action.Text("f"),
+                ),
             ),
         ),
-        listOf(SPACE)
-    )
+        listOf(SPACE),
+    ),
 )
 
 val HU_MF_MESSAGEASE = Layout(
     mainLayer = HU_MF_MESSAGEASE_MAIN_LAYER,
-    controlLayer = CONTROL_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER,
 )
 
 @Composable

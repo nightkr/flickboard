@@ -21,7 +21,7 @@ data class ModifierState(
             ShiftState.CapsLock -> KeyEvent.META_CAPS_LOCK_ON
         }
                 or (KeyEvent.META_CTRL_LEFT_ON * ctrl)
-                or (KeyEvent.META_ALT_LEFT_ON * alt)
+                or (KeyEvent.META_ALT_LEFT_ON * alt),
     )
 }
 

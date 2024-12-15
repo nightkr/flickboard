@@ -15,20 +15,20 @@ val SV_DE_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("a"),
-                    Direction.BOTTOM_RIGHT to Action.Text("v")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("v"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("n"),
-                    Direction.BOTTOM to Action.Text("l")
-                )
+                    Direction.BOTTOM to Action.Text("l"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("i"),
-                    Direction.BOTTOM_LEFT to Action.Text("x")
-                )
+                    Direction.BOTTOM_LEFT to Action.Text("x"),
+                ),
             ),
         ),
         listOf(
@@ -36,8 +36,8 @@ val SV_DE_MESSAGEASE_MAIN_LAYER = Layer(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("h"),
                     Direction.RIGHT to Action.Text("k"),
-                    Direction.BOTTOM to Action.Text("ä")
-                )
+                    Direction.BOTTOM to Action.Text("ä"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -49,14 +49,14 @@ val SV_DE_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.RIGHT to Action.Text("b"),
                     Direction.BOTTOM_LEFT to Action.Text("g"),
                     Direction.BOTTOM to Action.Text("o"),
-                    Direction.BOTTOM_RIGHT to Action.Text("j")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("j"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
-                    Direction.LEFT to Action.Text("m")
-                )
+                    Direction.LEFT to Action.Text("m"),
+                ),
             ),
         ),
         listOf(
@@ -64,31 +64,31 @@ val SV_DE_MESSAGEASE_MAIN_LAYER = Layer(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("t"),
                     Direction.TOP to Action.Text("å"),
-                    Direction.TOP_RIGHT to Action.Text("y")
-                )
+                    Direction.TOP_RIGHT to Action.Text("y"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("e"),
                     Direction.TOP to Action.Text("w"),
                     Direction.RIGHT to Action.Text("z"),
-                    Direction.LEFT to Action.Text("ö")
-                )
+                    Direction.LEFT to Action.Text("ö"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("s"),
-                    Direction.TOP_LEFT to Action.Text("f")
-                )
+                    Direction.TOP_LEFT to Action.Text("f"),
+                ),
             ),
         ),
-        listOf(SPACE)
-    )
+        listOf(SPACE),
+    ),
 )
 
 val SV_DE_MESSAGEASE = Layout(
     mainLayer = SV_DE_MESSAGEASE_MAIN_LAYER,
-    controlLayer = CONTROL_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER,
 )
 
 @Composable

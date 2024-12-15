@@ -176,7 +176,7 @@ class SymbolLayerTest {
                     else -> {
                         Assert.assertNull(
                             "Symbol $symbolAction shadowed by letter $letterAction in $letterLayer",
-                            letterAction
+                            letterAction,
                         )
                     }
                 }

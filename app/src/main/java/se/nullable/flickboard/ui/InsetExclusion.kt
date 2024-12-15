@@ -34,11 +34,13 @@ fun Modifier.consumeExcludedInsets(): Modifier {
     val bottomInsetOffsetPx = remember { mutableIntStateOf(0) }
     return this
         .modifierLocalProvider(LocalImeBottomInsetOffsetPx) { bottomInsetOffsetPx }
-        .consumeWindowInsets(with(LocalDensity.current) {
-            PaddingValues(
-                bottom = bottomInsetOffsetPx.intValue.toDp()
-            )
-        })
+        .consumeWindowInsets(
+            with(LocalDensity.current) {
+                PaddingValues(
+                    bottom = bottomInsetOffsetPx.intValue.toDp(),
+                )
+            },
+        )
 }
 
 /**

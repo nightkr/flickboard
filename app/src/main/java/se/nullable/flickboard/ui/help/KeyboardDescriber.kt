@@ -143,7 +143,7 @@ fun ActionDescription(
     key: KeyM?,
     gesture: Gesture?,
     onNavigateBack: (() -> Unit)?,
-    onNavigateToAction: (Action, KeyM?, Gesture?) -> Unit
+    onNavigateToAction: (Action, KeyM?, Gesture?) -> Unit,
 ) {
     data class RelatedAction(
         val action: Action,

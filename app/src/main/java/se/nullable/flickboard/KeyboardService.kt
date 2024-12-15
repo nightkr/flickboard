@@ -86,10 +86,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
             // in those cases, fall back to making a synchronous getExtractedText request instead.
             // getExtractedText can still fail for non-standard text editors that don't use a typical
             // "selection" at all (like terminals).
-            currentInputConnection.getExtractedText(ExtractedTextRequest().also {
-                it.hintMaxChars = 1
-                it.hintMaxLines = 1
-            }, 0)?.let { it.selectionStart..it.selectionEnd }
+            currentInputConnection.getExtractedText(
+                ExtractedTextRequest().also {
+                    it.hintMaxChars = 1
+                    it.hintMaxLines = 1
+                },
+                0,
+            )?.let { it.selectionStart..it.selectionEnd }
         }
 
         else -> currentCursor.selectionStart..currentCursor.selectionEnd
@@ -134,7 +137,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                     KeyCharacterMap.VIRTUAL_KEYBOARD,
                     0,
                     KeyEvent.FLAG_SOFT_KEYBOARD,
-                )
+                ),
             )
         }
     }
@@ -190,9 +193,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         }
         return ComposeView(this).also { view ->
             view.setContent {
-                BoxWithConstraints(Modifier.onSizeChanged { size ->
-                    viewHeight = size.height
-                }, contentAlignment = Alignment.BottomCenter) {
+                BoxWithConstraints(
+                    Modifier.onSizeChanged { size ->
+                        viewHeight = size.height
+                    },
+                    contentAlignment = Alignment.BottomCenter,
+                ) {
                     // Android clips ongoing touch events at the border between the keyboard and app.
                     // As a workaround, we claim a transparent whole-screen box, and then
                     // use an inset to limit the content region (for touch input and app resizing)
@@ -200,11 +206,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                     Box(
                         Modifier
                             .fillMaxWidth()
-                            .height(maxHeight)
+                            .height(maxHeight),
                     )
-                    Box(Modifier.onSizeChanged { size ->
-                        keyboardHeight = size.height
-                    }) {
+                    Box(
+                        Modifier.onSizeChanged { size ->
+                            keyboardHeight = size.height
+                        },
+                    ) {
                         FlickBoardParent {
                             ProvideDisplayLimits {
                                 var emojiMode by remember { mutableStateOf(false) }
@@ -234,13 +242,14 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         when {
                                             rawKeyCode != KeyEvent.KEYCODE_UNKNOWN ->
                                                 sendKeyPressEvents(
-                                                    rawKeyCode, extraModifiers = when {
+                                                    rawKeyCode,
+                                                    extraModifiers = when {
                                                         forceShift -> KeyEvent.normalizeMetaState(
-                                                            KeyEvent.META_SHIFT_LEFT_ON
+                                                            KeyEvent.META_SHIFT_LEFT_ON,
                                                         )
 
                                                         else -> 0
-                                                    }
+                                                    },
                                                 )
 
                                             else -> {
@@ -249,13 +258,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                         lastTyped?.tryCombineWith(
                                                             char,
                                                             periodOnDoubleSpace = false,
-                                                            tryHarder = true
+                                                            tryHarder = true,
                                                         ) ?: char.asCombiningMarkOrNull()
                                                             ?.let {
                                                                 LastTypedData.Combiner(
                                                                     original = char,
                                                                     combinedReplacement = it,
-                                                                    baseCharLength = 0
+                                                                    baseCharLength = 0,
                                                                 )
                                                             }
 
@@ -278,7 +287,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                     positionOfChar != null -> LastTypedData(
                                                         codePoint = codePoint,
                                                         position = positionOfChar,
-                                                        combiner = combiner
+                                                        combiner = combiner,
                                                     )
 
                                                     else -> null
@@ -287,12 +296,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 if (combiner != null) {
                                                     currentInputConnection.deleteSurroundingText(
                                                         combiner.baseCharLength,
-                                                        0
+                                                        0,
                                                     )
                                                 }
                                                 currentInputConnection.commitText(
                                                     char,
-                                                    1
+                                                    1,
                                                 )
                                                 currentInputConnection.endBatchEdit()
                                             }
@@ -332,7 +341,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     when (action) {
                                         is Action.Text -> typeText(
                                             action.character,
-                                            forceRawKeyEvent = action.forceRawKeyEvent
+                                            forceRawKeyEvent = action.forceRawKeyEvent,
                                         )
 
                                         is Action.BeginFastAction -> {
@@ -361,7 +370,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                     when (action.direction) {
                                                         SearchDirection.Backwards -> KeyEvent.KEYCODE_DEL
                                                         SearchDirection.Forwards -> KeyEvent.KEYCODE_FORWARD_DEL
-                                                    }
+                                                    },
                                                 )
 
                                                 else -> when (selectionSize()) {
@@ -374,18 +383,18 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                         val length = findBoundary(
                                                             action.boundary,
                                                             action.direction,
-                                                            coalesce = true
+                                                            coalesce = true,
                                                         )
                                                         val lastTypedComposed = lastTyped?.combiner
                                                         if (action.direction == SearchDirection.Backwards && lastTypedComposed != null) {
                                                             currentInputConnection.beginBatchEdit()
                                                             currentInputConnection.deleteSurroundingText(
                                                                 lastTypedComposed.combinedReplacement.length,
-                                                                0
+                                                                0,
                                                             )
                                                             currentInputConnection.commitText(
                                                                 lastTypedComposed.original,
-                                                                1
+                                                                1,
                                                             )
                                                             currentInputConnection.endBatchEdit()
                                                             // Clear last-typed data even if we're in a context without
@@ -404,7 +413,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                             keyCode = when (action.direction) {
                                                                 SearchDirection.Backwards -> KeyEvent.KEYCODE_DEL
                                                                 SearchDirection.Forwards -> KeyEvent.KEYCODE_FORWARD_DEL
-                                                            }
+                                                            },
                                                         )
                                                     }
                                                 }
@@ -422,7 +431,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 typeText(
                                                     "\n",
                                                     forceRawKeyEvent = activeModifiers.shift.isShift || action.shift,
-                                                    forceShift = action.shift
+                                                    forceShift = action.shift,
                                                 )
                                             } else {
                                                 currentInputConnection.performEditorAction(
@@ -434,7 +443,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                                         EditorInfo.IME_ACTION_NEXT or
                                                                         EditorInfo.IME_ACTION_SEARCH or
                                                                         EditorInfo.IME_ACTION_SEND)
-                                                    }
+                                                    },
                                                 )
                                             }
                                         }
@@ -453,7 +462,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                             keyCode = when (action.direction) {
                                                                 SearchDirection.Backwards -> KeyEvent.KEYCODE_DPAD_LEFT
                                                                 SearchDirection.Forwards -> KeyEvent.KEYCODE_DPAD_RIGHT
-                                                            }
+                                                            },
                                                         )
 
                                                         else -> {
@@ -464,7 +473,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                             ) * action.direction.factor
                                                             currentInputConnection.setSelection(
                                                                 newPos,
-                                                                newPos
+                                                                newPos,
                                                             )
                                                         }
                                                     }
@@ -486,7 +495,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                     keyCode = when (action.direction) {
                                                         SearchDirection.Backwards -> KeyEvent.KEYCODE_DPAD_UP
                                                         SearchDirection.Forwards -> KeyEvent.KEYCODE_DPAD_DOWN
-                                                    }
+                                                    },
                                                 )
 
                                                 else -> {
@@ -525,7 +534,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                         .coerceAtLeast(0)
                                                     currentInputConnection.setSelection(
                                                         newPos,
-                                                        newPos
+                                                        newPos,
                                                     )
                                                 }
                                             }
@@ -541,24 +550,24 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                     currentSelection.first == currentSelection.last -> {
                                                         val posInWord = findBoundary(
                                                             TextBoundary.Word,
-                                                            SearchDirection.Backwards
+                                                            SearchDirection.Backwards,
                                                         )
                                                         val textAfterInWord = findBoundary(
                                                             TextBoundary.Word,
-                                                            SearchDirection.Forwards
+                                                            SearchDirection.Forwards,
                                                         )
 
                                                         val prefix =
                                                             currentInputConnection.getTextBeforeCursor(
                                                                 posInWord,
-                                                                0
+                                                                0,
                                                             )?.takeUnless { it.isBlank() }
                                                                 ?.toString()
                                                                 ?: ""
                                                         val suffix =
                                                             currentInputConnection.getTextAfterCursor(
                                                                 textAfterInWord,
-                                                                0
+                                                                0,
                                                             )?.takeUnless { it.isBlank() }
                                                                 ?.toString()
                                                                 ?: ""
@@ -574,7 +583,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 fun replaceWord(newWord: String) {
                                                     currentInputConnection.deleteSurroundingText(
                                                         prefixLength,
-                                                        suffixLength
+                                                        suffixLength,
                                                     )
                                                     currentInputConnection.commitText(newWord, 1)
                                                 }
@@ -599,7 +608,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                                 currentInputConnection.setSelection(
                                                     currentSelection.first,
-                                                    currentSelection.last
+                                                    currentSelection.last,
                                                 )
                                                 currentInputConnection.endBatchEdit()
 
@@ -617,36 +626,36 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                         Action.Copy -> {
                                             if (selectionSize() == SelectionSize.Empty) {
                                                 currentInputConnection.performContextMenuAction(
-                                                    android.R.id.selectAll
+                                                    android.R.id.selectAll,
                                                 )
                                             }
                                             currentInputConnection.performContextMenuAction(
-                                                android.R.id.copy
+                                                android.R.id.copy,
                                             )
                                         }
 
                                         Action.Cut ->
                                             currentInputConnection.performContextMenuAction(
-                                                android.R.id.cut
+                                                android.R.id.cut,
                                             )
 
                                         Action.Paste ->
                                             currentInputConnection.performContextMenuAction(
-                                                android.R.id.paste
+                                                android.R.id.paste,
                                             )
 
                                         Action.SelectAll ->
                                             currentInputConnection.performContextMenuAction(
-                                                android.R.id.selectAll
+                                                android.R.id.selectAll,
                                             )
 
                                         Action.Settings -> startActivity(
                                             Intent.makeMainActivity(
                                                 ComponentName(
                                                     this@KeyboardService,
-                                                    MainActivity::class.java
-                                                )
-                                            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                    MainActivity::class.java,
+                                                ),
+                                            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                                         )
 
                                         is Action.SwitchLetterLayer -> {
@@ -664,7 +673,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                             var hasToggled = false
 
                                             appSettings.enabledLayersProjectionForOrientation(
-                                                displayLimits
+                                                displayLimits,
                                             ).tryModify { old ->
                                                 if (old?.isSingleSided == true) {
                                                     old.toggleNumbers?.let {
@@ -693,7 +702,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
 
                                         Action.ToggleNumbersLayer -> {
                                             appSettings.enabledLayersProjectionForOrientation(
-                                                displayLimits
+                                                displayLimits,
                                             ).modify { old ->
                                                 old?.toggleNumbers
                                             }
@@ -762,32 +771,32 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                             currentInputConnection.sendKeyEvent(
                                                                 newKeyEvent(
                                                                     newModifiers.shift.isShift,
-                                                                    KeyEvent.KEYCODE_SHIFT_LEFT
-                                                                )
+                                                                    KeyEvent.KEYCODE_SHIFT_LEFT,
+                                                                ),
                                                             )
                                                         }
                                                         if (newModifiers.shift.isCapsLock != activeModifiers.shift.isCapsLock) {
                                                             currentInputConnection.sendKeyEvent(
                                                                 newKeyEvent(
                                                                     newModifiers.shift.isCapsLock,
-                                                                    KeyEvent.KEYCODE_CAPS_LOCK
-                                                                )
+                                                                    KeyEvent.KEYCODE_CAPS_LOCK,
+                                                                ),
                                                             )
                                                         }
                                                         if (newModifiers.ctrl != activeModifiers.ctrl) {
                                                             currentInputConnection.sendKeyEvent(
                                                                 newKeyEvent(
                                                                     newModifiers.ctrl,
-                                                                    KeyEvent.KEYCODE_CTRL_LEFT
-                                                                )
+                                                                    KeyEvent.KEYCODE_CTRL_LEFT,
+                                                                ),
                                                             )
                                                         }
                                                         if (newModifiers.alt != activeModifiers.alt) {
                                                             currentInputConnection.sendKeyEvent(
                                                                 newKeyEvent(
                                                                     newModifiers.alt,
-                                                                    KeyEvent.KEYCODE_ALT_LEFT
-                                                                )
+                                                                    KeyEvent.KEYCODE_ALT_LEFT,
+                                                                ),
                                                             )
                                                         }
                                                         activeModifiers = newModifiers
@@ -797,13 +806,13 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                                 overrideEnabledLayers = when (editorInfo.value?.let { it.inputType and InputType.TYPE_MASK_CLASS }) {
                                                     InputType.TYPE_CLASS_NUMBER, InputType.TYPE_CLASS_PHONE -> EnabledLayers.Numbers
                                                     else -> null
-                                                }
+                                                },
                                             )
                                             SnackbarHost(
                                                 warningSnackbarHostState,
                                                 modifier = Modifier
                                                     .align(Alignment.BottomCenter)
-                                                    .sharePointerInput()
+                                                    .sharePointerInput(),
                                             )
                                         }
                                     }
@@ -835,12 +844,12 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
         val searchBuffer = when (direction) {
             SearchDirection.Backwards -> (currentInputConnection.getTextBeforeCursor(
                 searchBufferSize,
-                0
+                0,
             ) ?: "").toString() + selectedText
 
             SearchDirection.Forwards -> selectedText.toString() + (currentInputConnection.getTextAfterCursor(
                 searchBufferSize,
-                0
+                0,
             ) ?: "")
         }
         val breakIterator = boundary.breakIterator()

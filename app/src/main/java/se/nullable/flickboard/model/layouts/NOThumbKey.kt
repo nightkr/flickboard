@@ -15,30 +15,30 @@ val NO_THUMBKEY_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("s"),
-                    Direction.BOTTOM_RIGHT to Action.Text("p")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("p"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
                     Direction.BOTTOM to Action.Text("h"),
                     Direction.LEFT to Action.Text("z"),
-                    Direction.RIGHT to Action.Text("q")
-                )
+                    Direction.RIGHT to Action.Text("q"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("o"),
-                    Direction.BOTTOM_LEFT to Action.Text("u")
-                )
+                    Direction.BOTTOM_LEFT to Action.Text("u"),
+                ),
             ),
         ),
         listOf(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("n"),
-                    Direction.RIGHT to Action.Text("v")
-                )
+                    Direction.RIGHT to Action.Text("v"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -51,44 +51,44 @@ val NO_THUMBKEY_MAIN_LAYER = Layer(
                     Direction.BOTTOM_LEFT to Action.Text("b"),
                     Direction.BOTTOM to Action.Text("f"),
                     Direction.BOTTOM_RIGHT to Action.Text("æ"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("a"),
                     Direction.LEFT to Action.Text("g"),
-                )
+                ),
             ),
         ),
         listOf(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("t"),
-                    Direction.TOP_RIGHT to Action.Text("m")
-                )
+                    Direction.TOP_RIGHT to Action.Text("m"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("i"),
                     Direction.TOP to Action.Text("k"),
                     Direction.RIGHT to Action.Text("x"),
-                    Direction.LEFT to Action.Text("w")
-                )
+                    Direction.LEFT to Action.Text("w"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("e"),
-                    Direction.TOP_LEFT to Action.Text("l")
-                )
+                    Direction.TOP_LEFT to Action.Text("l"),
+                ),
             ),
         ),
-        listOf(SPACE)
-    )
+        listOf(SPACE),
+    ),
 )
 
 val NO_THUMBKEY = Layout(
     mainLayer = NO_THUMBKEY_MAIN_LAYER,
-    controlLayer = CONTROL_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER,
 )
 
 @Composable

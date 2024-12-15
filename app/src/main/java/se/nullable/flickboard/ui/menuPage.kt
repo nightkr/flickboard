@@ -30,7 +30,7 @@ fun MenuPageLink(
     Box(modifier.clickable(onClick = onClick)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(8.dp),
         ) {
             if (icon != null) {
                 Icon(icon, contentDescription = null, iconModifier)
@@ -39,7 +39,7 @@ fun MenuPageLink(
                 label,
                 Modifier
                     .weight(1F)
-                    .padding(horizontal = 8.dp)
+                    .padding(horizontal = 8.dp),
             )
             Icon(Icons.AutoMirrored.Default.ArrowForward, null)
         }
@@ -54,12 +54,12 @@ fun MenuPageLinkPreview() {
             MenuPageLink(
                 onClick = {},
                 icon = painterResource(R.drawable.baseline_image_search_24),
-                label = "Section"
+                label = "Section",
             )
             MenuPageLink(
                 onClick = {},
                 icon = null,
-                label = "Section"
+                label = "Section",
             )
         }
     }

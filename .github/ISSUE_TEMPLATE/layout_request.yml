@@ -1,6 +1,6 @@
 name: ⌨️ Layout Request
 description: Request a new layout or changes on an existing one
-labels: ["layout"]
+labels: [ "layout" ]
 body:
   - type: markdown
     attributes:

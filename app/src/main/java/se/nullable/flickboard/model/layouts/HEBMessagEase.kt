@@ -16,33 +16,33 @@ val HEB_MESSAGEASE_MAIN_LAYER = Layer(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("ר"),
-                    Direction.BOTTOM_RIGHT to Action.Text("ן")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("ן"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("ב"),
-                    Direction.BOTTOM to Action.Text("ג")
-                )
+                    Direction.BOTTOM to Action.Text("ג"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("א"),
-                    Direction.BOTTOM_LEFT to Action.Text("צ")
+                    Direction.BOTTOM_LEFT to Action.Text("צ"),
                 ),
                 shift = KeyM(
                     actions = mapOf(
-                        Direction.BOTTOM_LEFT to Action.Text("ץ")
-                    )
-                )
+                        Direction.BOTTOM_LEFT to Action.Text("ץ"),
+                    ),
+                ),
             ),
         ),
         listOf(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("מ"),
-                    Direction.RIGHT to Action.Text("ם")
-                )
+                    Direction.RIGHT to Action.Text("ם"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -54,43 +54,43 @@ val HEB_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.RIGHT to Action.Text("ד"),
                     Direction.BOTTOM_LEFT to Action.Text("כ"),
                     Direction.BOTTOM to Action.Text("נ"),
-                    Direction.BOTTOM_RIGHT to Action.Text("ש")
+                    Direction.BOTTOM_RIGHT to Action.Text("ש"),
                 ),
                 shift = KeyM(
                     actions = mapOf(
                         Direction.TOP_RIGHT to Action.Text("ף"),
-                        Direction.BOTTOM_LEFT to Action.Text("ך")
-                    )
-                )
+                        Direction.BOTTOM_LEFT to Action.Text("ך"),
+                    ),
+                ),
             ),
             KeyM(
                 actions = mapOf(
-                    Direction.CENTER to Action.Text("ו")
-                )
+                    Direction.CENTER to Action.Text("ו"),
+                ),
             ),
         ),
         listOf(
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("ת"),
-                    Direction.TOP_RIGHT to Action.Text("ז")
-                )
+                    Direction.TOP_RIGHT to Action.Text("ז"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("ה"),
-                    Direction.TOP to Action.Text("ס")
-                )
+                    Direction.TOP to Action.Text("ס"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("ל"),
-                    Direction.TOP_LEFT to Action.Text("ט")
-                )
+                    Direction.TOP_LEFT to Action.Text("ט"),
+                ),
             ),
         ),
-        listOf(SPACE)
-    )
+        listOf(SPACE),
+    ),
 )
 
 val HEB_MESSAGEASE = Layout(

@@ -22,11 +22,13 @@ data class Layout(
 
 data class Layer(val keyRows: List<List<KeyM>>) {
     private inline fun zipKeys(other: Layer, f: (KeyM, KeyM) -> KeyM): Layer =
-        copy(keyRows = keyRows.zip(other.keyRows) { thisRow, otherRow ->
-            thisRow.zip(otherRow) { thisKey, otherKey ->
-                f(thisKey, otherKey)
-            }
-        })
+        copy(
+            keyRows = keyRows.zip(other.keyRows) { thisRow, otherRow ->
+                thisRow.zip(otherRow) { thisKey, otherKey ->
+                    f(thisKey, otherKey)
+                }
+            },
+        )
 
 
     fun mergeFallback(fallback: Layer?, holdForFallback: Boolean = false): Layer =
@@ -34,7 +36,7 @@ data class Layer(val keyRows: List<List<KeyM>>) {
             zipKeys(fallback) { thisKey, fallbackKey ->
                 thisKey.mergeFallback(
                     fallbackKey,
-                    holdForFallback = holdForFallback
+                    holdForFallback = holdForFallback,
                 )
             }
         } else {
@@ -59,7 +61,7 @@ data class Layer(val keyRows: List<List<KeyM>>) {
         mapKeys {
             it.filterActions(
                 shownActionClasses = shownActionClasses,
-                enableHiddenActions = enableHiddenActions
+                enableHiddenActions = enableHiddenActions,
             )
         }
 
@@ -95,24 +97,26 @@ data class KeyM(
             holdForFallback -> fallback.actions[Direction.CENTER]
             else -> null
         },
-        transientShift = this.transientShift ?: fallback.transientShift
+        transientShift = this.transientShift ?: fallback.transientShift,
     )
 
     fun autoShift(locale: Locale): KeyM = (shift ?: this).copy(
         actions = actions.mapValues { it.value.shift(locale) } + (shift?.actions ?: emptyMap()),
         fastActions = fastActions.mapValues { it.value.shift(locale) } + (shift?.fastActions
-            ?: emptyMap())
+            ?: emptyMap()),
     )
 
     fun filterActions(shownActionClasses: Set<ActionClass>, enableHiddenActions: Boolean) =
-        copy(actions = actions.mapNotNull { (direction, action) ->
-            val isShown = shownActionClasses.contains(action.actionClass)
-            when {
-                isShown -> direction to action
-                enableHiddenActions -> direction to action.withHidden(true)
-                else -> null
-            }
-        }.toMap())
+        copy(
+            actions = actions.mapNotNull { (direction, action) ->
+                val isShown = shownActionClasses.contains(action.actionClass)
+                when {
+                    isShown -> direction to action
+                    enableHiddenActions -> direction to action.withHidden(true)
+                    else -> null
+                }
+            }.toMap(),
+        )
 
     fun flipBrackets(): KeyM = copy(
         actions = actions.mapValues {
@@ -605,7 +609,7 @@ enum class TextBoundary(
     Character(
         nameInTitle = "Character",
         nameInSentence = "character",
-        pluralInSentence = "characters"
+        pluralInSentence = "characters",
     ),
     Word(nameInTitle = "Word", nameInSentence = "word", pluralInSentence = "words"),
     Line(nameInTitle = "Line", nameInSentence = "line", pluralInSentence = "lines");
@@ -724,7 +728,7 @@ interface Gesture {
         val Tap =
             Flick(
                 direction = Direction.CENTER,
-                longHold = false, longSwipe = false, shift = false
+                longHold = false, longSwipe = false, shift = false,
             )
 
         val names = Direction.entries
@@ -734,13 +738,13 @@ interface Gesture {
                         direction = it,
                         longHold = false,
                         longSwipe = false,
-                        shift = false
+                        shift = false,
                     ),
                     "flick.${it.name}.shift" to Flick(
                         direction = it,
                         longHold = false,
                         longSwipe = false,
-                        shift = true
+                        shift = true,
                     ),
                 )
             }

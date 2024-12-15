@@ -61,7 +61,8 @@ fun DollarOneGestureEditor() {
                 }
                 items(
                     gestureLibrary.getGestures(gestureName) ?: emptyList(),
-                    key = { i -> "$gestureName.${i.hashCode()}" }) { gesture ->
+                    key = { i -> "$gestureName.${i.hashCode()}" },
+                ) { gesture ->
                     Row {
                         Box(
                             Modifier
@@ -73,28 +74,33 @@ fun DollarOneGestureEditor() {
                                         .also { path ->
                                             val bounds = path.getBounds()
                                             path.translate(-bounds.topLeft)
-                                            path.transform(Matrix().also {
-                                                val scale = min(
-                                                    this.size.width / bounds.width,
-                                                    this.size.height / bounds.height,
-                                                )
-                                                it.scale(x = scale, y = scale)
-                                            })
+                                            path.transform(
+                                                Matrix().also {
+                                                    val scale = min(
+                                                        this.size.width / bounds.width,
+                                                        this.size.height / bounds.height,
+                                                    )
+                                                    it.scale(x = scale, y = scale)
+                                                },
+                                            )
                                         }
                                     onDrawBehind {
                                         drawRect(Color.Black)
                                         drawPath(
                                             path,
                                             color = Color.Yellow,
-                                            style = Stroke(3.dp.toPx())
+                                            style = Stroke(3.dp.toPx()),
                                         )
                                     }
-                                })
-                        Button(onClick = {
-                            gestureLibrary.removeGesture(gestureName, gesture)
-                            gestureLibrary.save()
-                            refreshGestureLibrary.value = Unit
-                        }) {
+                                },
+                        )
+                        Button(
+                            onClick = {
+                                gestureLibrary.removeGesture(gestureName, gesture)
+                                gestureLibrary.save()
+                                refreshGestureLibrary.value = Unit
+                            },
+                        ) {
                             Text("Delete")
                         }
                     }
@@ -107,19 +113,21 @@ fun DollarOneGestureEditor() {
                     Text(activeGestureName.value)
                     Icon(
                         painterResource(R.drawable.baseline_arrow_drop_down_24),
-                        contentDescription = "open dropdown"
+                        contentDescription = "open dropdown",
                     )
                 }
                 DropdownMenu(
                     expanded = gesturePickerExpanded.value,
-                    onDismissRequest = { gesturePickerExpanded.value = false }) {
+                    onDismissRequest = { gesturePickerExpanded.value = false },
+                ) {
                     Gesture.names.keys.forEach { gestureName ->
                         DropdownMenuItem(
                             text = { Text(gestureName) },
                             onClick = {
                                 activeGestureName.value = gestureName
                                 gesturePickerExpanded.value = false
-                            })
+                            },
+                        )
                     }
                 }
             }
@@ -134,28 +142,34 @@ fun DollarOneGestureEditor() {
                     it.isEventsInterceptionEnabled = true
                     it.gestureStrokeAngleThreshold = 180F
                     it.gestureStrokeLengthThreshold = 0F
-                    it.addOnGestureListener(object : OnGestureListener {
-                        override fun onGestureStarted(
-                            overlay: GestureOverlayView?,
-                            event: MotionEvent?
-                        ) {
-                            isGesturing.value = true
-                        }
+                    it.addOnGestureListener(
+                        object : OnGestureListener {
+                            override fun onGestureStarted(
+                                overlay: GestureOverlayView?,
+                                event: MotionEvent?
+                            ) {
+                                isGesturing.value = true
+                            }
 
-                        override fun onGesture(overlay: GestureOverlayView?, event: MotionEvent?) {}
+                            override fun onGesture(
+                                overlay: GestureOverlayView?,
+                                event: MotionEvent?
+                            ) {
+                            }
 
-                        override fun onGestureEnded(
-                            overlay: GestureOverlayView?,
-                            event: MotionEvent?
-                        ) {
-                        }
+                            override fun onGestureEnded(
+                                overlay: GestureOverlayView?,
+                                event: MotionEvent?
+                            ) {
+                            }
 
-                        override fun onGestureCancelled(
-                            overlay: GestureOverlayView?,
-                            event: MotionEvent?
-                        ) {
-                        }
-                    })
+                            override fun onGestureCancelled(
+                                overlay: GestureOverlayView?,
+                                event: MotionEvent?
+                            ) {
+                            }
+                        },
+                    )
                     it.addOnGesturePerformedListener { overlay, gesture ->
                         if (isGesturing.value) {
                             isGesturing.value = false
@@ -164,7 +178,8 @@ fun DollarOneGestureEditor() {
                             refreshGestureLibrary.value = Unit
                         }
                     }
-                })
+                },
+            )
         }
     }
 }

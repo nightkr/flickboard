@@ -1,6 +1,6 @@
 name: 🌟 Feature request
 description: Suggest a feature to improve the app
-labels: [feature]
+labels: [ feature ]
 body:
   - type: markdown
     attributes:

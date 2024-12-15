@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background,
                 ) {
                     Box(
                         Modifier
@@ -98,18 +98,21 @@ class MainActivity : ComponentActivity() {
                                                 else -> navController.navigateUp()
                                             }
                                         }
-                                        Scaffold(topBar = {
-                                            TopAppBar(
-                                                title = {},
-                                                actions = {
-                                                    Box(Modifier.clickable(onClick = onFinish)) {
-                                                        Text("SKIP", Modifier.padding(8.dp))
-                                                    }
-                                                })
-                                        }) { padding ->
+                                        Scaffold(
+                                            topBar = {
+                                                TopAppBar(
+                                                    title = {},
+                                                    actions = {
+                                                        Box(Modifier.clickable(onClick = onFinish)) {
+                                                            Text("SKIP", Modifier.padding(8.dp))
+                                                        }
+                                                    },
+                                                )
+                                            },
+                                        ) { padding ->
                                             TutorialPage(
                                                 onFinish = onFinish,
-                                                modifier = Modifier.padding(padding)
+                                                modifier = Modifier.padding(padding),
                                             )
                                         }
                                     }
@@ -129,15 +132,17 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             }
                                         }
-                                        Scaffold(topBar = {
-                                            TopAppBar(title = { Text(stringResource(R.string.app_name)) })
-                                        }) { padding ->
+                                        Scaffold(
+                                            topBar = {
+                                                TopAppBar(title = { Text(stringResource(R.string.app_name)) })
+                                            },
+                                        ) { padding ->
                                             SettingsHomePage(
                                                 onNavigateToSection = { section ->
                                                     navController.navigate(
                                                         MainActivityNav.SettingsSection(
-                                                            section.key
-                                                        )
+                                                            section.key,
+                                                        ),
                                                     )
                                                 },
                                                 onNavigateToTutorial = {
@@ -151,29 +156,35 @@ class MainActivity : ComponentActivity() {
                                                 },
                                                 sharedTransitionScope = this@SharedTransitionLayout,
                                                 animatedVisibilityScope = this@composable,
-                                                modifier = Modifier.padding(padding)
+                                                modifier = Modifier.padding(padding),
                                             )
                                         }
                                     }
                                     composable<MainActivityNav.KeyboardDescriber> {
-                                        Scaffold(topBar = {
-                                            TopAppBar(
-                                                title = { Text("What Does This Do?") },
-                                                navigationIcon = { NavigateUpIcon(navController) })
-                                        }) { padding ->
+                                        Scaffold(
+                                            topBar = {
+                                                TopAppBar(
+                                                    title = { Text("What Does This Do?") },
+                                                    navigationIcon = { NavigateUpIcon(navController) },
+                                                )
+                                            },
+                                        ) { padding ->
                                             KeyboardDescriber(
-                                                modifier = Modifier.padding(padding)
+                                                modifier = Modifier.padding(padding),
                                             )
                                         }
                                     }
                                     composable<MainActivityNav.BetaMenu> {
-                                        Scaffold(topBar = {
-                                            TopAppBar(
-                                                title = { Text("Beta Options") },
-                                                navigationIcon = { NavigateUpIcon(navController) })
-                                        }) { padding ->
+                                        Scaffold(
+                                            topBar = {
+                                                TopAppBar(
+                                                    title = { Text("Beta Options") },
+                                                    navigationIcon = { NavigateUpIcon(navController) },
+                                                )
+                                            },
+                                        ) { padding ->
                                             BetaMenu(
-                                                modifier = Modifier.padding(padding)
+                                                modifier = Modifier.padding(padding),
                                             )
                                         }
                                     }
@@ -183,16 +194,19 @@ class MainActivity : ComponentActivity() {
                                         val settingsSection =
                                             appSettings.all.find { it.key == route.sectionKey }
                                                 ?: throw Exception("No settings section with key ${route.sectionKey}")
-                                        Scaffold(topBar = {
-                                            TopAppBar(
-                                                title = { Text(settingsSection.label) },
-                                                navigationIcon = { NavigateUpIcon(navController) })
-                                        }) { padding ->
+                                        Scaffold(
+                                            topBar = {
+                                                TopAppBar(
+                                                    title = { Text(settingsSection.label) },
+                                                    navigationIcon = { NavigateUpIcon(navController) },
+                                                )
+                                            },
+                                        ) { padding ->
                                             SettingsSectionPage(
                                                 section = settingsSection,
                                                 sharedTransitionScope = this@SharedTransitionLayout,
                                                 animatedVisibilityScope = this@composable,
-                                                modifier = Modifier.padding(padding)
+                                                modifier = Modifier.padding(padding),
                                             )
                                         }
                                     }

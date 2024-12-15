@@ -72,8 +72,8 @@ fun OnboardingPrompt() {
         ComponentName.unflattenFromString(
             Settings.Secure.getString(
                 context.contentResolver,
-                Settings.Secure.DEFAULT_INPUT_METHOD
-            )
+                Settings.Secure.DEFAULT_INPUT_METHOD,
+            ),
         ) != keyboardServiceId
     ) {
         OnboardingPromptSelect(inputManager)
@@ -85,9 +85,12 @@ fun OnboardingPrompt() {
 @Composable
 fun OnboardingPromptEnable() {
     val context = LocalContext.current
-    OnboardingPromptCard(title = "Keyboard not enabled", onClick = {
-        context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
-    }) {
+    OnboardingPromptCard(
+        title = "Keyboard not enabled",
+        onClick = {
+            context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+        },
+    ) {
         Text("The keyboard must be enabled before it can be used. Tap here to enable it.")
         Text("You can still try it in the preview below.")
     }
@@ -95,9 +98,12 @@ fun OnboardingPromptEnable() {
 
 @Composable
 fun OnboardingPromptSelect(inputManager: InputMethodManager?) {
-    OnboardingPromptCard(title = "Keyboard not selected", onClick = {
-        inputManager?.showInputMethodPicker()
-    }) {
+    OnboardingPromptCard(
+        title = "Keyboard not selected",
+        onClick = {
+            inputManager?.showInputMethodPicker()
+        },
+    ) {
         Text("The keyboard must be selected as you active input method before it can be used. Tap here to open the picker.")
     }
 }
@@ -119,20 +125,20 @@ fun OnboardingPromptCard(title: String, onClick: () -> Unit, content: @Composabl
     Card(onClick = onClick, modifier = Modifier.padding(8.dp)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(8.dp),
         ) {
             Column(Modifier.weight(1F)) {
                 Text(
                     title,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 content()
             }
             Icon(
                 Icons.AutoMirrored.Filled.ArrowForward, null,
-                modifier = Modifier.padding(start = 8.dp)
+                modifier = Modifier.padding(start = 8.dp),
             )
         }
     }
@@ -154,7 +160,7 @@ fun BroadcastListener(intentFilter: IntentFilter, onBroadcast: (Intent) -> Unit)
             when {
                 VERSION.SDK_INT >= VERSION_CODES.TIRAMISU -> Context.RECEIVER_NOT_EXPORTED
                 else -> 0
-            }
+            },
         )
         lastStickyIntent?.let(onBroadcast)
         onDispose {

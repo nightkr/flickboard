@@ -19,22 +19,22 @@ val PT_IOS_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_RIGHT to Action.Text("â"),
                     Direction.LEFT to Action.Text("ã"),
                     Direction.BOTTOM to Action.Text("à"),
-                    Direction.BOTTOM_RIGHT to Action.Text("v")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("v"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("n"),
-                    Direction.BOTTOM to Action.Text("l")
-                )
+                    Direction.BOTTOM to Action.Text("l"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("i"),
                     Direction.TOP_LEFT to Action.Text("í"),
                     Direction.RIGHT to Action.Text("õ"),
-                    Direction.BOTTOM_LEFT to Action.Text("x")
-                )
+                    Direction.BOTTOM_LEFT to Action.Text("x"),
+                ),
             ),
         ),
         listOf(
@@ -43,8 +43,8 @@ val PT_IOS_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("d"),
                     Direction.TOP to Action.Text("ü"),
                     Direction.RIGHT to Action.Text("k"),
-                    Direction.BOTTOM to Action.Text("ç")
-                )
+                    Direction.BOTTOM to Action.Text("ç"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -56,14 +56,14 @@ val PT_IOS_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.RIGHT to Action.Text("b"),
                     Direction.BOTTOM_LEFT to Action.Text("g"),
                     Direction.BOTTOM to Action.Text("h"),
-                    Direction.BOTTOM_RIGHT to Action.Text("j")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("j"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
-                    Direction.LEFT to Action.Text("m")
-                )
+                    Direction.LEFT to Action.Text("m"),
+                ),
             ),
         ),
         listOf(
@@ -73,31 +73,31 @@ val PT_IOS_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP to Action.Text("ú"),
                     Direction.TOP_RIGHT to Action.Text("y"),
                     Direction.RIGHT to Action.Text("ê"),
-                    Direction.BOTTOM to Action.Text("ó")
-                )
+                    Direction.BOTTOM to Action.Text("ó"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("e"),
                     Direction.TOP to Action.Text("w"),
                     Direction.LEFT to Action.Text("é"),
-                    Direction.RIGHT to Action.Text("z")
-                )
+                    Direction.RIGHT to Action.Text("z"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("s"),
-                    Direction.TOP_LEFT to Action.Text("f")
-                )
+                    Direction.TOP_LEFT to Action.Text("f"),
+                ),
             ),
         ),
-        listOf(SPACE)
-    )
+        listOf(SPACE),
+    ),
 )
 
 val PT_IOS_MESSAGEASE = Layout(
     mainLayer = PT_IOS_MESSAGEASE_MAIN_LAYER,
-    controlLayer = CONTROL_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER,
 )
 
 @Composable

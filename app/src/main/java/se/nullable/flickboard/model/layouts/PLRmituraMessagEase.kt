@@ -13,6 +13,7 @@
 // | ź |   |   |
 
 package se.nullable.flickboard.model.layouts
+
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import se.nullable.flickboard.model.Action
@@ -30,14 +31,14 @@ val PL_RMITURA_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("a"),
                     Direction.TOP_LEFT to Action.Text("v"),
                     Direction.TOP_RIGHT to Action.Text("x"),
-                    Direction.BOTTOM to Action.Text("ą")
-                )
+                    Direction.BOTTOM to Action.Text("ą"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("n"),
-                    Direction.BOTTOM to Action.Text("ń")
-                )
+                    Direction.BOTTOM to Action.Text("ń"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -45,8 +46,8 @@ val PL_RMITURA_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_LEFT to Action.Text("l"),
                     Direction.TOP_RIGHT to Action.Text("q"),
                     Direction.RIGHT to Action.Text("£"),
-                    Direction.BOTTOM_LEFT to Action.Text("ł")
-                )
+                    Direction.BOTTOM_LEFT to Action.Text("ł"),
+                ),
             ),
         ),
         listOf(
@@ -54,8 +55,8 @@ val PL_RMITURA_MESSAGEASE_MAIN_LAYER = Layer(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("w"),
                     Direction.TOP to Action.Text("c"),
-                    Direction.TOP_RIGHT to Action.Text("ć")
-                )
+                    Direction.TOP_RIGHT to Action.Text("ć"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -67,14 +68,14 @@ val PL_RMITURA_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.RIGHT to Action.Text("b"),
                     Direction.BOTTOM_LEFT to Action.Text("g"),
                     Direction.BOTTOM to Action.Text("d"),
-                    Direction.BOTTOM_RIGHT to Action.Text("j")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("j"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
-                    Direction.LEFT to Action.Text("m")
-                )
+                    Direction.LEFT to Action.Text("m"),
+                ),
             ),
         ),
         listOf(
@@ -83,32 +84,32 @@ val PL_RMITURA_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("z"),
                     Direction.TOP_RIGHT to Action.Text("y"),
                     Direction.RIGHT to Action.Text("ż"),
-                    Direction.BOTTOM to Action.Text("ź")
-                )
+                    Direction.BOTTOM to Action.Text("ź"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("e"),
                     Direction.TOP to Action.Text("h"),
                     Direction.LEFT to Action.Text("ę"),
-                    Direction.RIGHT to Action.Text("t")
-                )
+                    Direction.RIGHT to Action.Text("t"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("s"),
                     Direction.TOP_LEFT to Action.Text("f"),
-                    Direction.LEFT to Action.Text("ś")
-                )
+                    Direction.LEFT to Action.Text("ś"),
+                ),
             ),
         ),
-        listOf(SPACE)
-    )
+        listOf(SPACE),
+    ),
 )
 
 val PL_RMITURA_MESSAGEASE = Layout(
     mainLayer = PL_RMITURA_MESSAGEASE_MAIN_LAYER,
-    controlLayer = CONTROL_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER,
 )
 
 @Composable

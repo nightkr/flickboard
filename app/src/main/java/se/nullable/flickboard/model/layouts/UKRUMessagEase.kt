@@ -16,22 +16,22 @@ val UK_RU_MESSAGEASE_MAIN_LAYER = Layer(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("с"),
                     Direction.BOTTOM to Action.Text("ц"),
-                    Direction.BOTTOM_RIGHT to Action.Text("п")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("п"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.TOP to Action.Text("й"),
                     Direction.CENTER to Action.Text("и"),
-                    Direction.BOTTOM to Action.Text("к")
-                )
+                    Direction.BOTTOM to Action.Text("к"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("т"),
                     Direction.BOTTOM_LEFT to Action.Text("ь"),
-                    Direction.BOTTOM_RIGHT to Action.Text("э")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("э"),
+                ),
             ),
         ),
         listOf(
@@ -40,8 +40,8 @@ val UK_RU_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("в"),
                     Direction.TOP to Action.Text("б"),
                     Direction.RIGHT to Action.Text("ы"),
-                    Direction.BOTTOM to Action.Text("і")
-                )
+                    Direction.BOTTOM to Action.Text("і"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -53,14 +53,14 @@ val UK_RU_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.RIGHT to Action.Text("г"),
                     Direction.BOTTOM_LEFT to Action.Text("щ"),
                     Direction.BOTTOM to Action.Text("я"),
-                    Direction.BOTTOM_RIGHT to Action.Text("ш")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("ш"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("а"),
-                    Direction.LEFT to Action.Text("л")
-                )
+                    Direction.LEFT to Action.Text("л"),
+                ),
             ),
         ),
         listOf(
@@ -69,32 +69,32 @@ val UK_RU_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("е"),
                     Direction.TOP to Action.Text("ї"),
                     Direction.TOP_RIGHT to Action.Text("д"),
-                    Direction.RIGHT to Action.Text("є")
-                )
+                    Direction.RIGHT to Action.Text("є"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("р"),
                     Direction.LEFT to Action.Text("ю"),
                     Direction.TOP to Action.Text("у"),
-                    Direction.RIGHT to Action.Text("з")
-                )
+                    Direction.RIGHT to Action.Text("з"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("н"),
                     Direction.TOP_LEFT to Action.Text("ф"),
-                    Direction.TOP_RIGHT to Action.Text("ё")
-                )
+                    Direction.TOP_RIGHT to Action.Text("ё"),
+                ),
             ),
         ),
-        listOf(SPACE)
-    )
+        listOf(SPACE),
+    ),
 )
 
 val UK_RU_MESSAGEASE = Layout(
     mainLayer = UK_RU_MESSAGEASE_MAIN_LAYER,
-    controlLayer = CONTROL_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER,
 )
 
 @Composable

@@ -11,7 +11,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
-import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -50,9 +49,10 @@ class TakeScreenshotsTest {
                 Until.findObject(
                     By.res(
                         "com.google.android.apps.messaging",
-                        "compose_message_text"
-                    )
-                ), 1000
+                        "compose_message_text",
+                    ),
+                ),
+                1000,
             )!!
         textMessageField.click()
         device.wait(Until.findObject(By.desc("FlickBoard keyboard")), 1000)

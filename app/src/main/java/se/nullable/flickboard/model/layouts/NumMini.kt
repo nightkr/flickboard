@@ -61,7 +61,7 @@ val MINI_NUMBERS_SYMBOLS_LAYER = Layer(
                 ),
             ),
         ),
-    )
+    ),
 )
 
 fun miniNumbersPhoneLayer(digits: String) = Layer(

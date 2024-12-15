@@ -169,7 +169,7 @@ fun Key(
                     when {
                         android.os.Build.VERSION.SDK_INT >= 30 -> HapticFeedbackConstants.GESTURE_START
                         else -> HapticFeedbackConstants.KEYBOARD_TAP
-                    }
+                    },
                 )
             }
         }
@@ -209,7 +209,7 @@ fun Key(
                         handleAction(
                             action,
                             gesture = null,
-                            isFast = true
+                            isFast = true,
                         )
                     },
                     trailListenerState = keyPointerTrailListener,
@@ -236,10 +236,10 @@ fun Key(
         modifier
             .background(
                 keyboardTheme.keySurfaceColour.copy(alpha = keyOpacity.value),
-                shape = shape
+                shape = shape,
             )
             .height(keyHeight.dp)
-            .then(onActionModifier)
+            .then(onActionModifier),
     ) {
         KeyLabelGrid(
             modifier = Modifier
@@ -367,7 +367,7 @@ fun RenderActionVisual(
                     style = LocalTextStyle.current.merge(
                         lineHeightStyle = LineHeightStyle(
                             alignment = LineHeightStyle.Alignment.Center,
-                            trim = LineHeightStyle.Trim.Both
+                            trim = LineHeightStyle.Trim.Both,
                         ),
                         textDirection = when (actionVisual.directionOverride) {
                             TextDirection.LeftToRight -> androidx.compose.ui.text.style.TextDirection.Ltr
@@ -383,7 +383,7 @@ fun RenderActionVisual(
                                             androidx.compose.ui.text.style.TextDirection.Rtl
                                     }
                             }
-                        }
+                        },
                     ),
                 )
             }
@@ -393,7 +393,7 @@ fun RenderActionVisual(
             painter = painterResource(id = actionVisual.resource),
             contentDescription = null,
             tint = usedColour.value,
-            modifier = modifier
+            modifier = modifier,
         )
 
         ActionVisual.None -> {}
@@ -488,7 +488,7 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                                 Direction.CENTER,
                                 longHold = true,
                                 longSwipe = false,
-                                shift = false
+                                shift = false,
                             )
                         }
 
@@ -547,9 +547,11 @@ private suspend inline fun AwaitPointerEventScope.awaitGesture(
                         val gesture = android.gesture.Gesture()
                             .also { g ->
                                 g.addStroke(
-                                    GestureStroke(positions.mapIndexedTo(ArrayList()) { i, pos ->
-                                        GesturePoint(pos.x, pos.y, i.toLong())
-                                    })
+                                    GestureStroke(
+                                        positions.mapIndexedTo(ArrayList()) { i, pos ->
+                                            GesturePoint(pos.x, pos.y, i.toLong())
+                                        },
+                                    ),
                                 )
                             }
                         val predictions = gestureLibrary()?.recognize(gesture)
@@ -690,7 +692,7 @@ fun KeyPreview() {
                             Direction.BOTTOM_LEFT to Action.Text(character = "G"),
                             Direction.BOTTOM to Action.Text(character = "H"),
                             Direction.BOTTOM_RIGHT to Action.Text(character = "I"),
-                        )
+                        ),
                     ),
                     onAction = { action, _, _ ->
                         lastAction = action
@@ -698,7 +700,7 @@ fun KeyPreview() {
                     },
                     layoutTextDirection = TextDirection.LeftToRight,
                     modifier = Modifier.aspectRatio(1F),
-                    modifierState = ModifierState()
+                    modifierState = ModifierState(),
                 )
             }
         }

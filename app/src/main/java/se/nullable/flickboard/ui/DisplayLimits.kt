@@ -26,9 +26,9 @@ data class DisplayLimits(val portraitWidth: Dp, val isLandscape: Boolean) {
             return DisplayLimits(
                 portraitWidth = (min(
                     displayMetrics.widthPixels,
-                    displayMetrics.heightPixels
+                    displayMetrics.heightPixels,
                 ) / displayMetrics.density).dp,
-                isLandscape = displayMetrics.widthPixels * 1.2F > displayMetrics.heightPixels
+                isLandscape = displayMetrics.widthPixels * 1.2F > displayMetrics.heightPixels,
             )
         }
     }

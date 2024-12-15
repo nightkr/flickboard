@@ -22,13 +22,13 @@ import se.nullable.flickboard.util.toTertiary
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary = Pink80,
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
-    tertiary = Pink40
+    tertiary = Pink40,
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -84,11 +84,11 @@ fun FlickBoardTheme(
         val visualFeedbackInvertColourScheme = settings.visualFeedbackInvertColourScheme.state
         val keySurfaceColour = keyColour.value?.toAccentContainer(
             chroma = keyColourChroma.value,
-            toneConfig
+            toneConfig,
         ) ?: colorScheme.primaryContainer
         val keyIndicatorColour = keyColour.value?.toOnAccentContainer(
             chroma = keyColourChroma.value,
-            toneConfig
+            toneConfig,
         ) ?: colorScheme.onPrimaryContainer
         CompositionLocalProvider(
             LocalKeyboardTheme provides (run {
@@ -98,7 +98,7 @@ fun FlickBoardTheme(
                         keyIndicatorColour = keyIndicatorColour,
                         activeKeyIndicatorColour = keyColour.value?.toAccent(
                             chroma = keyColourChroma.value,
-                            toneConfig
+                            toneConfig,
                         ) ?: colorScheme.primary,
                         lastActionSurfaceColour = when {
                             visualFeedbackInvertColourScheme.value -> keyIndicatorColour
@@ -111,7 +111,7 @@ fun FlickBoardTheme(
                     )
                 }
             }),
-            content = content
+            content = content,
         )
     }
 }

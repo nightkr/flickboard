@@ -63,7 +63,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
             Direction.BOTTOM_LEFT to Action.Text("g"),
             Direction.BOTTOM to Action.Text("d"),
             Direction.BOTTOM_RIGHT to Action.Text("j"),
-        )
+        ),
     )
 
     val scope = rememberCoroutineScope()
@@ -85,7 +85,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                         .selectableGroup()
                         .fillMaxWidth()
                         .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.Absolute.SpaceBetween
+                    horizontalArrangement = Arrangement.Absolute.SpaceBetween,
                 ) {
                     Handedness.entries.forEach { option ->
                         Column(
@@ -106,7 +106,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                             Row {
                                 RadioButton(
                                     selected = handednessState.value == option,
-                                    onClick = null
+                                    onClick = null,
                                 )
                                 Text(option.label, Modifier)
                             }
@@ -128,9 +128,9 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                     direction = Direction.CENTER,
                     longHold = false,
                     longSwipe = false,
-                    shift = false
+                    shift = false,
                 ),
-                onGesturePerformed = pager::animateScrollToNextPage
+                onGesturePerformed = pager::animateScrollToNextPage,
             )
         },
         { pager ->
@@ -145,9 +145,9 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                     direction = Direction.RIGHT,
                     longHold = false,
                     longSwipe = false,
-                    shift = false
+                    shift = false,
                 ),
-                onGesturePerformed = pager::animateScrollToNextPage
+                onGesturePerformed = pager::animateScrollToNextPage,
             )
         },
         { pager ->
@@ -162,9 +162,9 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                     direction = Direction.BOTTOM_LEFT,
                     longHold = false,
                     longSwipe = false,
-                    shift = false
+                    shift = false,
                 ),
-                onGesturePerformed = pager::animateScrollToNextPage
+                onGesturePerformed = pager::animateScrollToNextPage,
             )
         },
         { pager ->
@@ -179,9 +179,9 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                     direction = Direction.CENTER,
                     longHold = false,
                     longSwipe = false,
-                    shift = true
+                    shift = true,
                 ),
-                onGesturePerformed = pager::animateScrollToNextPage
+                onGesturePerformed = pager::animateScrollToNextPage,
             )
         },
         { pager ->
@@ -196,9 +196,9 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                     direction = Direction.BOTTOM_LEFT,
                     longHold = false,
                     longSwipe = false,
-                    shift = true
+                    shift = true,
                 ),
-                onGesturePerformed = pager::animateScrollToNextPage
+                onGesturePerformed = pager::animateScrollToNextPage,
             )
         },
         {
@@ -206,7 +206,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .padding(8.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
             ) {
                 Text("Great, you've got the hang of it!")
                 Button(onClick = onFinish) {
@@ -214,7 +214,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                     Text("Finish")
                 }
             }
-        }
+        },
     )
 
     val pagerState = rememberPagerState(pageCount = { pages.size })
@@ -222,7 +222,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.SpaceBetween,
         modifier = modifier
             .padding(8.dp)
-            .fillMaxHeight()
+            .fillMaxHeight(),
     ) {
         Box {}
         Column {
@@ -236,7 +236,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.Bottom,
                 modifier = Modifier
                     .padding(top = 16.dp)
-                    .height(192.dp)
+                    .height(192.dp),
             ) {
                 Card {
                     pages[it](pagerState)
@@ -245,7 +245,7 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 IconButton(onClick = { pagerState.animateScrollToNextPage(-1) }) {
                     Icon(painterResource(R.drawable.baseline_keyboard_arrow_left_24), "Previous")
@@ -256,14 +256,14 @@ fun TutorialPage(onFinish: () -> Unit, modifier: Modifier = Modifier) {
                             when {
                                 page == pagerState.currentPage -> MaterialTheme.colorScheme.primary
                                 else -> MaterialTheme.colorScheme.surfaceVariant
-                            }
+                            },
                         )
                         Box(
                             Modifier
                                 .padding(2.dp)
                                 .clip(CircleShape)
                                 .background(colour.value)
-                                .size(16.dp)
+                                .size(16.dp),
                         )
                     }
                 }
@@ -291,14 +291,14 @@ fun TutorialKeyStep(
         Column(
             Modifier
                 .padding(8.dp)
-                .weight(1F)
+                .weight(1F),
         ) {
             content()
         }
     }
     Row(
         horizontalArrangement = Arrangement.Absolute.SpaceBetween,
-        verticalAlignment = Alignment.Bottom
+        verticalAlignment = Alignment.Bottom,
     ) {
         if (handedness.value == Handedness.RightHanded) {
             WrappedContent()

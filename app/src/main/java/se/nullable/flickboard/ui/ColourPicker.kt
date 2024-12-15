@@ -30,7 +30,7 @@ fun ColourPicker(onColourSelected: (Color) -> Unit, modifier: Modifier = Modifie
     val brush = remember {
         Brush.sweepGradient(
             (0..360 step 30).reversed()
-                .map { colourOfHctHue(it) }
+                .map { colourOfHctHue(it) },
         )
     }
     val selectedColourPixel = remember { IntArray(1) }
@@ -69,7 +69,7 @@ fun ColourPicker(onColourSelected: (Color) -> Unit, modifier: Modifier = Modifie
                                 .toInt()
                                 .coerceIn(0..<bitmap.height),
                             1,
-                            1
+                            1,
                         )
                         onColourSelected(Color(selectedColourPixel[0]))
                     }

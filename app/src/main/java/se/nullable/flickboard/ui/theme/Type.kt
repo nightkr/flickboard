@@ -20,7 +20,7 @@ val Typography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
+        letterSpacing = 0.5.sp,
     ),
     /* Other default text styles to override
     titleLarge = TextStyle(
@@ -47,7 +47,7 @@ fun Title(text: String) {
         style = Typography.titleLarge,
         modifier = Modifier
             .padding(8.dp)
-            .padding(top = 16.dp)
+            .padding(top = 16.dp),
     )
 }
 
@@ -66,6 +66,6 @@ fun BodyPlaceholder(text: String, modifier: Modifier = Modifier) {
         text,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
-        modifier = modifier
+        modifier = modifier,
     )
 }

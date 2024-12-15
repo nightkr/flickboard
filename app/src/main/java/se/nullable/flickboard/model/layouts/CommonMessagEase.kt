@@ -29,13 +29,13 @@ val SPACE = KeyM(
         Direction.LEFT to Action.Jump(direction = SearchDirection.Backwards),
         Direction.RIGHT to Action.Jump(direction = SearchDirection.Forwards),
     ),
-    colspan = 3
+    colspan = 3,
 )
 
 fun spacer(width: Dp) =
     listOf(KeyM(actions = emptyMap(), fixedWidth = width, rendered = false)).let { row ->
         Layer(
-            keyRows = listOf(row, row, row, row)
+            keyRows = listOf(row, row, row, row),
         )
     }
 
@@ -50,8 +50,8 @@ val OVERLAY_LONG_SWIPE_LAYER = run {
             row,
             row,
             row,
-            listOf(KeyM(actions = emptyMap()), KeyM(actions = emptyMap()))
-        )
+            listOf(KeyM(actions = emptyMap()), KeyM(actions = emptyMap())),
+        ),
     )
 }
 
@@ -86,7 +86,7 @@ val OVERLAY_ADVANCED_MODIFIERS_MESSAGEASE_LAYER =
                     ),
                 ),
             ),
-        )
+        ),
     )
 
 val OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER =
@@ -111,10 +111,10 @@ val OVERLAY_TOGGLE_SYMBOLS_MESSAGEASE_LAYER =
                 KeyM(
                     actions = mapOf(
                         Direction.TOP to Action.ToggleShowSymbols,
-                    )
-                )
+                    ),
+                ),
             ),
-        )
+        ),
     )
 
 val CONTROL_MESSAGEASE_LAYER =
@@ -135,10 +135,10 @@ val CONTROL_MESSAGEASE_LAYER =
                         actions = mapOf(
                             Direction.BOTTOM_LEFT to Action.SwitchSystemKeyboard,
                             Direction.BOTTOM_RIGHT to Action.SwitchSystemKeyboard,
-                        )
+                        ),
                     ),
                     holdAction = Action.ToggleNumbersLayer,
-                )
+                ),
             ),
             // clipboard
             listOf(
@@ -153,7 +153,7 @@ val CONTROL_MESSAGEASE_LAYER =
                         Direction.BOTTOM_RIGHT to Action.EnableVoiceMode,
                     ),
                     shift = KeyM(actions = mapOf(Direction.CENTER to Action.SelectAll)),
-                )
+                ),
             ),
             // backspace
             listOf(
@@ -166,7 +166,7 @@ val CONTROL_MESSAGEASE_LAYER =
                         Direction.LEFT to Action.Delete(hidden = true),
                         Direction.RIGHT to Action.Delete(
                             direction = SearchDirection.Forwards,
-                            hidden = true
+                            hidden = true,
                         ),
                     ),
                     fastActions = mapOf(
@@ -177,7 +177,7 @@ val CONTROL_MESSAGEASE_LAYER =
                         direction = SearchDirection.Forwards,
                         boundary = TextBoundary.Word,
                     ),
-                )
+                ),
             ),
             // enter
             listOf(
@@ -189,14 +189,14 @@ val CONTROL_MESSAGEASE_LAYER =
                         Direction.TOP to Action.Text(
                             "\n",
                             visualOverride = Action.Enter().visual(null),
-                            hidden = true
+                            hidden = true,
                         ),
                         Direction.TOP_RIGHT to Action.ToggleEmojiMode,
                         Direction.BOTTOM to Action.ToggleZalgo,
-                    )
-                )
+                    ),
+                ),
             ),
-        )
+        ),
     )
 
 fun overlayMessageaseLayer(locale: Locale) = Layer(
@@ -218,14 +218,14 @@ fun overlayMessageaseLayer(locale: Locale) = Layer(
                     actions = mapOf(
                         Direction.TOP to Action.ToggleWordCase(
                             CaseChangeDirection.Up,
-                            locale = locale
+                            locale = locale,
                         ),
                         Direction.BOTTOM to Action.ToggleWordCase(
                             CaseChangeDirection.Down,
-                            locale = locale
+                            locale = locale,
                         ),
-                    )
-                )
+                    ),
+                ),
             ),
         ),
         listOf(
@@ -233,8 +233,8 @@ fun overlayMessageaseLayer(locale: Locale) = Layer(
             KeyM(actions = mapOf()),
             KeyM(actions = mapOf(Direction.BOTTOM to Action.JumpLineKeepPos(SearchDirection.Forwards))),
         ),
-        listOf(KeyM(actions = mapOf()))
-    )
+        listOf(KeyM(actions = mapOf())),
+    ),
 )
 
 @Composable

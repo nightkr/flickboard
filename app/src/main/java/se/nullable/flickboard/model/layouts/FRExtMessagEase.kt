@@ -20,13 +20,13 @@ val FR_EXT_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_RIGHT to Action.Text("â"),
                     Direction.LEFT to Action.Text("ç"),
                     Direction.BOTTOM_RIGHT to Action.Text("v"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("n"),
                     Direction.BOTTOM to Action.Text("z"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -35,7 +35,7 @@ val FR_EXT_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_RIGHT to Action.Text("ô"),
                     Direction.RIGHT to Action.Text("î"),
                     Direction.BOTTOM_LEFT to Action.Text("x"),
-                )
+                ),
             ),
         ),
         listOf(
@@ -45,7 +45,7 @@ val FR_EXT_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP to Action.Text("ù"),
                     Direction.RIGHT to Action.Text("h"),
                     Direction.BOTTOM to Action.Text("w"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -58,13 +58,13 @@ val FR_EXT_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.BOTTOM_LEFT to Action.Text("g"),
                     Direction.BOTTOM to Action.Text("d"),
                     Direction.BOTTOM_RIGHT to Action.Text("j"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("r"),
                     Direction.LEFT to Action.Text("m"),
-                )
+                ),
             ),
         ),
         listOf(
@@ -74,31 +74,31 @@ val FR_EXT_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP_RIGHT to Action.Text("y"),
                     Direction.BOTTOM_LEFT to Action.Text("ë"),
                     Direction.BOTTOM to Action.Text("k"),
-                )
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("e"),
                     Direction.TOP to Action.Text("é"),
                     Direction.LEFT to Action.Text("è"),
-                    Direction.RIGHT to Action.Text("ê")
-                )
+                    Direction.RIGHT to Action.Text("ê"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("s"),
                     Direction.TOP_LEFT to Action.Text("f"),
-                    Direction.BOTTOM_RIGHT to Action.Text("ü")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("ü"),
+                ),
             ),
         ),
-        listOf(SPACE)
-    )
+        listOf(SPACE),
+    ),
 )
 
 val FR_EXT_MESSAGEASE = Layout(
     mainLayer = FR_EXT_MESSAGEASE_MAIN_LAYER,
-    controlLayer = CONTROL_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER,
 )
 
 @Composable

@@ -148,17 +148,17 @@ fun Keyboard(
             .mergeFallback(
                 overlay.mergeFallback(
                     mergedFullSizedNumericLayer.value,
-                    holdForFallback = true
+                    holdForFallback = true,
                 )
-                    .autoShift(layout.locale)
+                    .autoShift(layout.locale),
             )
         return mapOf(
             ShiftState.Normal to layout.mainLayer
                 .mergeFallback(
                     overlay.mergeFallback(
                         mergedFullSizedNumericLayer.value,
-                        holdForFallback = true
-                    )
+                        holdForFallback = true,
+                    ),
                 )
                 .setShift(shift),
 
@@ -171,8 +171,8 @@ fun Keyboard(
                         .autoShift(layout.locale)
                         .mergeFallback(
                             mergedFullSizedNumericLayer.value,
-                            holdForFallback = true
-                        )
+                            holdForFallback = true,
+                        ),
                 ),
         ).mapValues {
             it.value.filterActions(
@@ -229,7 +229,7 @@ fun Keyboard(
                                     pointerTrailColor,
                                     center = it + keyPosition,
                                     radius = 10.dp.toPx(),
-                                    alpha = 0.4f
+                                    alpha = 0.4f,
                                 )
                             }
                         }
@@ -238,7 +238,7 @@ fun Keyboard(
             }
             .semantics {
                 this.contentDescription = "FlickBoard keyboard"
-            }
+            },
     ) {
         var desiredWidth = maxWidth
         LocalDisplayLimits.current?.let { limits ->
@@ -324,8 +324,8 @@ fun Keyboard(
                     backgroundImage.value?.let {
                         BitmapPainter(
                             ImageDecoder.decodeBitmap(
-                                ImageDecoder.createSource(context.contentResolver, it)
-                            ).asImageBitmap()
+                                ImageDecoder.createSource(context.contentResolver, it),
+                            ).asImageBitmap(),
                         )
                     }
                 } catch (e: IOException) {
@@ -340,7 +340,7 @@ fun Keyboard(
             null,
             contentScale = ContentScale.Crop,
             alpha = backgroundOpacity.value,
-            modifier = Modifier.matchParentSize()
+            modifier = Modifier.matchParentSize(),
         )
         Grid(
             modifier = Modifier
@@ -348,15 +348,15 @@ fun Keyboard(
                 .align(
                     BiasAbsoluteAlignment(
                         horizontalBias = appSettings.currentLocation,
-                        verticalBias = 0F
-                    )
+                        verticalBias = 0F,
+                    ),
                 )
                 .padding(keyboardMargin.value.dp)
                 .padding(
                     bottom = when {
                         isLandscape.value -> 0.dp
                         else -> keyboardMarginBottomPortrait.value.dp
-                    }
+                    },
                 ),
             columnGap = 1.dp,
             rowGap = 1.dp,
@@ -421,7 +421,7 @@ fun Keyboard(
                         }
                     }
                 }
-            }
+            },
         )
     }
 }
@@ -460,7 +460,8 @@ fun KeyboardLayoutPreview(layout: Layout, showAllModifiers: Boolean = false) {
         Keyboard(
             layout = layout,
             showAllModifiers = showAllModifiers,
-            onAction = { _, _, _ -> true })
+            onAction = { _, _, _ -> true },
+        )
     }
 }
 
@@ -475,10 +476,12 @@ fun KeyboardPreview() {
                 Row {
                     Text(text = "Tapped: $lastAction")
                 }
-                ConfiguredKeyboard(onAction = { action, _, _ ->
-                    lastAction = action
-                    true
-                })
+                ConfiguredKeyboard(
+                    onAction = { action, _, _ ->
+                        lastAction = action
+                        true
+                    },
+                )
             }
         }
     }
@@ -491,15 +494,19 @@ fun PlayKeyboardPreview() {
     FlickBoardParent {
         Surface {
             val appSettings = LocalAppSettings.current
-            AppSettingsProvider(prefs = MockedSharedPreferences(appSettings.ctx.prefs).also {
-                it.edit {
-                    appSettings.keyHeight.writeTo(this, 128F)
-                }
-            }) {
-                ConfiguredKeyboard(onAction = { action, _, _ ->
-                    lastAction = action
-                    true
-                })
+            AppSettingsProvider(
+                prefs = MockedSharedPreferences(appSettings.ctx.prefs).also {
+                    it.edit {
+                        appSettings.keyHeight.writeTo(this, 128F)
+                    }
+                },
+            ) {
+                ConfiguredKeyboard(
+                    onAction = { action, _, _ ->
+                        lastAction = action
+                        true
+                    },
+                )
             }
         }
     }

@@ -27,42 +27,42 @@ data class LastTypedData(val codePoint: Int?, val position: Int, val combiner: C
                 Combiner(
                     original = "a$nextChar",
                     combinedReplacement = "æ",
-                    baseCharLength = UCharacter.charCount(codePoint)
+                    baseCharLength = UCharacter.charCount(codePoint),
                 )
 
             tryHarder && codePoint == 'A'.code && nextChar.lowercase() == "e" ->
                 Combiner(
                     original = "A$nextChar",
                     combinedReplacement = "Æ",
-                    baseCharLength = UCharacter.charCount(codePoint)
+                    baseCharLength = UCharacter.charCount(codePoint),
                 )
 
             tryHarder && codePoint == 'o'.code && nextChar.lowercase() == "e" ->
                 Combiner(
                     original = "o$nextChar",
                     combinedReplacement = "œ",
-                    baseCharLength = UCharacter.charCount(codePoint)
+                    baseCharLength = UCharacter.charCount(codePoint),
                 )
 
             tryHarder && codePoint == 'O'.code && nextChar.lowercase() == "e" ->
                 Combiner(
                     original = "O$nextChar",
                     combinedReplacement = "Œ",
-                    baseCharLength = UCharacter.charCount(codePoint)
+                    baseCharLength = UCharacter.charCount(codePoint),
                 )
 
             tryHarder && codePoint == 'o'.code && nextChar == "/" ->
                 Combiner(
                     original = "o/",
                     combinedReplacement = "ø",
-                    baseCharLength = UCharacter.charCount(codePoint)
+                    baseCharLength = UCharacter.charCount(codePoint),
                 )
 
             tryHarder && codePoint == 'O'.code && nextChar == "/" ->
                 Combiner(
                     original = "O/",
                     combinedReplacement = "Ø",
-                    baseCharLength = UCharacter.charCount(codePoint)
+                    baseCharLength = UCharacter.charCount(codePoint),
                 )
 
             tryHarder && ((codePoint == '?'.code && nextChar == "!")
@@ -70,7 +70,7 @@ data class LastTypedData(val codePoint: Int?, val position: Int, val combiner: C
                 Combiner(
                     original = "${UCharacter.toString(codePoint)}$nextChar",
                     combinedReplacement = "‽",
-                    baseCharLength = UCharacter.charCount(codePoint)
+                    baseCharLength = UCharacter.charCount(codePoint),
                 )
 
             else -> {

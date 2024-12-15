@@ -16,20 +16,20 @@ val RU_PHONETIC_MESSAGEASE_MAIN_LAYER = Layer(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("а"),
                     Direction.BOTTOM to Action.Text("ч"),
-                    Direction.BOTTOM_RIGHT to Action.Text("ж")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("ж"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("н"),
-                    Direction.BOTTOM to Action.Text("л")
-                )
+                    Direction.BOTTOM to Action.Text("л"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("и"),
-                    Direction.BOTTOM_LEFT to Action.Text("х")
-                )
+                    Direction.BOTTOM_LEFT to Action.Text("х"),
+                ),
             ),
         ),
         listOf(
@@ -39,8 +39,8 @@ val RU_PHONETIC_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.TOP to Action.Text("ъ"),
                     Direction.RIGHT to Action.Text("к"),
                     Direction.BOTTOM to Action.Text("ь"),
-                    Direction.BOTTOM_RIGHT to Action.Text("ы")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("ы"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
@@ -52,14 +52,14 @@ val RU_PHONETIC_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.RIGHT to Action.Text("б"),
                     Direction.BOTTOM_LEFT to Action.Text("г"),
                     Direction.BOTTOM to Action.Text("д"),
-                    Direction.BOTTOM_RIGHT to Action.Text("й")
-                )
+                    Direction.BOTTOM_RIGHT to Action.Text("й"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("р"),
-                    Direction.LEFT to Action.Text("м")
-                )
+                    Direction.LEFT to Action.Text("м"),
+                ),
             ),
         ),
         listOf(
@@ -68,31 +68,31 @@ val RU_PHONETIC_MESSAGEASE_MAIN_LAYER = Layer(
                     Direction.CENTER to Action.Text("т"),
                     Direction.TOP to Action.Text("ё"),
                     Direction.TOP_RIGHT to Action.Text("ю"),
-                    Direction.RIGHT to Action.Text("щ")
-                )
+                    Direction.RIGHT to Action.Text("щ"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("е"),
                     Direction.LEFT to Action.Text("ш"),
                     Direction.TOP to Action.Text("э"),
-                    Direction.RIGHT to Action.Text("з")
-                )
+                    Direction.RIGHT to Action.Text("з"),
+                ),
             ),
             KeyM(
                 actions = mapOf(
                     Direction.CENTER to Action.Text("с"),
-                    Direction.TOP_LEFT to Action.Text("ф")
-                )
+                    Direction.TOP_LEFT to Action.Text("ф"),
+                ),
             ),
         ),
-        listOf(SPACE)
-    )
+        listOf(SPACE),
+    ),
 )
 
 val RU_PHONETIC_MESSAGEASE = Layout(
     mainLayer = RU_PHONETIC_MESSAGEASE_MAIN_LAYER,
-    controlLayer = CONTROL_MESSAGEASE_LAYER
+    controlLayer = CONTROL_MESSAGEASE_LAYER,
 )
 
 @Composable

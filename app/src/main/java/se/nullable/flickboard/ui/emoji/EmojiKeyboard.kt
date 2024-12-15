@@ -55,7 +55,7 @@ fun EmojiKeyboard(onAction: OnAction) {
             when {
                 emojiHistory.value.isBlank() -> EmojiTab.Category(0)
                 else -> EmojiTab.Recent
-            }
+            },
         )
     }
 
@@ -67,11 +67,11 @@ fun EmojiKeyboard(onAction: OnAction) {
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer)
+            modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer),
         ) {
             Button(
                 onClick = { onAction.onAction(Action.ToggleEmojiMode, key = null, gesture = null) },
-                Modifier.padding(8.dp)
+                Modifier.padding(8.dp),
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, "Return to keyboard")
             }
@@ -79,7 +79,7 @@ fun EmojiKeyboard(onAction: OnAction) {
             Row(
                 modifier = Modifier
                     .weight(1F)
-                    .horizontalScroll(tabScrollState)
+                    .horizontalScroll(tabScrollState),
             ) {
                 if (saveHistory.value) {
                     NarrowTab(
@@ -89,7 +89,7 @@ fun EmojiKeyboard(onAction: OnAction) {
                             Icon(
                                 painterResource(R.drawable.baseline_history_24),
                                 contentDescription = null,
-                                Modifier.padding(8.dp)
+                                Modifier.padding(8.dp),
                             )
                         },
                     )
@@ -106,7 +106,7 @@ fun EmojiKeyboard(onAction: OnAction) {
                             Icon(
                                 painterResource(emojiCategory.iconId),
                                 contentDescription = null,
-                                Modifier.padding(8.dp)
+                                Modifier.padding(8.dp),
                             )
                         },
                     )
@@ -114,7 +114,7 @@ fun EmojiKeyboard(onAction: OnAction) {
             }
             Button(
                 onClick = { onAction.onAction(Action.Delete(), key = null, gesture = null) },
-                Modifier.padding(8.dp)
+                Modifier.padding(8.dp),
             ) {
                 Icon(painterResource(R.drawable.baseline_backspace_24), "Backspace")
             }
@@ -132,27 +132,29 @@ fun EmojiKeyboard(onAction: OnAction) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.colorScheme.surface),
         ) {
             items(tabEmojis) {
                 val primaryVariant = it.variants[0]
-                Box(Modifier.clickable {
-                    if (saveHistory.value) {
-                        appSettings.emojiHistory.currentValue =
-                            "$primaryVariant\n${
-                                emojiHistory.value
-                                    // Remove duplicates
-                                    .replace("$primaryVariant\n", "")
-                            }"
-                                // Limit history length
-                                .let { history ->
-                                    history.findAnyOf(listOf("\n"), startIndex = 50)
-                                        ?.let { (i) -> history.substring(0..i) }
-                                        ?: history
-                                }
-                    }
-                    onAction.onAction(Action.Text(primaryVariant), key = null, gesture = null)
-                }) {
+                Box(
+                    Modifier.clickable {
+                        if (saveHistory.value) {
+                            appSettings.emojiHistory.currentValue =
+                                "$primaryVariant\n${
+                                    emojiHistory.value
+                                        // Remove duplicates
+                                        .replace("$primaryVariant\n", "")
+                                }"
+                                    // Limit history length
+                                    .let { history ->
+                                        history.findAnyOf(listOf("\n"), startIndex = 50)
+                                            ?.let { (i) -> history.substring(0..i) }
+                                            ?: history
+                                    }
+                        }
+                        onAction.onAction(Action.Text(primaryVariant), key = null, gesture = null)
+                    },
+                ) {
                     Text(
                         primaryVariant,
                         fontSize = emojiSizeSp,
@@ -180,7 +182,7 @@ fun NarrowTab(selected: Boolean, onClick: () -> Unit, icon: @Composable () -> Un
                 }
             }
         },
-        modifier = Modifier.width(IntrinsicSize.Max)
+        modifier = Modifier.width(IntrinsicSize.Max),
     )
 }
 
@@ -225,7 +227,8 @@ fun emojiList(): EmojiList {
                                 .filter { it.isNotEmpty() }
                                 .map { variants ->
                                     EmojiGroup(variants = variants.split(','))
-                                })
+                                },
+                        )
                     }
                 }
         EmojiList(categories)
