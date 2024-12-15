@@ -17,6 +17,10 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -375,7 +379,11 @@ fun SettingsKeyboardPreview(
                         }
                     }
                 }
-                AnimatedVisibility(enableState.value) {
+                AnimatedVisibility(
+                    enableState.value,
+                    enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+                    exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+                ) {
                     ProvideDisplayLimits {
                         ConfiguredKeyboard(
                             onAction = { _, _, _ -> true }, // Keyboard provides internal visual feedback if enabled
