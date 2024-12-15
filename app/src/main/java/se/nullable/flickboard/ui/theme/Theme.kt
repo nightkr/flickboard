@@ -1,6 +1,5 @@
 package se.nullable.flickboard.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -10,13 +9,10 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
 import se.nullable.flickboard.ui.LocalAppSettings
 import se.nullable.flickboard.util.toAccent
 import se.nullable.flickboard.util.toAccentContainer
@@ -74,15 +70,6 @@ fun FlickBoardTheme(
 
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
-    }
-    if (!view.isInEditMode) {
-        SideEffect {
-            (view.context as? Activity)?.window?.let { window ->
-                window.statusBarColor = colorScheme.primary.toArgb()
-                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars =
-                    darkTheme
-            }
-        }
     }
 
     MaterialTheme(

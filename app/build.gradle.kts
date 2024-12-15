@@ -36,7 +36,7 @@ android {
     defaultConfig {
         applicationId = "se.nullable.flickboard"
         minSdk = 28
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 51
         versionName = "0.2.0-beta1"
         base.archivesName = "flickboard-v${versionName}"

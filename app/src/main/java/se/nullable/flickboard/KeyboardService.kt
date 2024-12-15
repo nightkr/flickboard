@@ -15,8 +15,11 @@ import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
@@ -728,7 +731,7 @@ class KeyboardService : InputMethodService(), LifecycleOwner, SavedStateRegistry
                                     }
                                     actionSuccessful
                                 }
-                                Box {
+                                Box(Modifier.windowInsetsPadding(WindowInsets.safeDrawing)) {
                                     when {
                                         emojiMode -> EmojiKeyboard(onAction = onAction)
                                         else -> {

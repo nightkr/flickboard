@@ -3,6 +3,7 @@ package se.nullable.flickboard
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.clickable
@@ -29,7 +30,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -50,14 +50,11 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
         @Composable
         fun NavigateUpIcon(navController: NavController) {
             IconButton(onClick = { navController.navigateUp() }) {
-                Icon(
-                    Icons.AutoMirrored.Default.ArrowBack,
-                    "Up"
-                )
+                Icon(Icons.AutoMirrored.Default.ArrowBack, "Up")
             }
         }
         setContent {
@@ -65,14 +62,15 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .windowInsetsPadding(WindowInsets.navigationBars)
-                        .consumeExcludedInsets()
-                        .windowInsetsPadding(WindowInsets.safeDrawing),
+                    modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Box {
+                    Box(
+                        Modifier
+                            .windowInsetsPadding(WindowInsets.navigationBars)
+                            .consumeExcludedInsets()
+                            .windowInsetsPadding(WindowInsets.safeDrawing),
+                    ) {
                         Column {
                             val appSettings = LocalAppSettings.current
                             SharedTransitionLayout {
