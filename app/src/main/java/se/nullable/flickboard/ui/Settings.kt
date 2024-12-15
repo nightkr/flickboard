@@ -79,7 +79,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -198,6 +200,7 @@ fun SettingsHomePage(
                     value = tryText.value,
                     onValueChange = { tryText.value = it },
                     label = { Text("Type here to try FlickBoard") },
+                    textStyle = TextStyle(textDirection = TextDirection.Content),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp),
