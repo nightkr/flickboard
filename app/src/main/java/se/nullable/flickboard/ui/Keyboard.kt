@@ -106,6 +106,7 @@ fun Keyboard(
     val enableHiddenActions = appSettings.enableHiddenActions.state
     val enableAdvancedModifiers = appSettings.enableAdvancedModifiers.state
     val enableToggleShowSymbols = appSettings.enableToggleShowSymbolsGesture.state
+    val keyBorderStyle = appSettings.keyBorderStyle.state
     val keyColour = appSettings.keyColour.state
     val keyColourChroma = appSettings.keyColourChroma.state
     val toneMode = appSettings.keyColourTone.state
@@ -342,6 +343,10 @@ fun Keyboard(
             alpha = backgroundOpacity.value,
             modifier = Modifier.matchParentSize(),
         )
+        val keyGap = when (keyBorderStyle.value) {
+            KeyBorderStyle.Gap -> 1.dp
+            else -> 0.dp
+        }
         Grid(
             modifier = Modifier
                 .width(thisWidth)
@@ -358,8 +363,8 @@ fun Keyboard(
                         else -> keyboardMarginBottomPortrait.value.dp
                     },
                 ),
-            columnGap = 1.dp,
-            rowGap = 1.dp,
+            columnGap = keyGap,
+            rowGap = keyGap,
             rows = layer.keyRows.map { row ->
                 {
                     row.forEach { key ->
