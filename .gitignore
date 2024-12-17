@@ -19,3 +19,4 @@ local.properties
 /app/plain/release
 /app/beta/release
 /fastlane/report.xml
+/fastlane/metadata/android/screenshots.html

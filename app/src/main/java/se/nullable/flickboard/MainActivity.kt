@@ -120,7 +120,11 @@ class MainActivity : ComponentActivity() {
                                         val hasCompletedTutorial =
                                             appSettings.hasCompletedTutorial.state.value
                                         LaunchedEffect(hasCompletedTutorial) {
-                                            if (!hasCompletedTutorial) {
+                                            // Flavor depends on build variant
+                                            @Suppress("KotlinConstantConditions")
+                                            if (!hasCompletedTutorial
+                                                && BuildConfig.FLAVOR != "screengrab"
+                                            ) {
                                                 navController.navigate(MainActivityNav.Tutorial) {
                                                     popUpTo<MainActivityNav.SettingsMain> {
                                                         inclusive = true

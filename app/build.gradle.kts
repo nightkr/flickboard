@@ -79,6 +79,7 @@ android {
         create("screengrab") {
             dimension = "purpose"
             applicationIdSuffix = ".screengrab"
+            base.archivesName = "app"
         }
     }
 
