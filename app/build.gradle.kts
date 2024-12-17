@@ -37,8 +37,8 @@ android {
         applicationId = "se.nullable.flickboard"
         minSdk = 28
         targetSdk = 35
-        versionCode = 54
-        versionName = "0.2.0-beta4"
+        versionCode = 55
+        versionName = "0.2.0-beta5"
         base.archivesName = "flickboard-v${versionName}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
