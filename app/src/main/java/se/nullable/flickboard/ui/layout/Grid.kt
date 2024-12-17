@@ -21,9 +21,18 @@ fun Grid(
     modifier: Modifier = Modifier,
     columnGap: Dp = 0.dp,
     rowGap: Dp = 0.dp,
-    rows: List<@Composable GridRowScope.() -> Unit>
+    rows: List<@Composable GridRowScope.() -> Unit>,
 ) {
     Layout(rows.map { { GridRowScope().it() } }, modifier) { measurables, constraints ->
+        // As of the Compose compiler plugin 1.5.2+ (as opposed to 1.5.1),
+        // the layout will *not* be recomputed if contents are reordered but otherwise
+        // identical. In practice, this happens when flipping the handedness.
+        // To work around this, we capture `rows` into the lambda, which causes it to become
+        // invalidated whenever it changes.
+        // In my testing, @DontMemoize was utterly unhelpful for resolving this.
+        @Suppress("UNUSED_VARIABLE", "LocalVariableName")
+        val _captureRows = rows
+
         fun Measurable.gridParentData(): GridParentData =
             (this.parentData as GridParentData?) ?: GridParentData.Default
 
