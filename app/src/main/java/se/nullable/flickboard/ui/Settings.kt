@@ -1333,8 +1333,8 @@ class AppSettings(val ctx: SettingsContext) {
     val circleAngleThreshold = Setting.FloatSlider(
         key = "circleAngleThreshold",
         label = "Circle angle threshold",
-        description = "How full the circle must be",
-        defaultValue = 1.8F * PiF,
+        description = "How full the circle must be to be detected",
+        defaultValue = 1.5F * PiF,
         range = 1.5F * PiF..3F * PiF,
         ctx = ctx,
         render = Setting.FloatSlider::angle,
